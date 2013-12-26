@@ -4,6 +4,8 @@ import os
 import sys
 import glob
 
+from docstring import DocString
+
 class PyComment(object):
     '''This class allow to manage several python scripts docstrings.
     It is used to parse and rewrite in a Pythonic way all the methods and classes docstrings.
@@ -46,7 +48,9 @@ class PyComment(object):
         self.current_file = None
         self.doc_index = -1
         self.file_index = 0
+
         self._set_file_list(source)
+        self.next_file()
 
     def _get_files_from_dir(self, folder, recursive, depth=0):
         '''Retrieve the list of files from a folder.
@@ -98,7 +102,6 @@ class PyComment(object):
 
         '''
         if self.current_file is None:
-            self._set_file_list()
             self.file_index = 0
         else:
             try:
@@ -111,10 +114,40 @@ class PyComment(object):
         except:
             pass
     
-    def get_next(self):
+    def _get_next(self):
         '''Get the current file's next docstring
 
         '''
+    def _parse_current_file(self):
+        '''Parses the current file's content and generates a list of its elements/docstrings.
+
+        '''
+        if self.current_file is None:
+            raise 'There is no current file opened to explore the elements.'
+        #TODO manage decorators
+        #TODO manage default params with strings escaping chars as (, ), ', ', #, ...
+        #TODO manage multilines
+        elem_list = []
+        reading_element = False
+        reading_docs = False
+        raw = ''
+        for l in self.current_file.readlines():
+            l = l.strip()
+            if l.startswith('def ') or 'class ':
+                # if currently reading an element content
+                if reading_element:
+                reading_element = True
+                e = DocString(l)
+                e.parse_element()
+                elem_list.append(e)
+            else:
+                if '"""' in l or "'''" in l:
+                    if reading_docs:
+                        raw += l
+                        e.parse_docs_raw(raw)
+                        reading_docs = False
+                        reading_element = False
+                        raw = ''
 
     def diff(self, which=0):
         '''Build the diff between original docstring and proposed docstring.
@@ -135,7 +168,7 @@ class PyComment(object):
 
 
 if __name__ == "__main__":
-    source = "test.py"
+    source = sys.argv[0]
 
     if len(sys.argv) > 1:
         source = sys.argv[1]
@@ -144,4 +177,4 @@ if __name__ == "__main__":
 
 
     print(c.get_file_list())
-
+    c.release()
