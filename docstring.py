@@ -15,7 +15,8 @@ class DocString(object):
         self.raw = docs_raw
 
     def __str__(self):
-        txt = "element: " + str(self.element['name']) + ' of type ' + str(self.element['type'])
+        txt = "element: " + str(self.element['name']) + ' of type ' + str(self.element['type']) + '\n'
+        txt += '  -> ' + str(self.raw) + '\n'
         return txt
 
     def __repr__(self):
@@ -56,6 +57,8 @@ class DocString(object):
                     self.element['params'].append({k.strip(): v.strip()})
                 else:
                     self.element['params'].append(e);
+    def parse_docs_raw(self, raw):
+        self.raw = raw
 
     def proceed(self):
         '''Proceed the raw docstring part if any.

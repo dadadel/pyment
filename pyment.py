@@ -129,36 +129,62 @@ class PyComment(object):
         #TODO manage multilines
         elem_list = []
         reading_element = False
-        reading_docs = False
+        reading_docs = None
+        waiting_docs = False
         raw = ''
-        for l in self.current_file.readlines():
-            l = l.strip()
-            if l.startswith('def ') or 'class ':
+        for ln in self.current_file.readlines():
+            l = ln.strip()
+            if l.startswith('def ') or l.startswith('class '):
                 # if currently reading an element content
                 if reading_element:
-                    if reading_docs:
+                    if reading_docs is not None:
                         #FIXME there is a pb
                         raise 'reach new element before end of docstring'
                 reading_element = True
+                waiting_docs = True
                 e = DocString()
                 e.parse_element(l)
                 elem_list.append(e)
             else:
-                if '"""' in l or "'''" in l:
+                if waiting_docs and ('"""' in l or "'''" in l):
                     # start of docstring bloc
                     if not reading_docs:
-                        reading_docs = True
-                        raw = l
+                        # determine which delimiter
+                        idx_c = l.find('"""')
+                        idx_dc= l.find("'''")
+                        lim = '"""'
+                        if idx_c >= 0 and idx_dc >= 0:
+                            if idx_c < idx_dc:
+                                lim = '"""'
+                            else:
+                                lim = "'''"
+                        elif idx_c < 0:
+                            lim = "'''"
+                        reading_docs = lim
+                        raw = ln
+                        # one line docstring
+                        if l.count(lim) == 2:
+                            elem_list[-1].parse_docs_raw(raw)
+                            reading_docs = None
+                            waiting_docs = False
+                            reading_element = False
+                            raw = ''
                     # end of docstring bloc
-                    else:
-                        raw += l
+                    elif waiting_docs and lim in l:
+                        raw += ln
                         elem_list[-1].parse_docs_raw(raw)
-                        reading_docs = False
+                        reading_docs = None
+                        waiting_docs = False
                         reading_element = False
                         raw = ''
+                    elif waiting_docs:
+                        raw += ln
+                # no docstring found for current element
+                elif waiting_docs and l != '' and reading_docs is None:
+                    waiting_docs = False
                 else:
-                    if reading_docs:
-                        raw += l
+                    if reading_docs is not None:
+                        raw += ln
         return elem_list
 
     def diff(self, which=0):
@@ -178,6 +204,10 @@ class PyComment(object):
         except:
             pass
 
+    def test(self, bob):
+        print 'nothing'
+        var = bob
+        '''affecting bob'''
 
 if __name__ == "__main__":
     source = sys.argv[0]
