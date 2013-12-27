@@ -1,18 +1,25 @@
 
-class DocString(dict):
+class DocString(object):
     '''This class represents the docstring'''
 
-    def __init__(self, element=None, docs_raw=None):
+    def __init__(self, elem_raw=None, docs_raw=None):
         '''
-        @param element: raw data of the element (def or class).
+        @param elem_raw: raw data of the element (def or class).
         @param docs_raw: the raw data of the docstring part if any.
         '''
         self.element = {}
-        self.element['raw'] = element
+        self.element['raw'] = elem_raw
         self.element['name'] = None
         self.element['type'] = None
         self.element['params'] = []
         self.raw = docs_raw
+
+    def __str__(self):
+        txt = "element: " + str(self.element['name']) + ' of type ' + str(self.element['type'])
+        return txt
+
+    def __repr__(self):
+        return self.__str__()
 
     def parse_element(self, raw=None):
         '''Parses the element's elements (type, name and parameters) :)
@@ -41,7 +48,7 @@ class DocString(dict):
             if l[-1] == ':':
                 l = l[:-1].strip()
             # retrieves the parameters
-            l = l.find('(')+1: l.find(')').strip()
+            l = l[l.find('(')+1: l.find(')')].strip()
             lst = [c.strip() for c in l.split(',')]
             for e in lst:
                 if '=' in e:

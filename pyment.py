@@ -73,7 +73,6 @@ class PyComment(object):
                 file_list.append(f)
         return file_list
 
-
     def _set_file_list(self, source):
         '''Build the list of files to be proceeded.
 
@@ -118,7 +117,8 @@ class PyComment(object):
         '''Get the current file's next docstring
 
         '''
-    def _parse_current_file(self):
+
+    def parse_current_file(self):
         '''Parses the current file's content and generates a list of its elements/docstrings.
 
         '''
@@ -136,18 +136,30 @@ class PyComment(object):
             if l.startswith('def ') or 'class ':
                 # if currently reading an element content
                 if reading_element:
+                    if reading_docs:
+                        #FIXME there is a pb
+                        raise 'reach new element before end of docstring'
                 reading_element = True
-                e = DocString(l)
-                e.parse_element()
+                e = DocString()
+                e.parse_element(l)
                 elem_list.append(e)
             else:
                 if '"""' in l or "'''" in l:
-                    if reading_docs:
+                    # start of docstring bloc
+                    if not reading_docs:
+                        reading_docs = True
+                        raw = l
+                    # end of docstring bloc
+                    else:
                         raw += l
-                        e.parse_docs_raw(raw)
+                        elem_list[-1].parse_docs_raw(raw)
                         reading_docs = False
                         reading_element = False
                         raw = ''
+                else:
+                    if reading_docs:
+                        raw += l
+        return elem_list
 
     def diff(self, which=0):
         '''Build the diff between original docstring and proposed docstring.
@@ -175,6 +187,6 @@ if __name__ == "__main__":
 
     c = PyComment(source)
 
-
     print(c.get_file_list())
+    print(c.parse_current_file())
     c.release()
