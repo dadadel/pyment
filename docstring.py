@@ -12,7 +12,12 @@ class DocString(object):
         self.element['name'] = None
         self.element['type'] = None
         self.element['params'] = []
-        self.raw = docs_raw
+        self.docs_in['raw'] = docs_raw
+        self.docs_in['desc'] = None
+        self.docs_in['params'] = []
+        self.docs_out['raw'] = docs_raw
+        self.docs_out['desc'] = None
+        self.docs_out['params'] = []
 
     def __str__(self):
         txt = "element: " + str(self.element['name']) + ' of type ' + str(self.element['type']) + '\n'
@@ -57,11 +62,17 @@ class DocString(object):
                     self.element['params'].append({k.strip(): v.strip()})
                 else:
                     self.element['params'].append(e);
-    def parse_docs_raw(self, raw):
-        self.raw = raw
+
+    def parse_docs(self, raw=None):
+        if raw is not None:
+            self.docs_in['raw'] = raw
+        if self.docs_in['raw'] is None:
+            return
+        raw = self.docs_in['raw']
+        nb_params = raw.count('@param')
+        nb_return = raw.count('@return')
 
     def proceed(self):
         '''Proceed the raw docstring part if any.
         '''
-
 
