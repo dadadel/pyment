@@ -164,7 +164,7 @@ class PyComment(object):
                         raw = ln
                         # one line docstring
                         if l.count(lim) == 2:
-                            elem_list[-1].parse_docs_raw(raw)
+                            elem_list[-1].parse_docs(raw)
                             reading_docs = None
                             waiting_docs = False
                             reading_element = False
@@ -172,7 +172,7 @@ class PyComment(object):
                     # end of docstring bloc
                     elif waiting_docs and lim in l:
                         raw += ln
-                        elem_list[-1].parse_docs_raw(raw)
+                        elem_list[-1].parse_docs(raw)
                         reading_docs = None
                         waiting_docs = False
                         reading_element = False
@@ -218,5 +218,6 @@ if __name__ == "__main__":
     c = PyComment(source)
 
     print(c.get_file_list())
-    print(c.parse_current_file())
+    pcf = c.parse_current_file()
+    print pcf
     c.release()
