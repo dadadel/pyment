@@ -25,15 +25,15 @@ class PyComment(object):
             - normal:
                 Comment on the first line, a blank line to separate the params and a blank line at the end
                 e.g.: def method(test):
-                        """The comment for this method.
-
-                        @param test: the param test comment
-                        @return: the result of the method
-
-                        """
+                        >"""The comment for this method.
+                        >
+                        >@param test: the param test comment
+                        >@return: the result of the method
+                        >
+                        >"""
         @param param_type: the type of parameters format. Can be:
             - standard:
-                The style used is the Doxygen default style.
+                The style used is the javadoc style.
                 e.g.: @param my_param: the description
         @param recursive: In case of a folder, will proceed the subdirectories files also
 
