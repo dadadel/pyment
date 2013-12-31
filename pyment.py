@@ -1,24 +1,19 @@
 #!/usr/bin/python
 
-import os
 import sys
-import glob
 
 from docstring import DocString
 
+
 class PyComment(object):
     '''This class allow to manage several python scripts docstrings.
-    It is used to parse and rewrite in a Pythonic way all the methods and classes docstrings.
+    It is used to parse and rewrite in a Pythonic way all the functions, methods and classes docstrings.
 
     '''
-
-    MAX_DEPTH_RECUR = 50
-    ''' The maximum depth to reach while recursively exploring sub folders'''
-
-    def __init__(self, source, output_prefix='pyment_', doc_type='normal', param_type='standard', recursive=True):
+    def __init__(self, input_file, output_prefix='pyment_', doc_type='normal', param_type='standard'):
         '''Set the configuration including the source to proceed and options.
 
-        @param source: path name (file or folder)
+        @param input_file: path name (file or folder)
         @param output_prefix: if given will be added at the beginning of each file so it will not modify the original. 
         If None the original file will be updated. By default will add "pyment_"
         @param doc_type: the type of doctrings format. Can be:
@@ -40,89 +35,38 @@ class PyComment(object):
         '''
         self.file_type = '.py'
         self.filename_list = []
-        self.source = source
+        self.input_file = input_file
         self.output_prefix = output_prefix
         self.doc_type = doc_type
         self.param_type = param_type
-        self.recursive = recursive
-        self.current_file = None
+        self.fd = None
         self.doc_index = -1
         self.file_index = 0
 
-        self._set_file_list(source)
-        self.next_file()
+        self.open_file()
 
-    def _get_files_from_dir(self, folder, recursive, depth=0):
-        '''Retrieve the list of files from a folder.
-
-        @param folder: directory where to search files
-        @param recursive: if True will search also sub-directories.
-        @return: the file list retrieved
-
-        '''
-        file_list = []
-        if folder[-1] != os.sep:
-            folder = folder + os.sep
-        for f in glob.glob(folder + "*"):
-            if os.path.isdir(f):
-                if depth < self.MAX_DEPTH_RECUR: # avoid recursive loop
-                    file_list.extend(self._get_files_from_dir(f, recursive, depth+1))
-                else:
-                    continue
-            elif f.endswith(self.file_type):
-                file_list.append(f)
-        return file_list
-
-    def _set_file_list(self, source):
-        '''Build the list of files to be proceeded.
-
-        @param source: path name (file or folder)
-    
-        '''
-        if os.path.isfile(source):
-            self.filename_list.append(source)
-        elif os.path.isdir(source):
-            self.filename_list.extend(self._get_files_from_dir(source, self.recursive))
-        else:
-            self.filename_list = []
-
-    def get_file_list(self):
-        '''Get the list of files to proceed.
-        
-        @return: the list of files
-        
-        '''
-        return self.filename_list
-
-    def next_file(self):
+    def open_file(self):
         '''Set the new current file to proceed.
 
         @return: the new current file name. None if there is no more file to proceed.
 
         '''
-        if self.current_file is None:
-            self.file_index = 0
-        else:
-            try:
-                self.current_file.close()
-            except:
-                pass
-            self.file_index += 1
         try:
-            self.current_file = open(self.filename_list[self.file_index])
+            self.fd = open(self.input_file)
         except:
-            pass
-    
+            msg = BaseException('Failed to open file "' + self.input_file + '". Please provide a valid file.')
+            raise msg
+
     def _get_next(self):
         '''Get the current file's next docstring
 
         '''
 
-    def parse_current_file(self):
-        '''Parses the current file's content and generates a list of its elements/docstrings.
+    def parse(self):
+        '''Parses the input file's content and generates a list of its elements/docstrings.
 
         '''
-        if self.current_file is None:
+        if self.fd is None:
             raise 'There is no current file opened to explore the elements.'
         #TODO manage decorators
         #TODO manage default params with strings escaping chars as (, ), ', ', #, ...
@@ -132,7 +76,7 @@ class PyComment(object):
         reading_docs = None
         waiting_docs = False
         raw = ''
-        for ln in self.current_file.readlines():
+        for ln in self.fd.readlines():
             l = ln.strip()
             if l.startswith('def ') or l.startswith('class '):
                 # if currently reading an element content
@@ -151,7 +95,7 @@ class PyComment(object):
                     if not reading_docs:
                         # determine which delimiter
                         idx_c = l.find('"""')
-                        idx_dc= l.find("'''")
+                        idx_dc = l.find("'''")
                         lim = '"""'
                         if idx_c >= 0 and idx_dc >= 0:
                             if idx_c < idx_dc:
@@ -177,6 +121,7 @@ class PyComment(object):
                         waiting_docs = False
                         reading_element = False
                         raw = ''
+                    # inside a docstring bloc
                     elif waiting_docs:
                         raw += ln
                 # no docstring found for current element
@@ -200,7 +145,7 @@ class PyComment(object):
     def release(self):
         '''Close the current file if any.'''
         try:
-            self.current_file.close()
+            self.fd.close()
         except:
             pass
 
@@ -208,6 +153,7 @@ class PyComment(object):
         print 'nothing'
         var = bob
         '''affecting bob'''
+
 
 if __name__ == "__main__":
     source = sys.argv[0]
@@ -217,7 +163,6 @@ if __name__ == "__main__":
 
     c = PyComment(source)
 
-    print(c.get_file_list())
-    pcf = c.parse_current_file()
+    pcf = c.parse()
     print pcf
     c.release()
