@@ -1,8 +1,10 @@
 #!/usr/bin/python
 
 import sys
+import difflib
 
 from docstring import DocString
+from pmtools import get_files_from_dir
 
 
 class PyComment(object):
@@ -161,8 +163,10 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         source = sys.argv[1]
 
-    c = PyComment(source)
+    files = get_files_from_dir(source)
 
-    pcf = c.parse()
-    print pcf
-    c.release()
+    for f in files:
+        c = PyComment(f)
+        pcf = c.parse()
+        print pcf
+        c.release()
