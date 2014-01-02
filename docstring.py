@@ -130,7 +130,7 @@ class DocsTools(object):
 class DocString(object):
     '''This class represents the docstring'''
 
-    def __init__(self, elem_raw=None, docs_raw=None):
+    def __init__(self, elem_raw, docs_raw=None):
         '''
         @param elem_raw: raw data of the element (def or class).
         @param docs_raw: the raw data of the docstring part if any.
@@ -155,6 +155,12 @@ class DocString(object):
         self.docs['out']['types'] = []
         self.docs['out']['return'] = None
         self.docs['out']['rtype'] = None
+
+        self.parsed_elem = False
+        self.parsed_docs = False
+        self.generated_docs = False
+
+        self.parse_element()
 
     def __str__(self):
         txt = "\n\n** " + str(self.element['name']) + ' of type ' + str(self.element['type']) + ':' + str(self.docs['in']['desc']) + '\n'
@@ -201,6 +207,7 @@ class DocString(object):
                     self.element['params'].append((k.strip(), v.strip()))
                 elif e != 'self' and e != 'cls':
                     self.element['params'].append(e)
+        self.parsed_elem = True
 
     def _extract_docs_description(self):
         '''Extract main description from docstring'''
@@ -222,6 +229,7 @@ class DocString(object):
         composed by tuples (parameter, description).
 
         '''
+        #TODO add types and return and rtype
         data = '\n'.join([d.strip() for d in self.docs['in']['raw'].split('\n')])
         listed = 0
         loop = True
@@ -246,6 +254,36 @@ class DocString(object):
         if i > maxi:
             print("WARNING: an infinite loop was reached while extracting docstring parameters (>10000). This should never happen!!!")
 
+    def _extract_docs_param_types(self):
+        '''
+        '''
+        #TODO move on DocSTools
+        data = '\n'.join([d.strip() for d in self.docs['in']['raw'].split('\n')])
+        params = [p[0] for p in self.docs['in']['params']]
+        self.docs['in']['types'] = [''] * len(params)
+        loop = True
+        while loop:
+            idx = self.dst.get_elem_index(data)
+            if idx == -1:
+                loop = False
+            elif data[idx:].startswith('@type '):
+                d = data[idx + len('@type '):].strip()
+                m = re.match(r'^([\w]+)', d)
+                if m is not None:
+                    param = m.group(1)
+                    try:
+                        idx_p = params.index(param)
+                    except (ValueError):
+                        idx_p = -1
+                    self.docs['in']['types'][idx_p] = 'FOUND TYPE'
+                    #TODO retrieve the content
+                    #start = idx_p + data[idx_p:].find(param)
+                    #end = start + len(param)
+                else:
+                    data = data[idx + len('@type'):]
+            else:
+                data = data[idx + 2:]
+
     def parse_docs(self, raw=None):
         '''Parses the docstring
 
@@ -257,8 +295,10 @@ class DocString(object):
         if self.docs['in']['raw'] is None:
             return
         self.dst.set_known_parameters(self.element['params'])
-        self._extract_docs_params()
+        self._extract_docs_params() #TODO remove class params
+        self._extract_docs_param_types()
         self._extract_docs_description()
+        self.parsed_docs = True
 
     def _set_desc(self):
         '''Sets the global description if any
@@ -271,6 +311,7 @@ class DocString(object):
     def _set_params(self):
         '''Sets the parameters with return types, descriptions and default value if any
         '''
+        #TODO add types and return and rtype
         if len(self.docs['in']['params']) > 0:
             self.docs['out']['params'] = list(self.docs['in']['params'])
         for e in self.element['params']:
@@ -318,10 +359,13 @@ class DocString(object):
         self._set_desc()
         self._set_params()
         self._set_raw()
+        self.generated_docs = True
 
     def get_raw_docs(self):
         '''Generates raw docstring
         '''
+        if not self.generated_docs:
+            self.generate_docs()
         return self.docs['out']['raw']
 
 
