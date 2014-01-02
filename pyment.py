@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import os
 import sys
 import difflib
 
@@ -45,10 +46,11 @@ class PyComment(object):
         self.doc_index = -1
         self.file_index = 0
         self.docs_list = []
+        self.parsed = False
 
-        self.open_file()
+        self._open_file()
 
-    def open_file(self):
+    def _open_file(self):
         '''Set the new current file to proceed.
 
         @return: the new current file name. None if there is no more file to proceed.
@@ -65,7 +67,7 @@ class PyComment(object):
 
         '''
 
-    def parse(self):
+    def _parse(self):
         '''Parses the input file's content and generates a list of its elements/docstrings.
 
         '''
@@ -79,7 +81,9 @@ class PyComment(object):
         reading_docs = None
         waiting_docs = False
         raw = ''
-        for ln in self.fd.readlines():
+        start = 0
+        end = 0
+        for i, ln in enumerate(self.fd.readlines()):
             l = ln.strip()
             if l.startswith('def ') or l.startswith('class '):
                 # if currently reading an element content
@@ -89,13 +93,13 @@ class PyComment(object):
                         raise 'reach new element before end of docstring'
                 reading_element = True
                 waiting_docs = True
-                e = DocString()
-                e.parse_element(l)
-                elem_list.append(e)
+                e = DocString(l)
+                elem_list.append({'docs':e, 'location': (-i, -i)})
             else:
                 if waiting_docs and ('"""' in l or "'''" in l):
                     # start of docstring bloc
                     if not reading_docs:
+                        start = i
                         # determine which delimiter
                         idx_c = l.find('"""')
                         idx_dc = l.find("'''")
@@ -111,15 +115,19 @@ class PyComment(object):
                         raw = ln
                         # one line docstring
                         if l.count(lim) == 2:
-                            elem_list[-1].parse_docs(raw)
+                            end = i
+                            elem_list[-1]['docs'].parse_docs(raw)
+                            elem_list[-1]['location'] = (start, end)
                             reading_docs = None
                             waiting_docs = False
                             reading_element = False
                             raw = ''
                     # end of docstring bloc
                     elif waiting_docs and lim in l:
+                        end = i
                         raw += ln
-                        elem_list[-1].parse_docs(raw)
+                        elem_list[-1]['docs'].parse_docs(raw)
+                        elem_list[-1]['location'] = (start, end)
                         reading_docs = None
                         waiting_docs = False
                         reading_element = False
@@ -134,19 +142,58 @@ class PyComment(object):
                     if reading_docs is not None:
                         raw += ln
         self.docs_list = elem_list
+        self.parsed = True
         return elem_list
 
-    def diff(self, which=0):
+    def diff(self, which=-1):
         '''Build the diff between original docstring and proposed docstring.
 
-        @param which: indicates which docstring to proceed. 0 means current docstring,
-        -1 means all file dosctrings, >0 means index of the docstring (starting at 1)
+        @param which: indicates which docstring to proceed:
+        -> -1 means all the dosctrings of the file
+        -> >=0 means the index of the docstring to proceed
         @return: the resulted diff
         @rtype: string
 
         '''
+        if not self.parsed:
+            self.parse()
+        if self.fd is None:
+            raise 'There is no current file opened to do a diff.'
+        self.fd.seek(0)
+        list_from = self.fd.readlines()
+        list_to = []
+        last = 0
         for e in self.docs_list:
-            e.generate_docs()
+            start, end = e['location']
+            if start < 0:
+                list_to.extend(list_from[last:-start + 1])
+            else:
+                list_to.extend(list_from[last:start])
+            docs = e['docs'].get_raw_docs()
+            list_docs = [l + '\n' for l in docs.split('\n')]
+            list_to.extend(list_docs)
+            last = end + 1
+        if last < len(list_from):
+            list_to.extend(list_from[last:])
+        fromfile = 'a/' + os.path.basename(self.input_file)
+        tofile = 'b/' + os.path.basename(self.input_file)
+        diff_list = difflib.unified_diff(list_from, list_to, fromfile, tofile)
+        return [d for d in diff_list]
+
+    def diff_to_file(self, patch_file):
+        '''
+        '''
+        diff = self.diff()
+        f = open(patch_file, 'w')
+        f.writelines(diff)
+        f.close()
+
+    def proceed(self):
+        '''
+        '''
+        self._parse()
+        for e in self.docs_list:
+            e['docs'].generate_docs()
         return self.docs_list
 
     def release(self):
@@ -172,7 +219,6 @@ if __name__ == "__main__":
 
     for f in files:
         c = PyComment(f)
-        pcf = c.parse()
-        c.diff()
-        print pcf
+        c.proceed()
+        c.diff_to_file(os.path.basename(f)+".patch")
         c.release()
