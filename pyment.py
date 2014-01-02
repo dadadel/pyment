@@ -44,6 +44,7 @@ class PyComment(object):
         self.fd = None
         self.doc_index = -1
         self.file_index = 0
+        self.docs_list = []
 
         self.open_file()
 
@@ -132,6 +133,7 @@ class PyComment(object):
                 else:
                     if reading_docs is not None:
                         raw += ln
+        self.docs_list = elem_list
         return elem_list
 
     def diff(self, which=0):
@@ -143,6 +145,9 @@ class PyComment(object):
         @rtype: string
 
         '''
+        for e in self.docs_list:
+            e.generate_docs()
+        return self.docs_list
 
     def release(self):
         '''Close the current file if any.'''
@@ -168,5 +173,6 @@ if __name__ == "__main__":
     for f in files:
         c = PyComment(f)
         pcf = c.parse()
+        c.diff()
         print pcf
         c.release()

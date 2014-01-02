@@ -147,16 +147,19 @@ class DocString(object):
         self.docs['in']['desc'] = None
         self.docs['in']['params'] = []
         self.docs['in']['types'] = []
-        self.docs['in']['rtype'] = []
+        self.docs['in']['return'] = None
+        self.docs['in']['rtype'] = None
         self.docs['out']['raw'] = ''
         self.docs['out']['desc'] = None
         self.docs['out']['params'] = []
         self.docs['out']['types'] = []
-        self.docs['out']['rtype'] = []
+        self.docs['out']['return'] = None
+        self.docs['out']['rtype'] = None
 
     def __str__(self):
         txt = "\n\n** " + str(self.element['name']) + ' of type ' + str(self.element['type']) + ':' + str(self.docs['in']['desc']) + '\n'
-        txt += '->' + str(self.docs['in']['params']) + '\n\n'
+        txt += '->' + str(self.docs['in']['params']) + '\n'
+        txt += '***>>' + str(self.docs['out']['raw']) + '\n\n'
         return txt
 
     def __repr__(self):
@@ -196,7 +199,7 @@ class DocString(object):
                 if '=' in e:
                     k, v = e.split('=', 1)
                     self.element['params'].append((k.strip(), v.strip()))
-                else:
+                elif e != 'self' and e != 'cls':
                     self.element['params'].append(e)
 
     def _extract_docs_description(self):
@@ -215,7 +218,10 @@ class DocString(object):
             self.docs['in']['desc'] = data[:idx]
 
     def _extract_docs_params(self):
-        '''Extract parameters description from docstring'''
+        '''Extract parameters description from docstring. The internal computed parameters list is
+        composed by tuples (parameter, description).
+
+        '''
         data = '\n'.join([d.strip() for d in self.docs['in']['raw'].split('\n')])
         listed = 0
         loop = True
@@ -243,7 +249,7 @@ class DocString(object):
     def parse_docs(self, raw=None):
         '''Parses the docstring
 
-        @param raw: the data to parse if not already provided
+        @param raw: the data to parse if not internally provided
 
         '''
         if raw is not None:
@@ -254,9 +260,69 @@ class DocString(object):
         self._extract_docs_params()
         self._extract_docs_description()
 
-    def proceed(self):
-        '''Proceed the raw docstring part if any.
+    def _set_desc(self):
+        '''Sets the global description if any
         '''
+        if self.docs['in']['desc']:
+            self.docs['out']['desc'] = self.docs['in']['desc']
+        else:
+            self.docs['out']['desc'] = ''
+
+    def _set_params(self):
+        '''Sets the parameters with return types, descriptions and default value if any
+        '''
+        if len(self.docs['in']['params']) > 0:
+            self.docs['out']['params'] = list(self.docs['in']['params'])
+        for e in self.element['params']:
+            param = e
+            if type(e) is tuple:
+                param = e[0]
+            found = False
+            for i, p in enumerate(self.docs['out']['params']):
+                if param == p[0]:
+                    found = True
+                    # add default value if any
+                    if type(e) is tuple:
+                        self.docs['out']['params'][i] = (p[0], p[1], e[1])
+            if not found:
+                if type(e) is tuple:
+                    p = (param, '', e[1])
+                else:
+                    p = (param, '')
+                self.docs['out']['params'].append(p)
+
+    def _set_return(self):
+        '''Sets the return parameter with description if any
+        '''
+
+    def _set_raw(self):
+        '''Sets the raw docstring
+        '''
+        raw = "'''"
+        raw += self.docs['out']['desc'] + '\n'
+        if len(self.docs['out']['params']):
+            raw += '\n'
+            for p in self.docs['out']['params']:
+                raw += '@param ' + p[0] + ': ' + p[1]
+                if len(p) > 2 and 'default' not in p[1].lower():
+                    raw += ' (Default value = ' + str(p[2]) + ')'
+                raw += '\n'
+        if self.docs['out']['return']:
+            raw += '@return: ' + self.docs['out']['return'] +'\n'
+        raw += "\n'''"
+        self.docs['out']['raw'] = raw
+
+    def generate_docs(self):
+        '''
+        '''
+        self._set_desc()
+        self._set_params()
+        self._set_raw()
+
+    def get_raw_docs(self):
+        '''Generates raw docstring
+        '''
+        return self.docs['out']['raw']
 
 
 if __name__ == "__main__":
