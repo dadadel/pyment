@@ -1,20 +1,28 @@
 #!/usr/bin/python
+# -*- coding: utf8 -*-
+
+__author__ = "A. Daouzli"
+__copyright__ = "Copyright dec. 2013, A. Daouzli"
+__licence__ = "GPL3"
+__version__ = "0.0.1"
+__maintainer__ = "A. Daouzli"
 
 import os
 import sys
+import re
 import difflib
 
 from docstring import DocString
-from pmtools import get_files_from_dir
 
 
 class PyComment(object):
     '''This class allow to manage several python scripts docstrings.
-    It is used to parse and rewrite in a Pythonic way all the functions, methods and classes docstrings.
+    It is used to parse and rewrite in a Pythonic way all the functions', methods' and classes' docstrings.
+    The changes are then provided in a patch file.
 
     '''
     def __init__(self, input_file, output_prefix='pyment_', doc_type='normal', param_type='standard'):
-        '''Set the configuration including the source to proceed and options.
+        '''Sets the configuration including the source to proceed and options.
 
         @param input_file: path name (file or folder)
         @param output_prefix: if given will be added at the beginning of each file so it will not modify the original. 
@@ -25,8 +33,8 @@ class PyComment(object):
                 e.g.: def method(test):
                         >"""The comment for this method.
                         >
-                        >@param test: the param test comment
-                        >@return: the result of the method
+                        >@ param test: the param test comment
+                        >@ return: the result of the method
                         >
                         >"""
         @param param_type: the type of parameters format. Can be:
@@ -72,7 +80,7 @@ class PyComment(object):
 
         '''
         if self.fd is None:
-            raise 'There is no current file opened to explore the elements.'
+            raise Exception('There is no current file opened to explore the elements.')
         #TODO manage decorators
         #TODO manage default params with strings escaping chars as (, ), ', ', #, ...
         #TODO manage multilines
@@ -85,15 +93,20 @@ class PyComment(object):
         end = 0
         for i, ln in enumerate(self.fd.readlines()):
             l = ln.strip()
-            if l.startswith('def ') or l.startswith('class '):
+            if (l.startswith('def ') or l.startswith('class ')) and not reading_docs:
                 # if currently reading an element content
                 if reading_element:
                     if reading_docs is not None:
                         #FIXME there is a pb
-                        raise 'reach new element before end of docstring'
+                        raise Exception('reach new element before end of docstring')
                 reading_element = True
                 waiting_docs = True
-                e = DocString(l)
+                m = re.match(r'^(\s*)[dc]{1}', ln)
+                if m is not None and m.group(1) is not None:
+                    spaces = m.group(1)
+                else:
+                    spaces = ''
+                e = DocString(l, spaces)
                 elem_list.append({'docs':e, 'location': (-i, -i)})
             else:
                 if waiting_docs and ('"""' in l or "'''" in l):
@@ -158,7 +171,7 @@ class PyComment(object):
         if not self.parsed:
             self.parse()
         if self.fd is None:
-            raise 'There is no current file opened to do a diff.'
+            raise Exception('There is no current file opened to do a diff.')
         self.fd.seek(0)
         list_from = self.fd.readlines()
         list_to = []
@@ -166,7 +179,8 @@ class PyComment(object):
         for e in self.docs_list:
             start, end = e['location']
             if start < 0:
-                list_to.extend(list_from[last:-start + 1])
+                start, end = -start, -end
+                list_to.extend(list_from[last:start + 1])
             else:
                 list_to.extend(list_from[last:start])
             docs = e['docs'].get_raw_docs()
@@ -210,6 +224,37 @@ class PyComment(object):
 
 
 if __name__ == "__main__":
+
+    import glob
+
+    MAX_DEPTH_RECUR = 50
+    ''' The maximum depth to reach while recursively exploring sub folders'''
+
+    def get_files_from_dir(path, recursive=True, depth=0, file_ext='.py'):
+        '''Retrieve the list of files from a folder.
+
+        @param path: file or directory where to search files
+        @param recursive: if True will search also sub-directories
+        @param depth: if explore recursively, the depth of sub directories to follow
+        @param file_ext: the files extension to get. Default is '.py'
+        @return: the file list retrieved. if the input is a file then a one element list.
+
+        '''
+        file_list = []
+        if os.path.isfile(path):
+            return [path]
+        if path[-1] != os.sep:
+            path = path + os.sep
+        for f in glob.glob(path + "*"):
+            if os.path.isdir(f):
+                if depth < MAX_DEPTH_RECUR:  # avoid recursive loop
+                    file_list.extend(get_files_from_dir(f, recursive, depth + 1))
+                else:
+                    continue
+            elif f.endswith(file_ext):
+                file_list.append(f)
+        return file_list
+
     source = sys.argv[0]
 
     if len(sys.argv) > 1:
