@@ -1,4 +1,11 @@
 #!/usr/bin/python
+# -*- coding: utf8 -*-
+
+__author__ = "A. Daouzli"
+__copyright__ = "Copyright dec. 2013, A. Daouzli"
+__licence__ = "GPL3"
+__version__ = "0.0.1"
+__maintainer__ = "A. Daouzli"
 
 import re
 
@@ -130,9 +137,10 @@ class DocsTools(object):
 class DocString(object):
     '''This class represents the docstring'''
 
-    def __init__(self, elem_raw, docs_raw=None):
+    def __init__(self, elem_raw, spaces='', docs_raw=None):
         '''
         @param elem_raw: raw data of the element (def or class).
+        @param spaces: the leading whitespaces before the element
         @param docs_raw: the raw data of the docstring part if any.
 
         '''
@@ -142,6 +150,7 @@ class DocString(object):
         self.element['name'] = None
         self.element['type'] = None
         self.element['params'] = []
+        self.element['spaces'] = spaces
         self.docs = {'in': {}, 'out': {}}
         self.docs['in']['raw'] = docs_raw
         self.docs['in']['desc'] = None
@@ -155,7 +164,13 @@ class DocString(object):
         self.docs['out']['types'] = []
         self.docs['out']['return'] = None
         self.docs['out']['rtype'] = None
-
+        if '\t' in spaces:
+            self.docs['out']['spaces'] = spaces + '\t'
+        elif (len(spaces) % 4) == 0 or spaces == '':
+            #FIXME: should bug if tabs for class or function (as spaces=='')
+            self.docs['out']['spaces'] = spaces + ' ' * 4
+        else:
+            self.docs['out']['spaces'] = spaces + ' ' * 2
         self.parsed_elem = False
         self.parsed_docs = False
         self.generated_docs = False
@@ -186,6 +201,7 @@ class DocString(object):
             l = self.element['raw'].strip()
         else:
             l = raw.strip()
+        is_class = False
         if l.startswith('def ') or l.startswith('class '):
             # retrieves the type
             if l.startswith('def'):
@@ -194,19 +210,21 @@ class DocString(object):
             else:
                 self.element['type'] = 'class'
                 l = l.replace('class ', '')
+                is_class = True
             # retrieves the name
             self.element['name'] = l[:l.find('(')].strip()
-            if l[-1] == ':':
-                l = l[:-1].strip()
-            # retrieves the parameters
-            l = l[l.find('(') + 1:l.find(')')].strip()
-            lst = [c.strip() for c in l.split(',')]
-            for e in lst:
-                if '=' in e:
-                    k, v = e.split('=', 1)
-                    self.element['params'].append((k.strip(), v.strip()))
-                elif e != 'self' and e != 'cls':
-                    self.element['params'].append(e)
+            if not is_class:
+                if l[-1] == ':':
+                    l = l[:-1].strip()
+                # retrieves the parameters
+                l = l[l.find('(') + 1:l.find(')')].strip()
+                lst = [c.strip() for c in l.split(',')]
+                for e in lst:
+                    if '=' in e:
+                        k, v = e.split('=', 1)
+                        self.element['params'].append((k.strip(), v.strip()))
+                    elif e != 'self' and e != 'cls':
+                        self.element['params'].append(e)
         self.parsed_elem = True
 
     def _extract_docs_description(self):
@@ -284,6 +302,10 @@ class DocString(object):
             else:
                 data = data[idx + 2:]
 
+    def _extract_docs_return(self):
+        '''Extract return descriptions
+        '''
+
     def parse_docs(self, raw=None):
         '''Parses the docstring
 
@@ -297,6 +319,7 @@ class DocString(object):
         self.dst.set_known_parameters(self.element['params'])
         self._extract_docs_params() #TODO remove class params
         self._extract_docs_param_types()
+        self._extract_docs_return()
         self._extract_docs_description()
         self.parsed_docs = True
 
@@ -339,25 +362,29 @@ class DocString(object):
     def _set_raw(self):
         '''Sets the raw docstring
         '''
-        raw = "'''"
-        raw += self.docs['out']['desc'] + '\n'
+        with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + l for l in s.split('\n')])
+        raw = self.docs['out']['spaces'] + "'''"
+        raw += with_space(self.docs['out']['desc']).strip() + '\n'
         if len(self.docs['out']['params']):
             raw += '\n'
             for p in self.docs['out']['params']:
-                raw += '@param ' + p[0] + ': ' + p[1]
+                raw += self.docs['out']['spaces'] + '@param ' + p[0] + ': ' + with_space(p[1])
                 if len(p) > 2 and 'default' not in p[1].lower():
                     raw += ' (Default value = ' + str(p[2]) + ')'
                 raw += '\n'
         if self.docs['out']['return']:
-            raw += '@return: ' + self.docs['out']['return'] +'\n'
-        raw += "\n'''"
-        self.docs['out']['raw'] = raw
+            raw += self.docs['out']['spaces'] + '@return: ' + self.docs['out']['return'] + '\n'
+        raw += "\n"
+        if raw.count("'''") == 1:
+            raw += self.docs['out']['spaces'] + "'''"
+        self.docs['out']['raw'] = raw.rstrip()
 
     def generate_docs(self):
         '''
         '''
         self._set_desc()
         self._set_params()
+        self._set_return()
         self._set_raw()
         self.generated_docs = True
 
