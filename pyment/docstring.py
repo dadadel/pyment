@@ -229,6 +229,7 @@ class DocString(object):
 
     def _extract_docs_description(self):
         '''Extract main description from docstring'''
+        #FIXME the indentation of descriptions is lost
         data = self.docs['in']['raw'].strip()
         if data.startswith('"""') or data.startswith("'''"):
             data = data[3:]
@@ -247,7 +248,7 @@ class DocString(object):
         composed by tuples (parameter, description).
 
         '''
-        #TODO add types and return and rtype
+        #FIXME the indentation of descriptions is lost
         data = '\n'.join([d.strip() for d in self.docs['in']['raw'].split('\n')])
         listed = 0
         loop = True
@@ -305,6 +306,7 @@ class DocString(object):
     def _extract_docs_return(self):
         '''Extract return descriptions
         '''
+        #TODO manage return and rtype
 
     def parse_docs(self, raw=None):
         '''Parses the docstring
@@ -358,6 +360,7 @@ class DocString(object):
     def _set_return(self):
         '''Sets the return parameter with description if any
         '''
+        #TODO
 
     def _set_raw(self):
         '''Sets the raw docstring
