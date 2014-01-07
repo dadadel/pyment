@@ -21,12 +21,10 @@ class PyComment(object):
     The changes are then provided in a patch file.
 
     '''
-    def __init__(self, input_file, output_prefix='pyment_', doc_type='normal', param_type='standard'):
+    def __init__(self, input_file, doc_type='normal', param_type='standard'):
         '''Sets the configuration including the source to proceed and options.
 
         @param input_file: path name (file or folder)
-        @param output_prefix: if given will be added at the beginning of each file so it will not modify the original. 
-        If None the original file will be updated. By default will add "pyment_"
         @param doc_type: the type of doctrings format. Can be:
             - normal:
                 Comment on the first line, a blank line to separate the params and a blank line at the end
@@ -47,7 +45,6 @@ class PyComment(object):
         self.file_type = '.py'
         self.filename_list = []
         self.input_file = input_file
-        self.output_prefix = output_prefix
         self.doc_type = doc_type
         self.param_type = param_type
         self.fd = None
