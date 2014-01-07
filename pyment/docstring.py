@@ -133,6 +133,78 @@ class DocsTools(object):
 
         return (start, end)
 
+    def get_return_description_indexes(self, data):
+        '''Get from a docstring the return parameter description indexes.
+        In javadoc style it is after @return.
+
+        @param data: string to parse
+        @return: start and end indexes of found element else (-1, -1)
+        Note: the end index is the index after the last included character or -1 if
+        reached the end
+        @rtype: tuple
+
+        '''
+        start, end = -1, -1
+        if self.type in ['javadoc', 'unknown']:
+            idx = self.get_elem_index(data)
+            idx_abs = idx
+            # search @return
+            while idx >= 0 and not data[idx_abs:].startswith('@return'):
+                idx = self.get_elem_index(data[idx_abs + 1:])
+                if idx > 0:
+                    idx_abs += idx + 1
+            # search starting description
+            if idx >= 0:
+                #FIXME: take care if a return description starts with <, >, =,...
+                m = re.match(r'\W*(\w+)', data[idx_abs + len('@return'):])
+                if m is not None:
+                    first = m.group(1)
+                    idx = data[idx_abs:].find(first)
+                    idx_abs += idx
+                    start = idx_abs
+                else:
+                    idx = -1
+            # search the end
+            idx = self.get_elem_index(data[idx_abs:])
+            if idx > 0:
+                idx_abs += idx
+                end = idx_abs
+
+        if self.type in ['params', 'unknown'] and (start, end) == (-1, -1):
+            #TODO: manage this
+            pass
+
+        return (start, end)
+
+    def get_return_type_indexes(self, data):
+        '''Get from a docstring the return parameter type indexes.
+        In javadoc style it is after @rtype.
+
+        @param data: string to parse
+        @return: start and end indexes of found element else (-1, -1)
+        Note: the end index is the index after the last included character or -1 if
+        reached the end
+        @rtype: tuple
+
+        '''
+        start, end = -1, -1
+        if self.type in ['javadoc', 'unknown']:
+            dstart, dend = self.get_return_description_indexes(data)
+            if dstart >= 0 and dend > 0:
+                idx = self.get_elem_index(data[dend:])
+                if idx >= 0 and data[dend + idx:].startswith('@rtype'):
+                    idx = dend + idx + len('@rtype')
+                    m = re.match(r'\W*(\w+)', data[idx:])
+                    if m is not None:
+                        first = m.group(1)
+                        start = data[idx:].find(first) + idx
+
+        if self.type in ['params', 'unknown'] and (start, end) == (-1, -1):
+            #TODO: manage this
+            pass
+
+        return (start, end)
+
 
 class DocString(object):
     '''This class represents the docstring'''
@@ -304,9 +376,21 @@ class DocString(object):
                 data = data[idx + 2:]
 
     def _extract_docs_return(self):
-        '''Extract return descriptions
+        '''Extract return description and type
         '''
-        #TODO manage return and rtype
+        data = '\n'.join([d.strip() for d in self.docs['in']['raw'].split('\n')])
+        start, end = self.dst.get_return_description_indexes(data)
+        if start >= 0:
+            if end >= 0:
+                self.docs['in']['return'] = data[start:end].rstrip().replace("'''", "")
+            else:
+                self.docs['in']['return'] = data[start:].rstrip().replace("'''", "")
+        start, end = self.dst.get_return_type_indexes(data)
+        if start >= 0:
+            if end >= 0:
+                self.docs['in']['rtype'] = data[start:end].rstrip().replace("'''", "")
+            else:
+                self.docs['in']['rtype'] = data[start:].rstrip().replace("'''", "")
 
     def parse_docs(self, raw=None):
         '''Parses the docstring
@@ -319,7 +403,7 @@ class DocString(object):
         if self.docs['in']['raw'] is None:
             return
         self.dst.set_known_parameters(self.element['params'])
-        self._extract_docs_params() #TODO remove class params
+        self._extract_docs_params()
         self._extract_docs_param_types()
         self._extract_docs_return()
         self._extract_docs_description()
@@ -358,9 +442,10 @@ class DocString(object):
                 self.docs['out']['params'].append(p)
 
     def _set_return(self):
-        '''Sets the return parameter with description if any
+        '''Sets the return parameter with description and rtype if any
         '''
-        #TODO
+        self.docs['out']['return'] = self.docs['in']['return']
+        self.docs['out']['rtype'] = self.docs['in']['rtype']
 
     def _set_raw(self):
         '''Sets the raw docstring
@@ -376,7 +461,13 @@ class DocString(object):
                     raw += ' (Default value = ' + str(p[2]) + ')'
                 raw += '\n'
         if self.docs['out']['return']:
-            raw += self.docs['out']['spaces'] + '@return: ' + self.docs['out']['return'] + '\n'
+            if len(self.docs['out']['params']) == 0:
+                raw += '\n'
+            raw += self.docs['out']['spaces'] + '@return: ' + self.docs['out']['return'].rstrip() + '\n'
+        if self.docs['out']['rtype']:
+            if len(self.docs['out']['params']) == 0:
+                raw += '\n'
+            raw += self.docs['out']['spaces'] + '@rtype: ' + self.docs['out']['rtype'].rstrip() + '\n'
         raw += "\n"
         if raw.count("'''") == 1:
             raw += self.docs['out']['spaces'] + "'''"
