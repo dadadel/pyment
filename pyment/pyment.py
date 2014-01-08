@@ -7,6 +7,17 @@ __licence__ = "GPL3"
 __version__ = "0.0.1"
 __maintainer__ = "A. Daouzli"
 
+#TODO:
+# -generate a return if return is used with argument in element
+# -file managing only in proceed (remove init open and release)
+# -choose input style and output style
+# -generate diagnosis/statistics
+# -parse classes public methods and list them in class docstring
+# -create a real command line management (options, ...)
+# -add auto tests
+#
+# -manage c/c++ sources
+
 import os
 import sys
 import re
@@ -104,7 +115,7 @@ class PyComment(object):
                 else:
                     spaces = ''
                 e = DocString(l, spaces)
-                elem_list.append({'docs':e, 'location': (-i, -i)})
+                elem_list.append({'docs': e, 'location': (-i, -i)})
             else:
                 if waiting_docs and ('"""' in l or "'''" in l):
                     # start of docstring bloc
