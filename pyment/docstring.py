@@ -7,6 +7,17 @@ __licence__ = "GPL3"
 __version__ = "0.0.1"
 __maintainer__ = "A. Daouzli"
 
+"""
+Formats supported at the time:
+ - javadoc:
+ managed  -> @param, @type, @return, @rtype
+ intended -> @raise
+
+Not yet supported but intended:
+ - reST:
+ same than javadoc but using ':' instead of '@'
+"""
+
 import re
 
 
@@ -18,6 +29,9 @@ class DocsTools(object):
     - 'unknown': try all possibilities
 
     '''
+    #TODO: enhance style dependent separation
+    #TODO: add set methods to generate style specific outputs
+    #TODO: manage reST (:param) style and C style (\param)
     def __init__(self, ds_type='javadoc', params=None):
         '''Choose the kind of docstring type.
 
@@ -73,6 +87,7 @@ class DocsTools(object):
         @rtype: tuple
 
         '''
+        #TODO: new method to extract an element's name so will be available for @param and @types and other styles (:param, \param)
         start, end = -1, -1
         if self.type in ['javadoc', 'unknown']:
             idx_p = data.find('@param')
@@ -101,25 +116,27 @@ class DocsTools(object):
                 start, end = idx, idx + len(param)
         return (start, end)
 
-    def get_param_description_indexes(self, data):
+    def get_param_description_indexes(self, data, prev=None):
         '''Get from a docstring the next parameter's description.
         In javadoc style it is after @param.
 
         @param data: string to parse
+        @param prev: index after the param element name
         @return: start and end indexes of found element else (-1, -1)
         @rtype: tuple
 
         '''
         start, end = -1, -1
-        i1, i2 = self.get_param_indexes(data)
-        if i1 < 0:
+        if not prev:
+            _, prev = self.get_param_indexes(data)
+        if prev < 0:
             return (-1, -1)
-        m = re.match(r'\W*(\w+)', data[i2:])
+        m = re.match(r'\W*(\w+)', data[prev:])
         if m is not None:
             first = m.group(1)
-            start = data[i2:].find(first)
+            start = data[prev:].find(first)
             if start >= 0:
-                start += i2
+                start += prev
                 if self.type in ['javadoc', 'unknown']:
                     end = self.get_elem_index(data[start:])
                     if end >= 0:
@@ -130,6 +147,38 @@ class DocsTools(object):
                         end = p1
                     else:
                         end = len(data)
+
+        return (start, end)
+
+    def get_param_type_indexes(self, data, name=None, prev=None):
+        '''Get from a docstring a parameter type indexes.
+        In javadoc style it is after @type.
+
+        @param data: string to parse
+        @param name: the name of the parameter
+        @param prev: index after the previous element (param or param's description)
+        @return: start and end indexes of found element else (-1, -1)
+        Note: the end index is the index after the last included character or -1 if
+        reached the end
+        @rtype: tuple
+
+        '''
+        start, end = -1, -1
+        if not prev:
+            _, prev = self.get_param_description_indexes(data)
+        if prev >= 0:
+            if self.type in ['javadoc', 'unknown']:
+                idx = self.get_elem_index(data[prev:])
+                if idx >= 0 and data[prev + idx:].startswith('@type'):
+                    idx = prev + idx + len('@type')
+                    m = re.match(r'\W*(\w+)', data[idx:])
+                    if m is not None:
+                        first = m.group(1)
+                        start = data[idx:].find(first) + idx
+
+            if self.type in ['params', 'unknown'] and (start, end) == (-1, -1):
+                #TODO: manage this
+                pass
 
         return (start, end)
 
@@ -268,7 +317,8 @@ class DocString(object):
         @param raw: raw data of the element (def or class).
 
         '''
-        #TODO manage multilines
+        #TODO: retrieve return from element external code (in parameter)
+        #TODO: manage multilines
         if raw is None:
             l = self.element['raw'].strip()
         else:
@@ -301,7 +351,7 @@ class DocString(object):
 
     def _extract_docs_description(self):
         '''Extract main description from docstring'''
-        #FIXME the indentation of descriptions is lost
+        #FIXME: the indentation of descriptions is lost
         data = self.docs['in']['raw'].strip()
         if data.startswith('"""') or data.startswith("'''"):
             data = data[3:]
@@ -316,11 +366,12 @@ class DocString(object):
             self.docs['in']['desc'] = data[:idx]
 
     def _extract_docs_params(self):
-        '''Extract parameters description from docstring. The internal computed parameters list is
+        '''Extract parameters description and type from docstring. The internal computed parameters list is
         composed by tuples (parameter, description).
 
         '''
-        #FIXME the indentation of descriptions is lost
+        #FIXME: the indentation of descriptions is lost
+        #TODO: extract type desc using dst.get_param_type_indexes()
         data = '\n'.join([d.strip() for d in self.docs['in']['raw'].split('\n')])
         listed = 0
         loop = True
@@ -334,7 +385,7 @@ class DocString(object):
             if start >= 0:
                 param = data[start: end]
                 desc = ''
-                start, end = self.dst.get_param_description_indexes(data)
+                start, end = self.dst.get_param_description_indexes(data, prev=end)
                 if start > 0:
                     desc = data[start: end].strip()
                 self.docs['in']['params'].append((param, desc))
@@ -348,12 +399,17 @@ class DocString(object):
     def _extract_docs_param_types(self):
         '''
         '''
-        #TODO move on DocSTools
+        #TODO: remove when done in _extract_docs_params()
         data = '\n'.join([d.strip() for d in self.docs['in']['raw'].split('\n')])
         params = [p[0] for p in self.docs['in']['params']]
         self.docs['in']['types'] = [''] * len(params)
         loop = True
+        maxi = 10000  # avoid infinite loop but should never happen
+        i = 0
         while loop:
+            i += 1
+            if i > maxi:
+                loop = False
             idx = self.dst.get_elem_index(data)
             if idx == -1:
                 loop = False
@@ -374,6 +430,8 @@ class DocString(object):
                     data = data[idx + len('@type'):]
             else:
                 data = data[idx + 2:]
+        if i > maxi:
+            print("WARNING: an infinite loop was reached while extracting docstring parameters (>10000). This should never happen!!!")
 
     def _extract_docs_return(self):
         '''Extract return description and type
@@ -420,7 +478,7 @@ class DocString(object):
     def _set_params(self):
         '''Sets the parameters with return types, descriptions and default value if any
         '''
-        #TODO add types and return and rtype
+        #TODO add types
         if len(self.docs['in']['params']) > 0:
             self.docs['out']['params'] = list(self.docs['in']['params'])
         for e in self.element['params']:
@@ -444,12 +502,14 @@ class DocString(object):
     def _set_return(self):
         '''Sets the return parameter with description and rtype if any
         '''
+        #TODO: manage return retrieved from element code (external)
         self.docs['out']['return'] = self.docs['in']['return']
         self.docs['out']['rtype'] = self.docs['in']['rtype']
 
     def _set_raw(self):
         '''Sets the raw docstring
         '''
+        #TODO: make it no style dependent
         with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + l for l in s.split('\n')])
         raw = self.docs['out']['spaces'] + "'''"
         raw += with_space(self.docs['out']['desc']).strip() + '\n'
