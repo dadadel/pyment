@@ -17,21 +17,21 @@ Usage
 
 - from the command line:
 
-    ./pyment.py  myfile.py
+        ./pyment.py  myfile.py
 
-or
+    or
 
-    ./pyment.py  my/folder
+        ./pyment.py  my/folder
 
 - from a script:
 
-    import os
-    from pyment import PyComment
-    
-    filename = 'test.py'
-
-    c = PyComment(filename)
-    c.proceed()
-    c.diff_to_file(os.path.basename(filename) + ".patch")
-    c.release()
+        import os
+        from pyment import PyComment
+        
+        filename = 'test.py'
+        
+        c = PyComment(filename)
+        c.proceed()
+        c.diff_to_file(os.path.basename(filename) + ".patch")
+        c.release()
 
