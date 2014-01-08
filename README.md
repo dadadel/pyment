@@ -4,7 +4,7 @@ pyment
 Description
 -----------
 
-This Python program intend to help Python programmers to enhance inside code documentation using docstrings. 
+This Python program intends to help Python programmers to enhance inside code documentation using docstrings. 
 It is usefull for code not well documented, or code without docstrings, or some not yet documented code.
 
 It will parse one or several python scripts and retrieve existing docstrings.
