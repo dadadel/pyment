@@ -13,8 +13,11 @@ __maintainer__ = "A. Daouzli"
 # -choose input style and output style
 # -generate diagnosis/statistics
 # -parse classes public methods and list them in class docstring
-# -create a real command line management (options, ...)
+# -create a real command line management (options, ..., perhaps move PyComment outside and make Pyment a manager)
 # -add auto tests
+# -allow excluding files from processing
+# -add managing a unique patch
+# -manage docstrings templates
 #
 # -manage c/c++ sources
 
