@@ -20,6 +20,8 @@ __maintainer__ = "A. Daouzli"
 # -manage docstrings templates
 #
 # -manage c/c++ sources
+# -accept archives containing source files
+# -dev a server that take sources and send back patches
 
 import os
 import sys
