@@ -32,22 +32,59 @@ class DocsTools(object):
     #TODO: enhance style dependent separation
     #TODO: add set methods to generate style specific outputs
     #TODO: manage reST (:param) style and C style (\param)
-    def __init__(self, ds_type='javadoc', params=None):
+    #TODO: add auto recognition of the input style
+    def __init__(self, style_in='javadoc', style_out='javadoc', params=None):
         '''Choose the kind of docstring type.
 
-        @param ds_type: docstring type ('javadoc', 'params', 'unknown')
-        @type ds_type: string
+        @param style_in: docstring input style ('javadoc', 'params', 'unknown')
+        @type style_in: string
+        @param style_out: docstring output style ('javadoc', 'params', 'unknown')
+        @type style_out: string
         @param params: if known the parameters names that should be found in the docstring.
         @type params: list
 
         '''
-        self.type = ds_type
-        self.options_javadoc = ['@param', '@type', '@return', '@rtype']
-        if ds_type in ['javadoc', 'unknown']:
-            self.options = self.options_javadoc
-        else:
-            self.options = []
+        self.style = {'in': style_in,
+                      'out': style_out}
+        self.opt = {}
+        self.keystyles = []
+        self._set_available_options()
         self.params = params
+
+    def _set_available_options(self):
+        '''Sets the internal styles list and available options in a structure as following:
+
+            param: javadoc: name = '@param'
+                            sep  = ':'
+                   reST:    name = ':param'
+                            sep  = ':'
+                   ...
+            type:  javadoc: name = '@type'
+                            sep  = ':'
+                   ...
+            ...
+
+        '''
+        options_keystyle = {'keys': ['param', 'type', 'return', 'rtype', 'raise'],
+                            'styles': {'javadoc': ('@', ':'),  # tuple:  key prefix, separator
+                                       'reST':    (':', ':'),
+                                       'cstyle':  ('\\', ' ')}
+                           }
+        self.keystyles = options_keystyle['styles'].keys()
+        for op in options_keystyle['keys']:
+            self.opt[op] = {}
+            for style in options_keystyle['styles']:
+                self.opt[op][style] = {'name': options_keystyle['styles'][style][0] + op,
+                                       'sep': options_keystyle['styles'][style][1]
+                                      }
+
+    def _get_options(self, style):
+        '''Gets the list of keywords for a particular style
+
+        @para: the style that the keywords are wanted
+
+        '''
+        return [self.opt[o][style]['name'] for o in self.opt]
 
     def set_known_parameters(self, params):
         '''Set known parameters names.
@@ -67,7 +104,7 @@ class DocsTools(object):
 
         '''
         idx = len(data)
-        for opt in self.options:
+        for opt in self._get_options(self.style['in']):
             if opt in data:
                 i = data.find(opt)
                 if i < idx:
@@ -89,17 +126,18 @@ class DocsTools(object):
         '''
         #TODO: new method to extract an element's name so will be available for @param and @types and other styles (:param, \param)
         start, end = -1, -1
-        if self.type in ['javadoc', 'unknown']:
-            idx_p = data.find('@param')
+        stl_param = self.opt['param'][self.style['in']]['name']
+        if self.style['in'] in self.keystyles + ['unknown']:
+            idx_p = data.find(stl_param)
             if idx_p >= 0:
-                idx_p += len('@param')
+                idx_p += len(stl_param)
                 m = re.match(r'^([\w]+)', data[idx_p:].strip())
                 if m is not None:
                     param = m.group(1)
                     start = idx_p + data[idx_p:].find(param)
                     end = start + len(param)
 
-        if self.type in ['params', 'unknown'] and (start, end) == (-1, -1):
+        if self.style['in'] in ['params', 'unknown'] and (start, end) == (-1, -1):
             if self.params == None:
                 return (-2, -2)
             idx = -1
@@ -137,11 +175,11 @@ class DocsTools(object):
             start = data[prev:].find(first)
             if start >= 0:
                 start += prev
-                if self.type in ['javadoc', 'unknown']:
+                if self.style['in'] in self.keystyles + ['unknown']:
                     end = self.get_elem_index(data[start:])
                     if end >= 0:
                         end += start
-                if self.type in ['params', 'unknown'] and end == -1:
+                if self.style['in'] in ['params', 'unknown'] and end == -1:
                     p1, _ = self.get_param_indexes(data[start:])
                     if p1 >= 0:
                         end = p1
@@ -164,19 +202,20 @@ class DocsTools(object):
 
         '''
         start, end = -1, -1
+        stl_type = self.opt['type'][self.style['in']]['name']
         if not prev:
             _, prev = self.get_param_description_indexes(data)
         if prev >= 0:
-            if self.type in ['javadoc', 'unknown']:
+            if self.style['in'] in self.keystyles + ['unknown']:
                 idx = self.get_elem_index(data[prev:])
                 if idx >= 0 and data[prev + idx:].startswith('@type'):
-                    idx = prev + idx + len('@type')
+                    idx = prev + idx + len(stl_type)
                     m = re.match(r'\W*(\w+)', data[idx:])
                     if m is not None:
                         first = m.group(1)
                         start = data[idx:].find(first) + idx
 
-            if self.type in ['params', 'unknown'] and (start, end) == (-1, -1):
+            if self.style['in'] in ['params', 'unknown'] and (start, end) == (-1, -1):
                 #TODO: manage this
                 pass
 
@@ -194,18 +233,19 @@ class DocsTools(object):
 
         '''
         start, end = -1, -1
-        if self.type in ['javadoc', 'unknown']:
+        stl_return= self.opt['return'][self.style['in']]['name']
+        if self.style['in'] in self.keystyles + ['unknown']:
             idx = self.get_elem_index(data)
             idx_abs = idx
             # search @return
-            while idx >= 0 and not data[idx_abs:].startswith('@return'):
+            while idx >= 0 and not data[idx_abs:].startswith(stl_return):
                 idx = self.get_elem_index(data[idx_abs + 1:])
-                if idx > 0:
+                if idx >= 0:
                     idx_abs += idx + 1
             # search starting description
             if idx >= 0:
                 #FIXME: take care if a return description starts with <, >, =,...
-                m = re.match(r'\W*(\w+)', data[idx_abs + len('@return'):])
+                m = re.match(r'\W*(\w+)', data[idx_abs + len(stl_return):])
                 if m is not None:
                     first = m.group(1)
                     idx = data[idx_abs:].find(first)
@@ -219,7 +259,7 @@ class DocsTools(object):
                 idx_abs += idx
                 end = idx_abs
 
-        if self.type in ['params', 'unknown'] and (start, end) == (-1, -1):
+        if self.style['in'] in ['params', 'unknown'] and (start, end) == (-1, -1):
             #TODO: manage this
             pass
 
@@ -237,18 +277,19 @@ class DocsTools(object):
 
         '''
         start, end = -1, -1
-        if self.type in ['javadoc', 'unknown']:
+        stl_rtype = self.opt['rtype'][self.style['in']]['name']
+        if self.style['in'] in self.keystyles + ['unknown']:
             dstart, dend = self.get_return_description_indexes(data)
             if dstart >= 0 and dend > 0:
                 idx = self.get_elem_index(data[dend:])
-                if idx >= 0 and data[dend + idx:].startswith('@rtype'):
-                    idx = dend + idx + len('@rtype')
+                if idx >= 0 and data[dend + idx:].startswith(stl_rtype):
+                    idx = dend + idx + len(stl_rtype)
                     m = re.match(r'\W*(\w+)', data[idx:])
                     if m is not None:
                         first = m.group(1)
                         start = data[idx:].find(first) + idx
 
-        if self.type in ['params', 'unknown'] and (start, end) == (-1, -1):
+        if self.style['in'] in ['params', 'unknown'] and (start, end) == (-1, -1):
             #TODO: manage this
             pass
 
@@ -299,7 +340,9 @@ class DocString(object):
         self.parse_element()
 
     def __str__(self):
-        txt = "\n\n** " + str(self.element['name']) + ' of type ' + str(self.element['type']) + ':' + str(self.docs['in']['desc']) + '\n'
+        txt = "\n\n** " + str(self.element['name'])
+        txt += ' of type ' + str(self.element['type']) + ':'
+        txt += str(self.docs['in']['desc']) + '\n'
         txt += '->' + str(self.docs['in']['params']) + '\n'
         txt += '***>>' + str(self.docs['out']['raw']) + '\n\n'
         return txt
