@@ -9,7 +9,6 @@ __maintainer__ = "A. Daouzli"
 
 #TODO:
 # -generate a return if return is used with argument in element
-# -file managing only in proceed (remove init open and release)
 # -choose input style and output style
 # -generate diagnosis/statistics
 # -parse classes public methods and list them in class docstring
@@ -63,25 +62,10 @@ class PyComment(object):
         self.input_file = input_file
         self.doc_type = doc_type
         self.param_type = param_type
-        self.fd = None
         self.doc_index = -1
         self.file_index = 0
         self.docs_list = []
         self.parsed = False
-
-        self._open_file()
-
-    def _open_file(self):
-        '''Set the new current file to proceed.
-
-        @return: the new current file name. None if there is no more file to proceed.
-
-        '''
-        try:
-            self.fd = open(self.input_file)
-        except:
-            msg = BaseException('Failed to open file "' + self.input_file + '". Please provide a valid file.')
-            raise msg
 
     def _get_next(self):
         '''Get the current file's next docstring
@@ -92,7 +76,12 @@ class PyComment(object):
         '''Parses the input file's content and generates a list of its elements/docstrings.
 
         '''
-        if self.fd is None:
+        try:
+            fd = open(self.input_file)
+        except:
+            msg = BaseException('Failed to open file "' + self.input_file + '"to parse it.')
+            raise msg
+        if fd is None:
             raise Exception('There is no current file opened to explore the elements.')
         #TODO manage decorators
         #TODO manage default params with strings escaping chars as (, ), ', ', #, ...
@@ -104,7 +93,7 @@ class PyComment(object):
         raw = ''
         start = 0
         end = 0
-        for i, ln in enumerate(self.fd.readlines()):
+        for i, ln in enumerate(fd.readlines()):
             l = ln.strip()
             if (l.startswith('def ') or l.startswith('class ')) and not reading_docs:
                 # if currently reading an element content
@@ -161,7 +150,7 @@ class PyComment(object):
                     # inside a docstring bloc
                     elif waiting_docs:
                         raw += ln
-                # no docstring found for current element
+                # no docstring found for curos.seprent element
                 elif waiting_docs and l != '' and reading_docs is None:
                     waiting_docs = False
                 else:
@@ -169,24 +158,29 @@ class PyComment(object):
                         raw += ln
         self.docs_list = elem_list
         self.parsed = True
+        fd.close()
         return elem_list
 
-    def diff(self, which=-1):
+    def diff(self, which=-1, diff_path=False):
         '''Build the diff between original docstring and proposed docstring.
 
         @param which: indicates which docstring to proceed:
         -> -1 means all the dosctrings of the file
         -> >=0 means the index of the docstring to proceed
+        @param diff_path: indicates if in diff the files are refered to with the folser
+        @type  diff_path: boolean
         @return: the resulted diff
         @rtype: string
 
         '''
+        try:
+            fd = open(self.input_file)
+        except:
+            msg = BaseException('Failed to open file "' + self.input_file + '"to diff it.')
+            raise msg
         if not self.parsed:
             self.parse()
-        if self.fd is None:
-            raise Exception('There is no current file opened to do a diff.')
-        self.fd.seek(0)
-        list_from = self.fd.readlines()
+        list_from = fd.readlines()
         list_to = []
         last = 0
         for e in self.docs_list:
@@ -202,15 +196,19 @@ class PyComment(object):
             last = end + 1
         if last < len(list_from):
             list_to.extend(list_from[last:])
-        fromfile = 'a/' + os.path.basename(self.input_file)
-        tofile = 'b/' + os.path.basename(self.input_file)
+        pathfile = os.sep
+        if diff_path:
+            pathfile += os.path.os.path.dirname(self.input_file) + os.sep
+        fromfile = 'a' + pathfile + os.path.basename(self.input_file)
+        tofile = 'b' + pathfile + os.path.basename(self.input_file)
         diff_list = difflib.unified_diff(list_from, list_to, fromfile, tofile)
+        fd.close()
         return [d for d in diff_list]
 
-    def diff_to_file(self, patch_file):
+    def diff_to_file(self, patch_file, diff_path=False):
         '''
         '''
-        diff = self.diff()
+        diff = self.diff(diff_path=diff_path)
         f = open(patch_file, 'w')
         f.writelines(diff)
         f.close()
@@ -222,13 +220,6 @@ class PyComment(object):
         for e in self.docs_list:
             e['docs'].generate_docs()
         return self.docs_list
-
-    def release(self):
-        '''Close the current file if any.'''
-        try:
-            self.fd.close()
-        except:
-            pass
 
     def test(self, bob):
         print 'nothing'
@@ -278,5 +269,4 @@ if __name__ == "__main__":
     for f in files:
         c = PyComment(f)
         c.proceed()
-        c.diff_to_file(os.path.basename(f)+".patch")
-        c.release()
+        c.diff_to_file(os.path.basename(f)+".patch", True)
