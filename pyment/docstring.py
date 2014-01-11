@@ -21,6 +21,33 @@ Not yet supported but intended:
 import re
 
 
+class DocStyle(object):
+    '''
+    '''
+
+
+class DocsJavadoc(DocStyle):
+    '''
+    '''
+    def __init__(self):
+        '''
+        '''
+        self.keys = {'param': '@param',
+                     'type': '@type',
+                     'return': '@return',
+                     'rtype': '@rtype',
+                     'raise': '@raise'}
+
+    def get(self, key):
+        '''Get the key.
+        e.g.: the key for 'param' is @param.
+
+        @param key: the category of the key
+
+        '''
+        return self.keys[key]
+
+
 class DocsTools(object):
     '''This class provides the tools to manage several type of docstring.
     Currently the following are managed:
