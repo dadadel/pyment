@@ -24,28 +24,43 @@ import re
 class DocStyle(object):
     '''
     '''
-
-
-class DocsJavadoc(DocStyle):
-    '''
-    '''
-    def __init__(self):
+    def __init__(self, name=None):
         '''
         '''
-        self.keys = {'param': '@param',
-                     'type': '@type',
-                     'return': '@return',
-                     'rtype': '@rtype',
-                     'raise': '@raise'}
+        self.keys = {}
+        self.name = name
 
     def get(self, key):
-        '''Get the key.
-        e.g.: the key for 'param' is @param.
+        '''Gets the key.
+        e.g.: the key for 'param' is @param (for instance of DocsJavadoc).
 
         @param key: the category of the key
 
         '''
         return self.keys[key]
+
+    def get_keys(self):
+        '''Gets the whole set of keys
+
+        @return: the set of keys
+        @rtype:  list
+
+        '''
+        return self.keys.values()
+
+
+class DocsJavadoc(DocStyle):
+    '''
+    '''
+    def __init__(self, *arg, **kwarg):
+        '''
+        '''
+        super(DocsJavadoc, self).__init__(*arg, **kwarg)
+        self.keys = {'param': '@param',
+                     'type': '@type',
+                     'return': '@return',
+                     'rtype': '@rtype',
+                     'raise': '@raise'}
 
 
 class DocsTools(object):
@@ -71,6 +86,7 @@ class DocsTools(object):
         @type params: list
 
         '''
+        cs = DocsJavadoc()
         self.style = {'in': style_in,
                       'out': style_out}
         self.opt = {}
