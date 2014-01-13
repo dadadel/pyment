@@ -167,7 +167,7 @@ class PyComment(object):
         @param which: indicates which docstring to proceed:
         -> -1 means all the dosctrings of the file
         -> >=0 means the index of the docstring to proceed
-        @param diff_path: indicates if in diff the files are refered to with the folser
+        @param diff_path: indicates if in diff the files are refered to with the folder
         @type  diff_path: boolean
         @return: the resulted diff
         @rtype: string
@@ -206,7 +206,10 @@ class PyComment(object):
         return [d for d in diff_list]
 
     def diff_to_file(self, patch_file, diff_path=False):
-        '''
+        '''Generates a patch file containing proposed docstring diffed against the orignial file.
+
+        @param diff_path: indicates if in diff the files are refered to with the folder
+        @type  diff_path: boolean
         '''
         diff = self.diff(diff_path=diff_path)
         f = open(patch_file, 'w')
