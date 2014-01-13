@@ -29,8 +29,9 @@ class DocStyle(object):
         '''
         self.keys = {}
         self.name = name
+        self.sep = ' '
 
-    def get(self, key):
+    def get_key(self, key):
         '''Gets the key.
         e.g.: the key for 'param' is @param (for instance of DocsJavadoc).
 
@@ -48,6 +49,22 @@ class DocStyle(object):
         '''
         return self.keys.values()
 
+    def get_formated(self, key, desc=None, name=None):
+        '''Gets the formated docstring element corresponding to a key.
+        e.g.: for DocsJavadoc: with key=param, name=myparam, desc=this is a parameter:
+        the formated docs will be: "@param myparam: this is a parameter"
+
+        @param key: the category of the key
+        @param name: the name of the key if any
+        @param desc: the description of the element
+        @return: the formated docstring element. if no key found, return None
+
+        '''
+        if name == None:
+            name = ''
+        raw = self.keys[key] + name + self.sep + str(desc)
+        return raw
+
 
 class DocsJavadoc(DocStyle):
     '''
@@ -61,6 +78,51 @@ class DocsJavadoc(DocStyle):
                      'return': '@return',
                      'rtype': '@rtype',
                      'raise': '@raise'}
+        self.sep = ': '
+
+
+class DocsRest(DocStyle):
+    '''
+    '''
+    def __init__(self, *arg, **kwarg):
+        '''
+        '''
+        super(DocsJavadoc, self).__init__(*arg, **kwarg)
+        self.keys = {'param': ':param',
+                     'type': ':type',
+                     'return': ':return',
+                     'rtype': ':rtype',
+                     'raise': ':raise'}
+        self.sep = ' '
+
+
+class DocsGoogle(DocStyle):
+    '''
+    '''
+    def __init__(self, *arg, **kwarg):
+        '''
+        '''
+        super(DocsJavadoc, self).__init__(*arg, **kwarg)
+        self.keys = {'param': "Args"
+                     }
+        self.sep = ' '
+
+    def get_formated(self, key, desc=None, name=None, ptype=None):
+        '''Gets the formated docstring element corresponding to a key for reST style.
+        e.g.: for DocsJavadoc: with key=param, name=myparam, desc=this is a parameter, ptype=str
+        the formated docs will be: "Args:
+                                      myparam (str): this is a string parameter"
+
+        @param key: the category of the key
+        @param name: the name of the key if any
+        @param desc: the description of the element
+        @return: the formated docstring element. if no key found, return None
+
+        '''
+        if name == None:
+            name = ''
+        raw = self.keys[key] + name + self.sep + str(desc)
+        return raw
 
 
 class DocsTools(object):
@@ -87,6 +149,8 @@ class DocsTools(object):
 
         '''
         cs = DocsJavadoc()
+        styles = {'javadoc': DocsJavadoc,
+                  'reST': DocsRest}
         self.style = {'in': style_in,
                       'out': style_out}
         self.opt = {}
