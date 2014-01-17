@@ -55,7 +55,6 @@ class PyComment(object):
             - standard:
                 The style used is the javadoc style.
                 e.g.: @param my_param: the description
-        @param recursive: In case of a folder, will proceed the subdirectories files also
 
         '''
         self.file_type = '.py'
@@ -177,6 +176,7 @@ class PyComment(object):
         @param which: indicates which docstring to proceed:
         -> -1 means all the dosctrings of the file
         -> >=0 means the index of the docstring to proceed
+        @type: int
         @return: the resulted diff
         @rtype: string
 
