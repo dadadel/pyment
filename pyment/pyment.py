@@ -176,7 +176,7 @@ class PyComment(object):
         @param which: indicates which docstring to proceed:
         -> -1 means all the dosctrings of the file
         -> >=0 means the index of the docstring to proceed
-        @type: int
+        @type which: int
         @return: the resulted diff
         @rtype: string
 

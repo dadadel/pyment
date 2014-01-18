@@ -67,8 +67,8 @@ class DocsTools(object):
         '''
         options_keystyle = {'keys': ['param', 'type', 'return', 'rtype', 'raise'],
                             'styles': {'javadoc': ('@', ':'),  # tuple:  key prefix, separator
-                                       'reST':    (':', ':'),
-                                       'cstyle':  ('\\', ' ')}
+                                       'reST': (':', ':'),
+                                       'cstyle': ('\\', ' ')}
                            }
         self.keystyles = options_keystyle['styles'].keys()
         for op in options_keystyle['keys']:
@@ -85,6 +85,21 @@ class DocsTools(object):
 
         '''
         return [self.opt[o][style]['name'] for o in self.opt]
+
+    def get_key(self, key):
+        '''Get the name of a key in current style.
+        e.g.: in javadoc style, the returned key for 'param' is '@param'
+
+        @param key: the key wanted (param, type, return, rtype,..)
+        '''
+        return self.opt[key][self.style['in']]['name']
+
+    def get_sep(self, key='param'):
+        '''Get the separator of current style.
+        e.g.: in javadoc style, it is ":"
+
+        '''
+        return self.opt[key][self.style['in']]['sep']
 
     def set_known_parameters(self, params):
         '''Set known parameters names.
@@ -208,12 +223,17 @@ class DocsTools(object):
         if prev >= 0:
             if self.style['in'] in self.keystyles + ['unknown']:
                 idx = self.get_elem_index(data[prev:])
-                if idx >= 0 and data[prev + idx:].startswith('@type'):
+                if idx >= 0 and data[prev + idx:].startswith(stl_type):
                     idx = prev + idx + len(stl_type)
-                    m = re.match(r'\W*(\w+)', data[idx:])
+                    m = re.match(r'\W*(\w+)\W+(\w+)\W*', data[idx:].strip())
                     if m is not None:
-                        first = m.group(1)
-                        start = data[idx:].find(first) + idx
+                        param = m.group(1).strip()
+                        if (name and param == name) or not name:
+                            desc = m.group(2)
+                            start = data[idx:].find(desc) + idx
+                            end = self.get_elem_index(data[start:])
+                            if end >=0:
+                                end += start
 
             if self.style['in'] in ['params', 'unknown'] and (start, end) == (-1, -1):
                 #TODO: manage this
@@ -233,7 +253,7 @@ class DocsTools(object):
 
         '''
         start, end = -1, -1
-        stl_return= self.opt['return'][self.style['in']]['name']
+        stl_return = self.opt['return'][self.style['in']]['name']
         if self.style['in'] in self.keystyles + ['unknown']:
             idx = self.get_elem_index(data)
             idx_abs = idx
@@ -431,48 +451,15 @@ class DocString(object):
                 start, end = self.dst.get_param_description_indexes(data, prev=end)
                 if start > 0:
                     desc = data[start: end].strip()
-                self.docs['in']['params'].append((param, desc))
+                ptype = ''
+                start, pend = self.dst.get_param_type_indexes(data, name=param, prev=end)
+                if start > 0:
+                    ptype = data[start: pend].strip()
+                self.docs['in']['params'].append((param, desc, ptype))
                 data = data[end:]
                 listed += 1
             else:
                 loop = False
-        if i > maxi:
-            print("WARNING: an infinite loop was reached while extracting docstring parameters (>10000). This should never happen!!!")
-
-    def _extract_docs_param_types(self):
-        '''
-        '''
-        #TODO: remove when done in _extract_docs_params()
-        data = '\n'.join([d.strip() for d in self.docs['in']['raw'].split('\n')])
-        params = [p[0] for p in self.docs['in']['params']]
-        self.docs['in']['types'] = [''] * len(params)
-        loop = True
-        maxi = 10000  # avoid infinite loop but should never happen
-        i = 0
-        while loop:
-            i += 1
-            if i > maxi:
-                loop = False
-            idx = self.dst.get_elem_index(data)
-            if idx == -1:
-                loop = False
-            elif data[idx:].startswith('@type '):
-                d = data[idx + len('@type '):].strip()
-                m = re.match(r'^([\w]+)', d)
-                if m is not None:
-                    param = m.group(1)
-                    try:
-                        idx_p = params.index(param)
-                    except (ValueError):
-                        idx_p = -1
-                    self.docs['in']['types'][idx_p] = 'FOUND TYPE'
-                    #TODO retrieve the content
-                    #start = idx_p + data[idx_p:].find(param)
-                    #end = start + len(param)
-                else:
-                    data = data[idx + len('@type'):]
-            else:
-                data = data[idx + 2:]
         if i > maxi:
             print("WARNING: an infinite loop was reached while extracting docstring parameters (>10000). This should never happen!!!")
 
@@ -505,7 +492,6 @@ class DocString(object):
             return
         self.dst.set_known_parameters(self.element['params'])
         self._extract_docs_params()
-        self._extract_docs_param_types()
         self._extract_docs_return()
         self._extract_docs_description()
         self.parsed_docs = True
@@ -534,12 +520,12 @@ class DocString(object):
                     found = True
                     # add default value if any
                     if type(e) is tuple:
-                        self.docs['out']['params'][i] = (p[0], p[1], e[1])
+                        self.docs['out']['params'][i] = (p[0], p[1], p[2], e[1])
             if not found:
                 if type(e) is tuple:
-                    p = (param, '', e[1])
+                    p = (param, '', e[1], None)
                 else:
-                    p = (param, '')
+                    p = (param, '', None, None)
                 self.docs['out']['params'].append(p)
 
     def _set_return(self):
@@ -553,24 +539,32 @@ class DocString(object):
         '''Sets the raw docstring
         '''
         #TODO: make it no style dependent
-        with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + l for l in s.split('\n')])
+        sep = self.dst.get_sep()
+        sep = sep + ' ' if sep != ' ' else sep
+        with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + l if i > 0 else l for i, l in enumerate(s.split('\n'))])
         raw = self.docs['out']['spaces'] + "'''"
         raw += with_space(self.docs['out']['desc']).strip() + '\n'
         if len(self.docs['out']['params']):
             raw += '\n'
             for p in self.docs['out']['params']:
-                raw += self.docs['out']['spaces'] + '@param ' + p[0] + ': ' + with_space(p[1])
-                if len(p) > 2 and 'default' not in p[1].lower():
-                    raw += ' (Default value = ' + str(p[2]) + ')'
-                raw += '\n'
+                raw += self.docs['out']['spaces'] + self.dst.get_key('param') + ' ' + p[0] + sep + with_space(p[1])
+                if len(p) > 2:
+                    if 'default' not in p[1].lower() and len(p) > 3 and p[3] is not None:
+                        raw += ' (Default value = ' + str(p[3]) + ')'
+                    if p[2] is not None and len(p[2]) > 0:
+                        raw += '\n'
+                        raw += self.docs['out']['spaces'] + self.dst.get_key('type') + ' ' + p[0] + sep + p[2]
+                    raw += '\n'
+                else:
+                    raw += '\n'
         if self.docs['out']['return']:
             if len(self.docs['out']['params']) == 0:
                 raw += '\n'
-            raw += self.docs['out']['spaces'] + '@return: ' + self.docs['out']['return'].rstrip() + '\n'
+            raw += self.docs['out']['spaces'] + self.dst.get_key('return') + sep + self.docs['out']['return'].rstrip() + '\n'
         if self.docs['out']['rtype']:
             if len(self.docs['out']['params']) == 0:
                 raw += '\n'
-            raw += self.docs['out']['spaces'] + '@rtype: ' + self.docs['out']['rtype'].rstrip() + '\n'
+            raw += self.docs['out']['spaces'] + self.dst.get_key('rtype') + sep + self.docs['out']['rtype'].rstrip() + '\n'
         raw += "\n"
         if raw.count("'''") == 1:
             raw += self.docs['out']['spaces'] + "'''"
