@@ -81,7 +81,7 @@ class DocsTools(object):
     def _get_options(self, style):
         '''Gets the list of keywords for a particular style
 
-        @para: the style that the keywords are wanted
+        @param style: the style that the keywords are wanted
 
         '''
         return [self.opt[o][style]['name'] for o in self.opt]
@@ -109,21 +109,61 @@ class DocsTools(object):
         '''
         self.params = params
 
-    def get_elem_index(self, data):
+    def get_elem_key_index(self, data, key, starting=True):
+        '''Get from a docstring the next option with a given key.
+
+        @param data: string to parse
+        @param starting: does the key element must start the line
+        @param key: the key category. Can be 'param', 'type', 'return', ...
+        @type starting: boolean
+        @return: index of found element else -1
+        @rtype: integer
+
+        '''
+        key = self.opt[key][self.style['in']]['name']
+        idx = len(data)
+        ini = 0
+        loop = True
+        nex=False
+        if key in data:
+            while loop:
+                i = data.find(key)
+                if i != -1:
+                    if starting:
+                        if not data[:i].rstrip(' \t').endswith('\n') and len(data[:i].strip()) > 0:
+                            print "op=",key, ", idx=",i,", data=",data
+                            nex=True
+                            ini = i + 1
+                            data = data[ini:]
+                        else:
+                            idx = ini + i
+                            loop = False
+                    else:
+                        idx = ini + i
+                        loop = False
+                else:
+                    loop = False
+        if idx == len(data):
+            idx = -1
+        if nex: print "fuond=",idx
+        return idx
+
+    def get_elem_index(self, data, starting=True):
         '''Get from a docstring the next option.
         In javadoc style it could be @param, @return, @type,...
 
         @param data: string to parse
+        @param starting: does the key element must start the line
+        @type starting: boolean
         @return: index of found element else -1
         @rtype: integer
 
         '''
         idx = len(data)
-        for opt in self._get_options(self.style['in']):
-            if opt in data:
-                i = data.find(opt)
-                if i < idx:
-                    idx = i
+        for opt in self.opt.keys():
+            i = self.get_elem_key_index(data, opt, starting)
+            if i < idx and i != -1:
+                idx = i
         if idx == len(data):
             idx = -1
         return idx
@@ -435,7 +475,7 @@ class DocString(object):
         '''
         #FIXME: the indentation of descriptions is lost
         #TODO: extract type desc using dst.get_param_type_indexes()
-        data = '\n'.join([d.strip() for d in self.docs['in']['raw'].split('\n')])
+        data = '\n'.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split('\n')])
         listed = 0
         loop = True
         maxi = 10000  # avoid infinite loop but should never happen
@@ -507,7 +547,6 @@ class DocString(object):
     def _set_params(self):
         '''Sets the parameters with return types, descriptions and default value if any
         '''
-        #TODO add types
         if len(self.docs['in']['params']) > 0:
             self.docs['out']['params'] = list(self.docs['in']['params'])
         for e in self.element['params']:
@@ -520,6 +559,7 @@ class DocString(object):
                     found = True
                     # add default value if any
                     if type(e) is tuple:
+                        # tuple: (name, desc, type, default)
                         self.docs['out']['params'][i] = (p[0], p[1], p[2], e[1])
             if not found:
                 if type(e) is tuple:
