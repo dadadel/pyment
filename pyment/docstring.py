@@ -70,7 +70,7 @@ class DocsTools(object):
                                        'reST': (':', ':'),
                                        'cstyle': ('\\', ' ')}
                            }
-        self.keystyles = options_keystyle['styles'].keys()
+        self.keystyles = list(options_keystyle['styles'].keys())
         for op in options_keystyle['keys']:
             self.opt[op] = {}
             for style in options_keystyle['styles']:
@@ -109,7 +109,7 @@ class DocsTools(object):
         '''
         self.params = params
 
-    def get_elem_key_index(self, data, key, starting=True):
+    def get_key_index(self, data, key, starting=True):
         '''Get from a docstring the next option with a given key.
 
         @param data: string to parse
@@ -124,15 +124,12 @@ class DocsTools(object):
         idx = len(data)
         ini = 0
         loop = True
-        nex=False
         if key in data:
             while loop:
                 i = data.find(key)
                 if i != -1:
                     if starting:
                         if not data[:i].rstrip(' \t').endswith('\n') and len(data[:i].strip()) > 0:
-                            print "op=",key, ", idx=",i,", data=",data
-                            nex=True
                             ini = i + 1
                             data = data[ini:]
                         else:
@@ -145,7 +142,6 @@ class DocsTools(object):
                     loop = False
         if idx == len(data):
             idx = -1
-        if nex: print "fuond=",idx
         return idx
 
     def get_elem_index(self, data, starting=True):
@@ -161,7 +157,7 @@ class DocsTools(object):
         '''
         idx = len(data)
         for opt in self.opt.keys():
-            i = self.get_elem_key_index(data, opt, starting)
+            i = self.get_key_index(data, opt, starting)
             if i < idx and i != -1:
                 idx = i
         if idx == len(data):
@@ -183,7 +179,7 @@ class DocsTools(object):
         start, end = -1, -1
         stl_param = self.opt['param'][self.style['in']]['name']
         if self.style['in'] in self.keystyles + ['unknown']:
-            idx_p = data.find(stl_param)
+            idx_p = self.get_key_index(data, 'param')
             if idx_p >= 0:
                 idx_p += len(stl_param)
                 m = re.match(r'^([\w]+)', data[idx_p:].strip())
@@ -272,7 +268,7 @@ class DocsTools(object):
                             desc = m.group(2)
                             start = data[idx:].find(desc) + idx
                             end = self.get_elem_index(data[start:])
-                            if end >=0:
+                            if end >= 0:
                                 end += start
 
             if self.style['in'] in ['params', 'unknown'] and (start, end) == (-1, -1):
@@ -295,13 +291,8 @@ class DocsTools(object):
         start, end = -1, -1
         stl_return = self.opt['return'][self.style['in']]['name']
         if self.style['in'] in self.keystyles + ['unknown']:
-            idx = self.get_elem_index(data)
+            idx = self.get_key_index(data, 'return')
             idx_abs = idx
-            # search @return
-            while idx >= 0 and not data[idx_abs:].startswith(stl_return):
-                idx = self.get_elem_index(data[idx_abs + 1:])
-                if idx >= 0:
-                    idx_abs += idx + 1
             # search starting description
             if idx >= 0:
                 #FIXME: take care if a return description starts with <, >, =,...
@@ -374,6 +365,12 @@ class DocString(object):
         self.element['params'] = []
         self.element['spaces'] = spaces
         self.docs = {'in': {}, 'out': {}}
+        if docs_raw is not None:
+            docs_raw = docs_raw.strip()
+            if docs_raw.startswith('"""') or docs_raw.startswith("'''"):
+                docs_raw = docs_raw[3:]
+            if docs_raw.endswith('"""') or docs_raw.endswith("'''"):
+                docs_raw = docs_raw[:-3]
         self.docs['in']['raw'] = docs_raw
         self.docs['in']['desc'] = None
         self.docs['in']['params'] = []
@@ -455,11 +452,7 @@ class DocString(object):
     def _extract_docs_description(self):
         '''Extract main description from docstring'''
         #FIXME: the indentation of descriptions is lost
-        data = self.docs['in']['raw'].strip()
-        if data.startswith('"""') or data.startswith("'''"):
-            data = data[3:]
-        if data.endswith('"""') or data.endswith("'''"):
-            data = data[:-3]
+        data = '\n'.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split('\n')])
         idx = self.dst.get_elem_index(data)
         if idx == 0:
             self.docs['in']['desc'] = ''
@@ -473,8 +466,6 @@ class DocString(object):
         composed by tuples (parameter, description).
 
         '''
-        #FIXME: the indentation of descriptions is lost
-        #TODO: extract type desc using dst.get_param_type_indexes()
         data = '\n'.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split('\n')])
         listed = 0
         loop = True
@@ -506,19 +497,19 @@ class DocString(object):
     def _extract_docs_return(self):
         '''Extract return description and type
         '''
-        data = '\n'.join([d.strip() for d in self.docs['in']['raw'].split('\n')])
+        data = '\n'.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split('\n')])
         start, end = self.dst.get_return_description_indexes(data)
         if start >= 0:
             if end >= 0:
-                self.docs['in']['return'] = data[start:end].rstrip().replace("'''", "")
+                self.docs['in']['return'] = data[start:end].rstrip()
             else:
-                self.docs['in']['return'] = data[start:].rstrip().replace("'''", "")
+                self.docs['in']['return'] = data[start:].rstrip()
         start, end = self.dst.get_return_type_indexes(data)
         if start >= 0:
             if end >= 0:
-                self.docs['in']['rtype'] = data[start:end].rstrip().replace("'''", "")
+                self.docs['in']['rtype'] = data[start:end].rstrip()
             else:
-                self.docs['in']['rtype'] = data[start:].rstrip().replace("'''", "")
+                self.docs['in']['rtype'] = data[start:].rstrip()
 
     def parse_docs(self, raw=None):
         '''Parses the docstring
@@ -527,6 +518,11 @@ class DocString(object):
 
         '''
         if raw is not None:
+            raw = raw.strip()
+            if raw.startswith('"""') or raw.startswith("'''"):
+                raw = raw[3:]
+            if raw.endswith('"""') or raw.endswith("'''"):
+                raw = raw[:-3]
             self.docs['in']['raw'] = raw
         if self.docs['in']['raw'] is None:
             return
@@ -539,6 +535,7 @@ class DocString(object):
     def _set_desc(self):
         '''Sets the global description if any
         '''
+        #TODO: manage different in/out styles
         if self.docs['in']['desc']:
             self.docs['out']['desc'] = self.docs['in']['desc']
         else:
@@ -547,6 +544,7 @@ class DocString(object):
     def _set_params(self):
         '''Sets the parameters with return types, descriptions and default value if any
         '''
+        #TODO: manage different in/out styles
         if len(self.docs['in']['params']) > 0:
             self.docs['out']['params'] = list(self.docs['in']['params'])
         for e in self.element['params']:
@@ -572,13 +570,13 @@ class DocString(object):
         '''Sets the return parameter with description and rtype if any
         '''
         #TODO: manage return retrieved from element code (external)
+        #TODO: manage different in/out styles
         self.docs['out']['return'] = self.docs['in']['return']
         self.docs['out']['rtype'] = self.docs['in']['rtype']
 
     def _set_raw(self):
         '''Sets the raw docstring
         '''
-        #TODO: make it no style dependent
         sep = self.dst.get_sep()
         sep = sep + ' ' if sep != ' ' else sep
         with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + l if i > 0 else l for i, l in enumerate(s.split('\n'))])
@@ -600,7 +598,7 @@ class DocString(object):
         if self.docs['out']['return']:
             if len(self.docs['out']['params']) == 0:
                 raw += '\n'
-            raw += self.docs['out']['spaces'] + self.dst.get_key('return') + sep + self.docs['out']['return'].rstrip() + '\n'
+            raw += self.docs['out']['spaces'] + self.dst.get_key('return') + sep + with_space(self.docs['out']['return'].rstrip()) + '\n'
         if self.docs['out']['rtype']:
             if len(self.docs['out']['params']) == 0:
                 raw += '\n'
