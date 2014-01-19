@@ -37,7 +37,7 @@ class PyComment(object):
     The changes are then provided in a patch file.
 
     '''
-    def __init__(self, input_file, doc_type='normal', param_type='standard'):
+    def __init__(self, input_file, doc_type='normal', param_type='standard', cotes="'''"):
         '''Sets the configuration including the source to proceed and options.
 
         @param input_file: path name (file or folder)
@@ -55,6 +55,7 @@ class PyComment(object):
             - standard:
                 The style used is the javadoc style.
                 e.g.: @param my_param: the description
+        @param cotes: the type of cotes to use for output: ' ' ' or " " "
 
         '''
         self.file_type = '.py'
@@ -67,6 +68,7 @@ class PyComment(object):
         self.file_index = 0
         self.docs_list = []
         self.parsed = False
+        self.cotes = cotes
 
         self._open_file()
 
@@ -118,7 +120,7 @@ class PyComment(object):
                     spaces = m.group(1)
                 else:
                     spaces = ''
-                e = DocString(l, spaces)
+                e = DocString(l, spaces, cotes=self.cotes)
                 elem_list.append({'docs': e, 'location': (-i, -i)})
             else:
                 if waiting_docs and ('"""' in l or "'''" in l):
@@ -271,7 +273,7 @@ if __name__ == "__main__":
     files = get_files_from_dir(source)
 
     for f in files:
-        c = PyComment(f)
+        c = PyComment(f, cotes='"""')
         c.proceed()
         c.diff_to_file(os.path.basename(f)+".patch")
         c.release()

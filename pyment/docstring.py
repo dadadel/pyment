@@ -114,8 +114,8 @@ class DocsTools(object):
 
         @param data: string to parse
         @param starting: does the key element must start the line
-        @param key: the key category. Can be 'param', 'type', 'return', ...
         @type starting: boolean
+        @param key: the key category. Can be 'param', 'type', 'return', ...
         @return: index of found element else -1
         @rtype: integer
 
@@ -163,6 +163,14 @@ class DocsTools(object):
         if idx == len(data):
             idx = -1
         return idx
+
+    def get_elem_desc(self, data, key):
+        '''
+        '''
+
+    def get_elem_param(self):
+        '''
+        '''
 
     def get_param_indexes(self, data):
         '''Get from a docstring the next parameter name indexes.
@@ -350,11 +358,12 @@ class DocsTools(object):
 class DocString(object):
     '''This class represents the docstring'''
 
-    def __init__(self, elem_raw, spaces='', docs_raw=None):
+    def __init__(self, elem_raw, spaces='', docs_raw=None, cotes="'''"):
         '''
         @param elem_raw: raw data of the element (def or class).
         @param spaces: the leading whitespaces before the element
         @param docs_raw: the raw data of the docstring part if any.
+        @param cotes: the type of cotes to use for output: ' ' ' or " " "
 
         '''
         self.dst = DocsTools()
@@ -395,6 +404,7 @@ class DocString(object):
         self.generated_docs = False
 
         self.parse_element()
+        self.cotes = cotes
 
     def __str__(self):
         txt = "\n\n** " + str(self.element['name'])
@@ -580,7 +590,7 @@ class DocString(object):
         sep = self.dst.get_sep()
         sep = sep + ' ' if sep != ' ' else sep
         with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + l if i > 0 else l for i, l in enumerate(s.split('\n'))])
-        raw = self.docs['out']['spaces'] + "'''"
+        raw = self.docs['out']['spaces'] + self.cotes
         raw += with_space(self.docs['out']['desc']).strip() + '\n'
         if len(self.docs['out']['params']):
             raw += '\n'
@@ -604,8 +614,8 @@ class DocString(object):
                 raw += '\n'
             raw += self.docs['out']['spaces'] + self.dst.get_key('rtype') + sep + self.docs['out']['rtype'].rstrip() + '\n'
         raw += "\n"
-        if raw.count("'''") == 1:
-            raw += self.docs['out']['spaces'] + "'''"
+        if raw.count(self.cotes) == 1:
+            raw += self.docs['out']['spaces'] + self.cotes
         self.docs['out']['raw'] = raw.rstrip()
 
     def generate_docs(self):
