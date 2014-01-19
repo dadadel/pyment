@@ -230,11 +230,6 @@ class PyComment(object):
         except:
             pass
 
-    def test(self, bob):
-        print 'nothing'
-        var = bob
-        '''affecting bob'''
-
 
 if __name__ == "__main__":
 
