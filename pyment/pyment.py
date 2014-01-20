@@ -63,26 +63,11 @@ class PyComment(object):
         self.input_file = input_file
         self.doc_type = doc_type
         self.param_type = param_type
-        self.fd = None
         self.doc_index = -1
         self.file_index = 0
         self.docs_list = []
         self.parsed = False
         self.cotes = cotes
-
-        self._open_file()
-
-    def _open_file(self):
-        '''Set the new current file to proceed.
-
-        @return: the new current file name. None if there is no more file to proceed.
-
-        '''
-        try:
-            self.fd = open(self.input_file)
-        except:
-            msg = BaseException('Failed to open file "' + self.input_file + '". Please provide a valid file.')
-            raise msg
 
     def _get_next(self):
         '''Get the current file's next docstring
@@ -93,8 +78,6 @@ class PyComment(object):
         '''Parses the input file's content and generates a list of its elements/docstrings.
 
         '''
-        if self.fd is None:
-            raise Exception('There is no current file opened to explore the elements.')
         #TODO manage decorators
         #TODO manage default params with strings escaping chars as (, ), ', ', #, ...
         #TODO manage multilines
@@ -105,7 +88,12 @@ class PyComment(object):
         raw = ''
         start = 0
         end = 0
-        for i, ln in enumerate(self.fd.readlines()):
+        try:
+            fd = open(self.input_file)
+        except:
+            msg = BaseException('Failed to open file "' + self.input_file + '". Please provide a valid file.')
+            raise msg
+        for i, ln in enumerate(fd.readlines()):
             l = ln.strip()
             if (l.startswith('def ') or l.startswith('class ')) and not reading_docs:
                 # if currently reading an element content
@@ -168,6 +156,7 @@ class PyComment(object):
                 else:
                     if reading_docs is not None:
                         raw += ln
+        fd.close()
         self.docs_list = elem_list
         self.parsed = True
         return elem_list
@@ -184,11 +173,13 @@ class PyComment(object):
 
         '''
         if not self.parsed:
-            self.parse()
-        if self.fd is None:
-            raise Exception('There is no current file opened to do a diff.')
-        self.fd.seek(0)
-        list_from = self.fd.readlines()
+            self._parse()
+        try:
+            fd = open(self.input_file)
+        except:
+            msg = BaseException('Failed to open file "' + self.input_file + '". Please provide a valid file.')
+            raise msg
+        list_from = fd.readlines()
         list_to = []
         last = 0
         for e in self.docs_list:
@@ -202,6 +193,7 @@ class PyComment(object):
             list_docs = [l + '\n' for l in docs.split('\n')]
             list_to.extend(list_docs)
             last = end + 1
+        fd.close()
         if last < len(list_from):
             list_to.extend(list_from[last:])
         fromfile = 'a/' + os.path.basename(self.input_file)
@@ -224,13 +216,6 @@ class PyComment(object):
         for e in self.docs_list:
             e['docs'].generate_docs()
         return self.docs_list
-
-    def release(self):
-        '''Close the current file if any.'''
-        try:
-            self.fd.close()
-        except:
-            pass
 
 
 if __name__ == "__main__":
@@ -275,5 +260,4 @@ if __name__ == "__main__":
     for f in files:
         c = PyComment(f, cotes='"""')
         c.proceed()
-        c.diff_to_file(os.path.basename(f)+".patch")
-        c.release()
+        c.diff_to_file(os.path.basename(f) + ".patch")
