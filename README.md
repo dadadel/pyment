@@ -34,5 +34,4 @@ Usage
         c = PyComment(filename)
         c.proceed()
         c.diff_to_file(os.path.basename(filename) + ".patch")
-        c.release()
 
