@@ -14,12 +14,12 @@ Formats supported at the time:
  intended -> @raise
 
 Not yet supported but intended:
- - reST:
+ - Sphinx:
  same than javadoc but using ':' instead of '@'
 """
 
 import re
-
+from collections import defaultdict
 
 class DocsTools(object):
     '''This class provides the tools to manage several type of docstring.
@@ -31,8 +31,7 @@ class DocsTools(object):
     '''
     #TODO: enhance style dependent separation
     #TODO: add set methods to generate style specific outputs
-    #TODO: manage reST (:param) style and C style (\param)
-    #TODO: add auto recognition of the input style
+    #TODO: manage Sphinx (:param) style and C style (\param)
     def __init__(self, style_in='javadoc', style_out='javadoc', params=None):
         '''Choose the kind of docstring type.
 
@@ -56,7 +55,7 @@ class DocsTools(object):
 
             param: javadoc: name = '@param'
                             sep  = ':'
-                   reST:    name = ':param'
+                   sphinx:  name = ':param'
                             sep  = ':'
                    ...
             type:  javadoc: name = '@type'
@@ -67,7 +66,7 @@ class DocsTools(object):
         '''
         options_keystyle = {'keys': ['param', 'type', 'return', 'rtype', 'raise'],
                             'styles': {'javadoc': ('@', ':'),  # tuple:  key prefix, separator
-                                       'reST': (':', ':'),
+                                       'sphinx': (':', ':'),
                                        'cstyle': ('\\', ' ')}
                            }
         self.keystyles = list(options_keystyle['styles'].keys())
@@ -77,6 +76,43 @@ class DocsTools(object):
                 self.opt[op][style] = {'name': options_keystyle['styles'][style][0] + op,
                                        'sep': options_keystyle['styles'][style][1]
                                       }
+
+    def autodetect_style(self, data):
+        '''Determines the style of a docstring,
+        and sets it as the default input one for the instance.
+
+        @param data: the docstring's data to recognize. 
+        @type data: str
+        @return: the style detected else 'unknown'
+        @rtype: str
+
+        '''
+        found_keys = defaultdict()
+        for style in self.keystyles:
+            for key in self.opt:
+                found_keys[style] += data.count(self[key][style]['name'])
+        key = max(found_keys, found_keys.get)
+        detected_style = key if found_keys[key] else 'unknown'
+        self.style['in'] = detected_style
+        return detected_style
+
+    def set_input_style(self, style):
+        '''Sets the input docstring style
+
+        @param style: style to set for input docstring
+        @type style: str
+        
+        '''
+        self.style['in'] = style
+
+    def set_output_style(self, style):
+        '''Sets the output docstring style
+
+        @param style: style to set for output docstring
+        @type style: str
+        
+        '''
+        self.style['out'] = style
 
     def _get_options(self, style):
         '''Gets the list of keywords for a particular style
@@ -191,7 +227,7 @@ class DocsTools(object):
             if idx_p >= 0:
                 idx_p += len(stl_param)
                 m = re.match(r'^([\w]+)', data[idx_p:].strip())
-                if m is not None:
+                if m:
                     param = m.group(1)
                     start = idx_p + data[idx_p:].find(param)
                     end = start + len(param)
@@ -229,7 +265,7 @@ class DocsTools(object):
         if prev < 0:
             return (-1, -1)
         m = re.match(r'\W*(\w+)', data[prev:])
-        if m is not None:
+        if m:
             first = m.group(1)
             start = data[prev:].find(first)
             if start >= 0:
@@ -270,7 +306,7 @@ class DocsTools(object):
                 if idx >= 0 and data[prev + idx:].startswith(stl_type):
                     idx = prev + idx + len(stl_type)
                     m = re.match(r'\W*(\w+)\W+(\w+)\W*', data[idx:].strip())
-                    if m is not None:
+                    if m:
                         param = m.group(1).strip()
                         if (name and param == name) or not name:
                             desc = m.group(2)
@@ -305,7 +341,7 @@ class DocsTools(object):
             if idx >= 0:
                 #FIXME: take care if a return description starts with <, >, =,...
                 m = re.match(r'\W*(\w+)', data[idx_abs + len(stl_return):])
-                if m is not None:
+                if m:
                     first = m.group(1)
                     idx = data[idx_abs:].find(first)
                     idx_abs += idx
@@ -344,7 +380,7 @@ class DocsTools(object):
                 if idx >= 0 and data[dend + idx:].startswith(stl_rtype):
                     idx = dend + idx + len(stl_rtype)
                     m = re.match(r'\W*(\w+)', data[idx:])
-                    if m is not None:
+                    if m:
                         first = m.group(1)
                         start = data[idx:].find(first) + idx
 
@@ -358,7 +394,7 @@ class DocsTools(object):
 class DocString(object):
     '''This class represents the docstring'''
 
-    def __init__(self, elem_raw, spaces='', docs_raw=None, cotes="'''"):
+    def __init__(self, elem_raw, spaces='', docs_raw=None, cotes="'''", input_style=None, output_style=None):
         '''
         @param elem_raw: raw data of the element (def or class).
         @param spaces: the leading whitespaces before the element
@@ -367,6 +403,12 @@ class DocString(object):
 
         '''
         self.dst = DocsTools()
+        if docs_raw and not input_style:
+            self.dst.autodetect_style(docs_raw)
+        elif input_style:
+            self.set_input_style(input_style)
+        if output_style:
+            self.set_output_style(output_style)
         self.element = {}
         self.element['raw'] = elem_raw
         self.element['name'] = None
@@ -374,7 +416,7 @@ class DocString(object):
         self.element['params'] = []
         self.element['spaces'] = spaces
         self.docs = {'in': {}, 'out': {}}
-        if docs_raw is not None:
+        if docs_raw:
             docs_raw = docs_raw.strip()
             if docs_raw.startswith('"""') or docs_raw.startswith("'''"):
                 docs_raw = docs_raw[3:]
@@ -416,6 +458,46 @@ class DocString(object):
 
     def __repr__(self):
         return self.__str__()
+
+    def get_input_style(self):
+        '''Gets the input docstring style
+
+        @return: the style for input docstring
+        @rtype style: str
+        
+        '''
+        #TODO: use a getter
+        return self.dst.style['in']
+
+    def set_input_style(self, style):
+        '''Sets the input docstring style
+
+        @param style: style to set for input docstring
+        @type style: str
+        
+        '''
+        #TODO: use a setter
+        self.dst.style['in'] = style
+
+    def get_output_style(self):
+        '''Sets the output docstring style
+
+        @return: the style for output docstring
+        @rtype style: str
+
+        '''
+        #TODO: use a getter
+        return self.dst.style['out']
+
+    def set_output_style(self, style):
+        '''Sets the output docstring style
+
+        @param style: style to set for output docstring
+        @type style: str
+        
+        '''
+        #TODO: use a setter
+        self.dst.style['out'] = style
 
     def parse_element(self, raw=None):
         '''Parses the element's elements (type, name and parameters) :)
@@ -606,11 +688,11 @@ class DocString(object):
                 else:
                     raw += '\n'
         if self.docs['out']['return']:
-            if len(self.docs['out']['params']) == 0:
+            if not self.docs['out']['params']:
                 raw += '\n'
             raw += self.docs['out']['spaces'] + self.dst.get_key('return') + sep + with_space(self.docs['out']['return'].rstrip()) + '\n'
         if self.docs['out']['rtype']:
-            if len(self.docs['out']['params']) == 0:
+            if not self.docs['out']['params']:
                 raw += '\n'
             raw += self.docs['out']['spaces'] + self.dst.get_key('rtype') + sep + self.docs['out']['rtype'].rstrip() + '\n'
         raw += "\n"
