@@ -1,6 +1,8 @@
 pyment
 ======
 
+Create, update or change style of docstrings in existing Python files.
+
 Description
 -----------
 
