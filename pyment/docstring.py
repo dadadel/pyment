@@ -14,7 +14,7 @@ Formats supported at the time:
  intended -> @raise
 
 Not yet supported but intended:
- - Sphinx:
+ - reST:
  same than javadoc but using ':' instead of '@'
 """
 
@@ -31,8 +31,8 @@ class DocsTools(object):
     '''
     #TODO: enhance style dependent separation
     #TODO: add set methods to generate style specific outputs
-    #TODO: manage Sphinx (:param) style and C style (\param)
-    def __init__(self, style_in='javadoc', style_out='javadoc', params=None):
+    #TODO: manage reST (:param) style and C style (\param)
+    def __init__(self, style_in='javadoc', style_out='reST', params=None):
         '''Choose the kind of docstring type.
 
         @param style_in: docstring input style ('javadoc', 'params', 'unknown')
@@ -55,7 +55,7 @@ class DocsTools(object):
 
             param: javadoc: name = '@param'
                             sep  = ':'
-                   sphinx:  name = ':param'
+                   reST:    name = ':param'
                             sep  = ':'
                    ...
             type:  javadoc: name = '@type'
@@ -66,7 +66,7 @@ class DocsTools(object):
         '''
         options_keystyle = {'keys': ['param', 'type', 'return', 'rtype', 'raise'],
                             'styles': {'javadoc': ('@', ':'),  # tuple:  key prefix, separator
-                                       'sphinx': (':', ':'),
+                                       'reST': (':', ':'),
                                        'cstyle': ('\\', ' ')}
                            }
         self.keystyles = list(options_keystyle['styles'].keys())
@@ -76,6 +76,8 @@ class DocsTools(object):
                 self.opt[op][style] = {'name': options_keystyle['styles'][style][0] + op,
                                        'sep': options_keystyle['styles'][style][1]
                                       }
+        self.opt['return']['reST']['name'] = ':returns'
+        self.opt['raise']['reST']['name'] = ':raises'
 
     def autodetect_style(self, data):
         '''Determines the style of a docstring,
@@ -393,6 +395,7 @@ class DocsTools(object):
 
 class DocString(object):
     '''This class represents the docstring'''
+    #TODO: manage raising
 
     def __init__(self, elem_raw, spaces='', docs_raw=None, cotes="'''", input_style=None, output_style=None):
         '''
@@ -409,38 +412,43 @@ class DocString(object):
             self.set_input_style(input_style)
         if output_style:
             self.set_output_style(output_style)
-        self.element = {}
-        self.element['raw'] = elem_raw
-        self.element['name'] = None
-        self.element['type'] = None
-        self.element['params'] = []
-        self.element['spaces'] = spaces
-        self.docs = {'in': {}, 'out': {}}
+        self.element = {
+            'raw': elem_raw,
+            'name': None,
+            'type': None,
+            'params': [],
+            'spaces': spaces
+            }
         if docs_raw:
             docs_raw = docs_raw.strip()
             if docs_raw.startswith('"""') or docs_raw.startswith("'''"):
                 docs_raw = docs_raw[3:]
             if docs_raw.endswith('"""') or docs_raw.endswith("'''"):
                 docs_raw = docs_raw[:-3]
-        self.docs['in']['raw'] = docs_raw
-        self.docs['in']['desc'] = None
-        self.docs['in']['params'] = []
-        self.docs['in']['types'] = []
-        self.docs['in']['return'] = None
-        self.docs['in']['rtype'] = None
-        self.docs['out']['raw'] = ''
-        self.docs['out']['desc'] = None
-        self.docs['out']['params'] = []
-        self.docs['out']['types'] = []
-        self.docs['out']['return'] = None
-        self.docs['out']['rtype'] = None
+        self.docs = {
+            'in': {
+                'raw': docs_raw,
+                'desc': None,
+                'params': [],
+                'types': [],
+                'return': None,
+                'rtype': None
+                },
+            'out': {
+                'raw': '',
+                'desc': None,
+                'params': [],
+                'types': [],
+                'return': None,
+                'rtype': None,
+                'spaces': spaces + ' ' * 2
+                }
+            }
         if '\t' in spaces:
             self.docs['out']['spaces'] = spaces + '\t'
         elif (len(spaces) % 4) == 0 or spaces == '':
             #FIXME: should bug if tabs for class or function (as spaces=='')
             self.docs['out']['spaces'] = spaces + ' ' * 4
-        else:
-            self.docs['out']['spaces'] = spaces + ' ' * 2
         self.parsed_elem = False
         self.parsed_docs = False
         self.generated_docs = False
@@ -449,6 +457,7 @@ class DocString(object):
         self.cotes = cotes
 
     def __str__(self):
+        # !!! for debuging
         txt = "\n\n** " + str(self.element['name'])
         txt += ' of type ' + str(self.element['type']) + ':'
         txt += str(self.docs['in']['desc']) + '\n'
@@ -667,13 +676,17 @@ class DocString(object):
         self.docs['out']['rtype'] = self.docs['in']['rtype']
 
     def _set_raw(self):
-        '''Sets the raw docstring
+        '''Sets the output raw docstring
         '''
         sep = self.dst.get_sep()
         sep = sep + ' ' if sep != ' ' else sep
         with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + l if i > 0 else l for i, l in enumerate(s.split('\n'))])
+
+        # sets the description section
         raw = self.docs['out']['spaces'] + self.cotes
         raw += with_space(self.docs['out']['desc']).strip() + '\n'
+
+        # sets the parameters section
         if len(self.docs['out']['params']):
             raw += '\n'
             for p in self.docs['out']['params']:
@@ -687,6 +700,8 @@ class DocString(object):
                     raw += '\n'
                 else:
                     raw += '\n'
+
+        # sets the return section
         if self.docs['out']['return']:
             if not self.docs['out']['params']:
                 raw += '\n'
@@ -696,6 +711,7 @@ class DocString(object):
                 raw += '\n'
             raw += self.docs['out']['spaces'] + self.dst.get_key('rtype') + sep + self.docs['out']['rtype'].rstrip() + '\n'
         raw += "\n"
+        #TODO: add raises
         if raw.count(self.cotes) == 1:
             raw += self.docs['out']['spaces'] + self.cotes
         self.docs['out']['raw'] = raw.rstrip()
@@ -711,6 +727,9 @@ class DocString(object):
 
     def get_raw_docs(self):
         '''Generates raw docstring
+
+        @return: the raw docstring
+
         '''
         if not self.generated_docs:
             self.generate_docs()
