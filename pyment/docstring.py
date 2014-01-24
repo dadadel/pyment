@@ -124,20 +124,29 @@ class DocsTools(object):
         '''
         return [self.opt[o][style]['name'] for o in self.opt]
 
-    def get_key(self, key):
+    def get_key(self, key, target='in'):
         '''Get the name of a key in current style.
         e.g.: in javadoc style, the returned key for 'param' is '@param'
 
         @param key: the key wanted (param, type, return, rtype,..)
-        '''
-        return self.opt[key][self.style['in']]['name']
+        @param target: the target docstring is 'in' for the input or
+        'out' for the output to generate.
 
-    def get_sep(self, key='param'):
+        '''
+        target = 'out' if target == 'out' else 'in'
+        return self.opt[key][self.style[target]]['name']
+
+    def get_sep(self, key='param', target='in'):
         '''Get the separator of current style.
         e.g.: in javadoc style, it is ":"
 
+        @param key: the key which separator is wanted (param, type, return, rtype,..)
+        @param target: the target docstring is 'in' for the input or
+        'out' for the output to generate.
+
         '''
-        return self.opt[key][self.style['in']]['sep']
+        target = 'out' if target == 'out' else 'in'
+        return self.opt[key][self.style[target]]['sep']
 
     def set_known_parameters(self, params):
         '''Set known parameters names.
@@ -695,13 +704,13 @@ class DocString(object):
         if len(self.docs['out']['params']):
             raw += '\n'
             for p in self.docs['out']['params']:
-                raw += self.docs['out']['spaces'] + self.dst.get_key('param') + ' ' + p[0] + sep + with_space(p[1])
+                raw += self.docs['out']['spaces'] + self.dst.get_key('param', 'out') + ' ' + p[0] + sep + with_space(p[1])
                 if len(p) > 2:
                     if 'default' not in p[1].lower() and len(p) > 3 and p[3] is not None:
                         raw += ' (Default value = ' + str(p[3]) + ')'
                     if p[2] is not None and len(p[2]) > 0:
                         raw += '\n'
-                        raw += self.docs['out']['spaces'] + self.dst.get_key('type') + ' ' + p[0] + sep + p[2]
+                        raw += self.docs['out']['spaces'] + self.dst.get_key('type', 'out') + ' ' + p[0] + sep + p[2]
                     raw += '\n'
                 else:
                     raw += '\n'
@@ -710,11 +719,11 @@ class DocString(object):
         if self.docs['out']['return']:
             if not self.docs['out']['params']:
                 raw += '\n'
-            raw += self.docs['out']['spaces'] + self.dst.get_key('return') + sep + with_space(self.docs['out']['return'].rstrip()) + '\n'
+            raw += self.docs['out']['spaces'] + self.dst.get_key('return', 'out') + sep + with_space(self.docs['out']['return'].rstrip()) + '\n'
         if self.docs['out']['rtype']:
             if not self.docs['out']['params']:
                 raw += '\n'
-            raw += self.docs['out']['spaces'] + self.dst.get_key('rtype') + sep + self.docs['out']['rtype'].rstrip() + '\n'
+            raw += self.docs['out']['spaces'] + self.dst.get_key('rtype', 'out') + sep + self.docs['out']['rtype'].rstrip() + '\n'
         raw += "\n"
         #TODO: add raises
         if raw.count(self.cotes) == 1:
