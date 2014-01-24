@@ -89,12 +89,12 @@ class DocsTools(object):
         @rtype: str
 
         '''
-        found_keys = defaultdict()
+        found_keys = defaultdict(int)
         for style in self.keystyles:
             for key in self.opt:
-                found_keys[style] += data.count(self[key][style]['name'])
-        key = max(found_keys, found_keys.get)
-        detected_style = key if found_keys[key] else 'unknown'
+                found_keys[style] += data.count(self.opt[key][style]['name'])
+        fkey = max(found_keys, key=found_keys.get)
+        detected_style = fkey if found_keys[fkey] else 'unknown'
         self.style['in'] = detected_style
         return detected_style
 
@@ -103,7 +103,7 @@ class DocsTools(object):
 
         @param style: style to set for input docstring
         @type style: str
-        
+
         '''
         self.style['in'] = style
 
@@ -112,7 +112,7 @@ class DocsTools(object):
 
         @param style: style to set for output docstring
         @type style: str
-        
+
         '''
         self.style['out'] = style
 
@@ -377,6 +377,7 @@ class DocsTools(object):
         stl_rtype = self.opt['rtype'][self.style['in']]['name']
         if self.style['in'] in self.keystyles + ['unknown']:
             dstart, dend = self.get_return_description_indexes(data)
+            # search the start
             if dstart >= 0 and dend > 0:
                 idx = self.get_elem_index(data[dend:])
                 if idx >= 0 and data[dend + idx:].startswith(stl_rtype):
@@ -385,6 +386,10 @@ class DocsTools(object):
                     if m:
                         first = m.group(1)
                         start = data[idx:].find(first) + idx
+            # search the end
+            idx = self.get_elem_index(data[start:])
+            if idx > 0:
+                end = idx + start
 
         if self.style['in'] in ['params', 'unknown'] and (start, end) == (-1, -1):
             #TODO: manage this
@@ -473,7 +478,7 @@ class DocString(object):
 
         @return: the style for input docstring
         @rtype style: str
-        
+
         '''
         #TODO: use a getter
         return self.dst.style['in']
@@ -483,7 +488,7 @@ class DocString(object):
 
         @param style: style to set for input docstring
         @type style: str
-        
+
         '''
         #TODO: use a setter
         self.dst.style['in'] = style
@@ -503,7 +508,7 @@ class DocString(object):
 
         @param style: style to set for output docstring
         @type style: str
-        
+
         '''
         #TODO: use a setter
         self.dst.style['out'] = style
@@ -662,7 +667,7 @@ class DocString(object):
                         self.docs['out']['params'][i] = (p[0], p[1], p[2], e[1])
             if not found:
                 if type(e) is tuple:
-                    p = (param, '', e[1], None)
+                    p = (param, '', None, e[1])
                 else:
                     p = (param, '', None, None)
                 self.docs['out']['params'].append(p)
