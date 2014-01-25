@@ -21,6 +21,7 @@ Not yet supported but intended:
 import re
 from collections import defaultdict
 
+
 class DocsTools(object):
     '''This class provides the tools to manage several type of docstring.
     Currently the following are managed:
@@ -560,7 +561,7 @@ class DocString(object):
                     if '=' in e:
                         k, v = e.split('=', 1)
                         self.element['params'].append((k.strip(), v.strip()))
-                    elif e != 'self' and e != 'cls':
+                    elif e and e != 'self' and e != 'cls':
                         self.element['params'].append(e)
         self.parsed_elem = True
 
@@ -698,6 +699,14 @@ class DocString(object):
 
         # sets the description section
         raw = self.docs['out']['spaces'] + self.cotes
+        desc = self.docs['out']['desc'].strip()
+        if not desc or not desc.count('\n'):
+            # TODO: manage raise
+            if not self.docs['out']['params'] and not self.docs['out']['return'] and not self.docs['out']['rtype']:
+                raw += desc if desc else ' '
+                raw += self.cotes
+                self.docs['out']['raw'] = raw.rstrip()
+                return
         raw += with_space(self.docs['out']['desc']).strip() + '\n'
 
         # sets the parameters section
