@@ -25,19 +25,11 @@ mydocs = '''        """This is a description of a method.
 
 class DocStringTests(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        print("setup")
-
-    @classmethod
-    def tearDownClass(cls):
-        print("end")
-
     def testAutoInputStyleJavadoc(self):
         doc = mydocs
         d = docs.DocString(myelem, '    ', doc)
         self.failUnless(d.get_input_style() == 'javadoc')
-    
+
     def testAutoInputStyleReST(self):
         doc = mydocs.replace("@", ":")
         d = docs.DocString(myelem, '    ', doc)
@@ -120,6 +112,25 @@ class DocStringTests(unittest.TestCase):
         self.failUnless(d.docs['out']['params'][2] == ('third', '', None, '"value"'))
         # param's description
         self.failUnless(d.docs['out']['params'][1][1].startswith("the 2"))
+
+    def testNoParam(self):
+        elem = "    def noparam():"
+        doc = """        '''the no param docstring
+        '''"""
+        d = docs.DocString(elem, '    ', doc, input_style='javadoc')
+        d.parse_docs()
+        d.generate_docs()
+        self.failIf(d.docs['out']['params'])
+
+    def testOneLineDocs(self):
+        elem = "    def oneline(self):"
+        doc = """        '''the one line docstring
+        '''"""
+        d = docs.DocString(elem, '    ', doc, input_style='javadoc')
+        d.parse_docs()
+        d.generate_docs()
+        print d.docs['out']['raw']
+        self.failIf(d.docs['out']['raw'].count('\n'))
 
 
 def main():
