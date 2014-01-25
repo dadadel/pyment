@@ -37,11 +37,11 @@ class PyComment(object):
     The changes are then provided in a patch file.
 
     '''
-    def __init__(self, input_file, doc_type='normal', param_type='standard', cotes="'''"):
+    def __init__(self, input_file, doc_style='reST', param_type='standard', cotes="'''"):
         '''Sets the configuration including the source to proceed and options.
 
         @param input_file: path name (file or folder)
-        @param doc_type: the type of doctrings format. Can be:
+        @param doc_style: the type of doctrings format. Can be:
             - normal:
                 Comment on the first line, a blank line to separate the params and a blank line at the end
                 e.g.: def method(test):
@@ -61,7 +61,7 @@ class PyComment(object):
         self.file_type = '.py'
         self.filename_list = []
         self.input_file = input_file
-        self.doc_type = doc_type
+        self.doc_style = doc_style
         self.param_type = param_type
         self.doc_index = -1
         self.file_index = 0
@@ -108,6 +108,7 @@ class PyComment(object):
                     spaces = m.group(1)
                 else:
                     spaces = ''
+                # *** Creates the DocString object ***
                 e = DocString(l, spaces, cotes=self.cotes)
                 elem_list.append({'docs': e, 'location': (-i, -i)})
             else:
@@ -160,6 +161,20 @@ class PyComment(object):
         self.docs_list = elem_list
         self.parsed = True
         return elem_list
+
+    def get_output_docs(self):
+        '''Return the output docstrings once formated
+
+        @return: the formated docstrings
+        @rtype: list
+
+        '''
+        if not self.parsed:
+            self._parse()
+        lst = []
+        for e in self.docs_list:
+            lst.append(e['docs'].get_raw_docs())
+        return lst
 
     def diff(self, source_path='', target_path='', which=-1):
         '''Build the diff between original docstring and proposed docstring.
@@ -272,7 +287,6 @@ if __name__ == "__main__":
             path = path[:-len(os.path.basename(f))]
         else:
             path = ''
-        print path, f
         c = PyComment(f, cotes='"""')
         c.proceed()
         c.diff_to_file(os.path.basename(f) + ".patch", path, path)
