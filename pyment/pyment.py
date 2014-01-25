@@ -161,7 +161,7 @@ class PyComment(object):
         self.parsed = True
         return elem_list
 
-    def diff(self, which=-1):
+    def diff(self, source_path='', target_path='', which=-1):
         '''Build the diff between original docstring and proposed docstring.
 
         @param which: indicates which docstring to proceed:
@@ -172,6 +172,7 @@ class PyComment(object):
         @rtype: string
 
         '''
+        #TODO: manage which
         if not self.parsed:
             self._parse()
         try:
@@ -196,15 +197,23 @@ class PyComment(object):
         fd.close()
         if last < len(list_from):
             list_to.extend(list_from[last:])
-        fromfile = 'a/' + os.path.basename(self.input_file)
-        tofile = 'b/' + os.path.basename(self.input_file)
+        if source_path.startswith(os.sep):
+            source_path = source_path[1:]
+        if source_path and not source_path.endswith(os.sep):
+            source_path += os.sep
+        if target_path.startswith(os.sep):
+            target_path = target_path[1:]
+        if target_path and not target_path.endswith(os.sep):
+            target_path += os.sep
+        fromfile = 'a/' + source_path + os.path.basename(self.input_file)
+        tofile = 'b/' + target_path + os.path.basename(self.input_file)
         diff_list = difflib.unified_diff(list_from, list_to, fromfile, tofile)
         return [d for d in diff_list]
 
-    def diff_to_file(self, patch_file):
+    def diff_to_file(self, patch_file, source_path='', target_path=''):
         '''
         '''
-        diff = self.diff()
+        diff = self.diff(source_path, target_path)
         f = open(patch_file, 'w')
         f.writelines(diff)
         f.close()
@@ -258,6 +267,12 @@ if __name__ == "__main__":
     files = get_files_from_dir(source)
 
     for f in files:
+        if os.path.isdir(source):
+            path = source + os.sep + os.path.relpath(os.path.abspath(f), os.path.abspath(source))
+            path = path[:-len(os.path.basename(f))]
+        else:
+            path = ''
+        print path, f
         c = PyComment(f, cotes='"""')
         c.proceed()
-        c.diff_to_file(os.path.basename(f) + ".patch")
+        c.diff_to_file(os.path.basename(f) + ".patch", path, path)
