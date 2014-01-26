@@ -9,12 +9,11 @@ __maintainer__ = "A. Daouzli"
 
 #TODO:
 # -generate a return if return is used with argument in element
-# -file managing only in proceed (remove init open and release)
+# -generate raises if raises are used
 # -choose input style and output style
 # -generate diagnosis/statistics
 # -parse classes public methods and list them in class docstring
 # -create a real command line management (options, ..., perhaps move PyComment outside and make Pyment a manager)
-# -add auto tests
 # -allow excluding files from processing
 # -add managing a unique patch
 # -manage docstrings templates
@@ -37,42 +36,31 @@ class PyComment(object):
     The changes are then provided in a patch file.
 
     '''
-    def __init__(self, input_file, doc_style='reST', param_type='standard', cotes="'''"):
+    def __init__(self, input_file, input_style=None, output_style='reST', param_type='standard', cotes="'''"):
         '''Sets the configuration including the source to proceed and options.
 
         @param input_file: path name (file or folder)
-        @param doc_style: the type of doctrings format. Can be:
-            - normal:
-                Comment on the first line, a blank line to separate the params and a blank line at the end
-                e.g.: def method(test):
-                        >"""The comment for this method.
-                        >
-                        >@ param test: the param test comment
-                        >@ return: the result of the method
-                        >
-                        >"""
+        @param input_style: the type of doctrings format of the output. By default, it will
+        autodetect the format for each docstring.
+        @param output_style: the docstring docstyle to generate.
         @param param_type: the type of parameters format. Can be:
             - standard:
                 The style used is the javadoc style.
-                e.g.: @param my_param: the description
+                e.g.: @ param my_param: the description
         @param cotes: the type of cotes to use for output: ' ' ' or " " "
 
         '''
         self.file_type = '.py'
         self.filename_list = []
         self.input_file = input_file
-        self.doc_style = doc_style
+        self.input_style = input_style
+        self.output_style = output_style
         self.param_type = param_type
         self.doc_index = -1
         self.file_index = 0
         self.docs_list = []
         self.parsed = False
         self.cotes = cotes
-
-    def _get_next(self):
-        '''Get the current file's next docstring
-
-        '''
 
     def _parse(self):
         '''Parses the input file's content and generates a list of its elements/docstrings.
@@ -109,7 +97,9 @@ class PyComment(object):
                 else:
                     spaces = ''
                 # *** Creates the DocString object ***
-                e = DocString(l, spaces, cotes=self.cotes)
+                e = DocString(l, spaces, cotes=self.cotes,
+                              input_style=self.input_style,
+                              output_style=self.output_style)
                 elem_list.append({'docs': e, 'location': (-i, -i)})
             else:
                 if waiting_docs and ('"""' in l or "'''" in l):
@@ -241,52 +231,73 @@ class PyComment(object):
             e['docs'].generate_docs()
         return self.docs_list
 
+#########################################################################
 
-if __name__ == "__main__":
+import glob
+import argparse
 
-    import glob
+MAX_DEPTH_RECUR = 50
+''' The maximum depth to reach wargs.hile recursively exploring sub folders'''
 
-    MAX_DEPTH_RECUR = 50
-    ''' The maximum depth to reach while recursively exploring sub folders'''
 
-    def get_files_from_dir(path, recursive=True, depth=0, file_ext='.py'):
-        '''Retrieve the list of files from a folder.
+def get_files_from_dir(path, recursive=True, depth=0, file_ext='.py'):
+    '''Retrieve the list of files from a folder.
 
-        @param path: file or directory where to search files
-        @param recursive: if True will search also sub-directories
-        @param depth: if explore recursively, the depth of sub directories to follow
-        @param file_ext: the files extension to get. Default is '.py'
-        @return: the file list retrieved. if the input is a file then a one element list.
+    @param path: file or directory where to search files
+    @param recursive: if True will search also sub-directories
+    @param depth: if explore recursively, the depth of sub directories to follow
+    @param file_ext: the files extension to get. Default is '.py'
+    @return: the file list retrieved. if the input is a file then a one element list.
 
-        '''
-        file_list = []
-        if os.path.isfile(path):
-            return [path]
-        if path[-1] != os.sep:
-            path = path + os.sep
-        for f in glob.glob(path + "*"):
-            if os.path.isdir(f):
-                if depth < MAX_DEPTH_RECUR:  # avoid recursive loop
-                    file_list.extend(get_files_from_dir(f, recursive, depth + 1))
-                else:
-                    continue
-            elif f.endswith(file_ext):
-                file_list.append(f)
-        return file_list
+    '''
+    file_list = []
+    if os.path.isfile(path):
+        return [path]
+    if path[-1] != os.sep:
+        path = path + os.sep
+    for f in glob.glob(path + "*"):
+        if os.path.isdir(f):
+            if depth < MAX_DEPTH_RECUR:  # avoid infinite recursive loop
+                file_list.extend(get_files_from_dir(f, recursive, depth + 1))
+            else:
+                continue
+        elif f.endswith(file_ext):
+            file_list.append(f)
+    return file_list
 
-    source = sys.argv[0]
 
-    if len(sys.argv) > 1:
-        source = sys.argv[1]
-
-    files = get_files_from_dir(source)
-
+def main(files=[], input_style='auto', output_style='reST'):
+    input_style = None if 'auto' else input_style
     for f in files:
         if os.path.isdir(source):
             path = source + os.sep + os.path.relpath(os.path.abspath(f), os.path.abspath(source))
             path = path[:-len(os.path.basename(f))]
         else:
             path = ''
-        c = PyComment(f, cotes='"""')
+        c = PyComment(f, cotes='"""',
+                      input_style=input_style,
+                      output_style=output_style)
         c.proceed()
         c.diff_to_file(os.path.basename(f) + ".patch", path, path)
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description='Generates patches after (re)writing docstrings.')
+    parser.add_argument('path', type=str,
+                        help='python file or folder containing python files to proceed')
+    parser.add_argument('-i', '--input', metavar='style', default='auto',
+                        dest='input', help='Input docstring style in ["javadoc", "reST", "auto"] (default autodetected)')
+    parser.add_argument('-o', '--output', metavar='style', default="reST",
+                        dest='output', help='Output docstring style in ["javadoc", "reST"] (default "reST")')
+    #parser.add_argument('-c', '--config', metavar='config_file',
+    #                   dest='config', help='Configuration file')
+
+    args = parser.parse_args()
+
+    if len(sys.argv) > 1:
+        source = sys.argv[1]
+
+    files = get_files_from_dir(source)
+
+    main(files, args.input, args.output)
