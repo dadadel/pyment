@@ -17,6 +17,9 @@ At the end, patches are generated for each file. Then, man can apply the patches
 
 Usage
 -----
+- for help:
+
+        ./pyment.py -h
 
 - from the command line:
 
