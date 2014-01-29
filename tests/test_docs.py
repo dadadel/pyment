@@ -21,6 +21,21 @@ mydocs = '''        """This is a description of a method.
         @raise: KeyError
 
         """'''
+mygrpdocs = '''My desc of groups style.
+
+    Parameters:
+      first: the first param
+      second: the 2nd param
+      third: the 3rd param
+
+    Returns:
+      a value in a string
+
+    Raises:
+      KeyError: when a key error
+      OtherError: when an other error
+
+    '''
 
 
 class DocStringTests(unittest.TestCase):
@@ -35,13 +50,17 @@ class DocStringTests(unittest.TestCase):
         d = docs.DocString(myelem, '    ', doc)
         self.failUnless(d.get_input_style() == 'reST')
 
+    def testAutoInputStyleGroups(self):
+        doc = mygrpdocs
+        d = docs.DocString(myelem, '    ', doc)
+        self.failUnless(d.get_input_style() == 'groups')
+
     def testParsingElement(self):
-        doc = mydocs
         d = docs.DocString(myelem, '    ')
         self.failUnless(d.element['type'] == 'def')
         self.failUnless(d.element['name'] == 'my_method')
         self.failUnless(len(d.element['params']) == 3)
-        self.failUnless(type(d.element['params'][0]) is str )
+        self.failUnless(type(d.element['params'][0]) is str)
         self.failUnless(d.element['params'][2] == ('third', '"value"'))
 
     def testIfParsedDocs(self):
@@ -102,6 +121,9 @@ class DocStringTests(unittest.TestCase):
         self.failUnless(d.docs['out']['return'].startswith('the result'))
         self.failUnless(d.docs['out']['rtype'] == 'int')
 
+    def testGeneratingDocsRaise(self):
+        self.fail("TODO!")
+
     def testGeneratingDocsParams(self):
         doc = mydocs
         d = docs.DocString(myelem, '    ', doc)
@@ -129,7 +151,7 @@ class DocStringTests(unittest.TestCase):
         d = docs.DocString(elem, '    ', doc, input_style='javadoc')
         d.parse_docs()
         d.generate_docs()
-        print d.docs['out']['raw']
+        #print(d.docs['out']['raw'])
         self.failIf(d.docs['out']['raw'].count('\n'))
 
 
