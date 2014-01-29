@@ -18,6 +18,7 @@ Not yet supported but intended:
  same than javadoc but using ':' instead of '@'
 """
 
+import os
 import re
 from collections import defaultdict
 
@@ -79,24 +80,51 @@ class DocsTools(object):
                                       }
         self.opt['return']['reST']['name'] = ':returns'
         self.opt['raise']['reST']['name'] = ':raises'
+        self.groups = {
+                    'param': ['args', 'parameters', 'arguments'],
+                    'return': ['returns'],
+                    'raise': ['raises', 'exceptions']
+                    }
 
     def autodetect_style(self, data):
         '''Determines the style of a docstring,
         and sets it as the default input one for the instance.
 
-        @param data: the docstring's data to recognize. 
+        @param data: the docstring's data to recognize.
         @type data: str
         @return: the style detected else 'unknown'
         @rtype: str
 
         '''
+        # evaluate styles with keys
+
         found_keys = defaultdict(int)
         for style in self.keystyles:
             for key in self.opt:
                 found_keys[style] += data.count(self.opt[key][style]['name'])
         fkey = max(found_keys, key=found_keys.get)
         detected_style = fkey if found_keys[fkey] else 'unknown'
+
+        #evaluate styles with groups
+
+        def isin(elems, line):
+            found = False
+            for e in elems:
+                if line.lstrip().lower().startswith(e):
+                    found = True
+                    break
+            return found
+        if detected_style == 'unknown':
+            found_groups = 0
+            for line in data.strip().split(os.linesep):
+                for key in self.groups:
+                    found_groups += 1 if isin(self.groups[key], line) else 0
+            #TODO: check if not necessary to have > 1??
+            if found_groups:
+                detected_style = 'groups'
+
         self.style['in'] = detected_style
+
         return detected_style
 
     def set_input_style(self, style):
@@ -177,7 +205,7 @@ class DocsTools(object):
                 i = data.find(key)
                 if i != -1:
                     if starting:
-                        if not data[:i].rstrip(' \t').endswith('\n') and len(data[:i].strip()) > 0:
+                        if not data[:i].rstrip(' \t').endswith(os.linesep) and len(data[:i].strip()) > 0:
                             ini = i + 1
                             data = data[ini:]
                         else:
@@ -252,7 +280,7 @@ class DocsTools(object):
             for p in self.params:
                 if type(p) is tuple:
                     p = p[0]
-                i = data.find('\n' + p)
+                i = data.find(os.linesep + p)
                 if i >= 0:
                     if idx == -1 or i < idx:
                         idx = i
@@ -475,9 +503,9 @@ class DocString(object):
         # !!! for debuging
         txt = "\n\n** " + str(self.element['name'])
         txt += ' of type ' + str(self.element['type']) + ':'
-        txt += str(self.docs['in']['desc']) + '\n'
-        txt += '->' + str(self.docs['in']['params']) + '\n'
-        txt += '***>>' + str(self.docs['out']['raw']) + '\n\n'
+        txt += str(self.docs['in']['desc']) + os.linesep
+        txt += '->' + str(self.docs['in']['params']) + os.linesep
+        txt += '***>>' + str(self.docs['out']['raw']) + os.linesep + os.linesep
         return txt
 
     def __repr__(self):
@@ -568,7 +596,7 @@ class DocString(object):
     def _extract_docs_description(self):
         '''Extract main description from docstring'''
         #FIXME: the indentation of descriptions is lost
-        data = '\n'.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split('\n')])
+        data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
         idx = self.dst.get_elem_index(data)
         if idx == 0:
             self.docs['in']['desc'] = ''
@@ -582,7 +610,7 @@ class DocString(object):
         composed by tuples (parameter, description).
 
         '''
-        data = '\n'.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split('\n')])
+        data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
         listed = 0
         loop = True
         maxi = 10000  # avoid infinite loop but should never happen
@@ -613,7 +641,7 @@ class DocString(object):
     def _extract_docs_return(self):
         '''Extract return description and type
         '''
-        data = '\n'.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split('\n')])
+        data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
         start, end = self.dst.get_return_description_indexes(data)
         if start >= 0:
             if end >= 0:
@@ -695,45 +723,45 @@ class DocString(object):
         '''
         sep = self.dst.get_sep()
         sep = sep + ' ' if sep != ' ' else sep
-        with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + l if i > 0 else l for i, l in enumerate(s.split('\n'))])
+        with_space = lambda s: os.linesep.join([self.docs['out']['spaces'] + l if i > 0 else l for i, l in enumerate(s.split(os.linesep))])
 
         # sets the description section
         raw = self.docs['out']['spaces'] + self.cotes
         desc = self.docs['out']['desc'].strip()
-        if not desc or not desc.count('\n'):
+        if not desc or not desc.count(os.linesep):
             # TODO: manage raise
             if not self.docs['out']['params'] and not self.docs['out']['return'] and not self.docs['out']['rtype']:
                 raw += desc if desc else ' '
                 raw += self.cotes
                 self.docs['out']['raw'] = raw.rstrip()
                 return
-        raw += with_space(self.docs['out']['desc']).strip() + '\n'
+        raw += with_space(self.docs['out']['desc']).strip() + os.linesep
 
         # sets the parameters section
         if len(self.docs['out']['params']):
-            raw += '\n'
+            raw += os.linesep
             for p in self.docs['out']['params']:
                 raw += self.docs['out']['spaces'] + self.dst.get_key('param', 'out') + ' ' + p[0] + sep + with_space(p[1])
                 if len(p) > 2:
                     if 'default' not in p[1].lower() and len(p) > 3 and p[3] is not None:
                         raw += ' (Default value = ' + str(p[3]) + ')'
                     if p[2] is not None and len(p[2]) > 0:
-                        raw += '\n'
+                        raw += os.linesep
                         raw += self.docs['out']['spaces'] + self.dst.get_key('type', 'out') + ' ' + p[0] + sep + p[2]
-                    raw += '\n'
+                    raw += os.linesep
                 else:
-                    raw += '\n'
+                    raw += os.linesep
 
         # sets the return section
         if self.docs['out']['return']:
             if not self.docs['out']['params']:
-                raw += '\n'
-            raw += self.docs['out']['spaces'] + self.dst.get_key('return', 'out') + sep + with_space(self.docs['out']['return'].rstrip()) + '\n'
+                raw += os.linesep
+            raw += self.docs['out']['spaces'] + self.dst.get_key('return', 'out') + sep + with_space(self.docs['out']['return'].rstrip()) + os.linesep
         if self.docs['out']['rtype']:
             if not self.docs['out']['params']:
-                raw += '\n'
-            raw += self.docs['out']['spaces'] + self.dst.get_key('rtype', 'out') + sep + self.docs['out']['rtype'].rstrip() + '\n'
-        raw += "\n"
+                raw += os.linesep
+            raw += self.docs['out']['spaces'] + self.dst.get_key('rtype', 'out') + sep + self.docs['out']['rtype'].rstrip() + os.linesep
+        raw += os.linesep
         #TODO: add raises
         if raw.count(self.cotes) == 1:
             raw += self.docs['out']['spaces'] + self.cotes
