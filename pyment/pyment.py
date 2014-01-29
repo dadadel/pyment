@@ -2,7 +2,7 @@
 # -*- coding: utf8 -*-
 
 __author__ = "A. Daouzli"
-__copyright__ = "Copyright dec. 2013, A. Daouzli"
+__copyright__ = "Copyright 2013/12"
 __licence__ = "GPL3"
 __version__ = "0.0.1"
 __maintainer__ = "A. Daouzli"
@@ -23,7 +23,6 @@ __maintainer__ = "A. Daouzli"
 # -dev a server that take sources and send back patches
 
 import os
-import sys
 import re
 import difflib
 
@@ -196,7 +195,7 @@ class PyComment(object):
             else:
                 list_to.extend(list_from[last:start])
             docs = e['docs'].get_raw_docs()
-            list_docs = [l + '\n' for l in docs.split('\n')]
+            list_docs = [l + os.linesep for l in docs.split(os.linesep)]
             list_to.extend(list_docs)
             last = end + 1
         fd.close()
@@ -283,6 +282,7 @@ def main(files=[], input_style='auto', output_style='reST'):
 
 if __name__ == "__main__":
 
+    desc = 'Pyment %s - %s - %s - %s' % (__version__, __copyright__, __author__, __licence__)
     parser = argparse.ArgumentParser(description='Generates patches after (re)writing docstrings.')
     parser.add_argument('path', type=str,
                         help='python file or folder containing python files to proceed')
@@ -290,13 +290,13 @@ if __name__ == "__main__":
                         dest='input', help='Input docstring style in ["javadoc", "reST", "auto"] (default autodetected)')
     parser.add_argument('-o', '--output', metavar='style', default="reST",
                         dest='output', help='Output docstring style in ["javadoc", "reST"] (default "reST")')
+    parser.add_argument('-v', '--version', action='version',
+                        version=desc)
     #parser.add_argument('-c', '--config', metavar='config_file',
     #                   dest='config', help='Configuration file')
 
     args = parser.parse_args()
-
-    if len(sys.argv) > 1:
-        source = sys.argv[1]
+    source = args.path
 
     files = get_files_from_dir(source)
 
