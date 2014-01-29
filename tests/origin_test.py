@@ -44,6 +44,19 @@ def my_func_desc_line_no_params():
     '''
     print ("this is the code of my func")
 
+
+def my_func_groups_style(first, second=None, third="value"):
+    '''My desc of groups style.
+
+    Parameters:
+      first: the first param
+      second: the 2nd param
+      third: the 3rd param
+
+    '''
+    print("group style!")
+
+
 class MyTestClass(object):
 
     def __init__(self, one_param=None):
