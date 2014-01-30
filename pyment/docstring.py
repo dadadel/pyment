@@ -9,13 +9,13 @@ __maintainer__ = "A. Daouzli"
 
 """
 Formats supported at the time:
- - javadoc:
+ - javadoc, reST:
  managed  -> @param, @type, @return, @rtype
  intended -> @raise
+ - groups:
+ managed  -> description, parameters
+ intended -> returns, raises
 
-Not yet supported but intended:
- - reST:
- same than javadoc but using ':' instead of '@'
 """
 
 import os
@@ -27,8 +27,9 @@ class DocsTools(object):
     '''This class provides the tools to manage several type of docstring.
     Currently the following are managed:
     - 'javadoc': javadoc style
-    - 'params': parameters on beginning of lines
-    - 'unknown': try all possibilities
+    - 'reST': restructure text style compatible with Sphinx
+    - 'groups': parameters on beginning of lines
+    - 'unknown': undefined
 
     '''
     #TODO: enhance style dependent separation
@@ -37,9 +38,9 @@ class DocsTools(object):
     def __init__(self, style_in='javadoc', style_out='reST', params=None):
         '''Choose the kind of docstring type.
 
-        @param style_in: docstring input style ('javadoc', 'params', 'unknown')
+        @param style_in: docstring input style ('javadoc', 'reST', 'groups', 'unknown')
         @type style_in: string
-        @param style_out: docstring output style ('javadoc', 'params', 'unknown')
+        @param style_out: docstring output style ('javadoc', 'reST', 'groups', 'unknown')
         @type style_out: string
         @param params: if known the parameters names that should be found in the docstring.
         @type params: list
@@ -49,10 +50,10 @@ class DocsTools(object):
                       'out': style_out}
         self.opt = {}
         self.keystyles = []
-        self._set_available_options()
+        self._set_available_styles()
         self.params = params
 
-    def _set_available_options(self):
+    def _set_available_styles(self):
         '''Sets the internal styles list and available options in a structure as following:
 
             param: javadoc: name = '@param'
@@ -64,6 +65,11 @@ class DocsTools(object):
                             sep  = ':'
                    ...
             ...
+
+        And sets the internal groups style:
+            param:  'params', 'args', 'parameters', 'arguments'
+            return: 'returns', 'return'
+            raise:  'raises', 'raise', 'exceptions', 'exception'
 
         '''
         options_keystyle = {'keys': ['param', 'type', 'return', 'rtype', 'raise'],
@@ -81,10 +87,22 @@ class DocsTools(object):
         self.opt['return']['reST']['name'] = ':returns'
         self.opt['raise']['reST']['name'] = ':raises'
         self.groups = {
-                    'param': ['args', 'parameters', 'arguments'],
-                    'return': ['returns'],
-                    'raise': ['raises', 'exceptions']
+                    'param': ['params', 'args', 'parameters', 'arguments'],
+                    'return': ['returns', 'return'],
+                    'raise': ['raises', 'exceptions', 'raise', 'exception']
                     }
+
+    def _isin_start(self, elems, line):
+        '''Check if an element from a list starts a string.
+        This is usefull for groups style.
+
+        '''
+        found = False
+        for e in elems:
+            if line.lstrip().lower().startswith(e):
+                found = True
+                break
+        return found
 
     def autodetect_style(self, data):
         '''Determines the style of a docstring,
@@ -105,20 +123,13 @@ class DocsTools(object):
         fkey = max(found_keys, key=found_keys.get)
         detected_style = fkey if found_keys[fkey] else 'unknown'
 
-        #evaluate styles with groups
+        # evaluate styles with groups
 
-        def isin(elems, line):
-            found = False
-            for e in elems:
-                if line.lstrip().lower().startswith(e):
-                    found = True
-                    break
-            return found
         if detected_style == 'unknown':
             found_groups = 0
             for line in data.strip().split(os.linesep):
                 for key in self.groups:
-                    found_groups += 1 if isin(self.groups[key], line) else 0
+                    found_groups += 1 if self._isin_start(self.groups[key], line) else 0
             #TODO: check if not necessary to have > 1??
             if found_groups:
                 detected_style = 'groups'
@@ -184,6 +195,65 @@ class DocsTools(object):
         @type params: list
         '''
         self.params = params
+
+    def get_group_key_line(self, data, key):
+        '''Get the next group-style key's line number.
+
+        @param data: string to parse
+        @param key: the key category
+        @return: the found line number else -1
+
+        '''
+        idx = -1
+        for i, line in enumerate(data.split(os.linesep)):
+            if self._isin_start(self.groups[key], line):
+                idx = i
+        return idx
+#        search = '\s*(%s)' % '|'.join(self.groups[key])
+#        m = re.match(search, data.lower())
+#        if m:
+#            key_param = m.group(1)
+        
+    def get_group_key_index(self, data, key):
+        '''Get the next groups style's starting line index for a key
+
+        @param data: string to parse
+        @param key: the key category
+        @return: the index if found else -1
+
+        '''
+        idx = -1
+        li = self.get_group_key_line(data, key)
+        if li != -1:
+            idx = 0
+            for line in data.split(os.linesep)[:li]:
+                idx += len(line) + len(os.linesep)
+        return idx
+
+    def get_group_line(self, data):
+        '''Get the next group-style key's line.
+        '''
+        idx = -1
+        for key in self.groups:
+            i = self.get_group_key_line(data, key)
+            if (i < idx and i != -1) or idx == -1:
+                idx = i
+        return idx
+
+    def get_group_index(self, data):
+        '''Get the next groups style's starting line index
+
+        @param data: string to parse
+        @return: the index if found else -1
+
+        '''
+        idx = -1
+        li = self.get_group_line(data)
+        if li != -1:
+            idx = 0
+            for line in data.split(os.linesep)[:li]:
+                idx += len(line) + len(os.linesep)
+        return idx
 
     def get_key_index(self, data, key, starting=True):
         '''Get from a docstring the next option with a given key.
@@ -272,7 +342,14 @@ class DocsTools(object):
                     start = idx_p + data[idx_p:].find(param)
                     end = start + len(param)
 
-        if self.style['in'] in ['params', 'unknown'] and (start, end) == (-1, -1):
+        if self.style['in'] in ['groups', 'unknown'] and (start, end) == (-1, -1):
+            #search = '\s*(%s)' % '|'.join(self.groups['param'])
+            #m = re.match(search, data.lower())
+            #if m:
+            #    key_param = m.group(1)
+            pass
+
+        if self.style['in'] in ['params', 'groups', 'unknown'] and (start, end) == (-1, -1):
             if self.params == None:
                 return (-2, -2)
             idx = -1
@@ -597,7 +674,10 @@ class DocString(object):
         '''Extract main description from docstring'''
         #FIXME: the indentation of descriptions is lost
         data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
-        idx = self.dst.get_elem_index(data)
+        if self.dst.style['in'] == 'groups':
+            idx = self.dst.get_group_index(data)
+        else:
+            idx = self.dst.get_elem_index(data)
         if idx == 0:
             self.docs['in']['desc'] = ''
         elif idx == -1:
@@ -605,11 +685,31 @@ class DocString(object):
         else:
             self.docs['in']['desc'] = data[:idx]
 
-    def _extract_docs_params(self):
-        '''Extract parameters description and type from docstring. The internal computed parameters list is
-        composed by tuples (parameter, description).
+    def _extract_groupstyle_docs_params(self):
+        data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
+        idx = self.dst.get_group_key_line(data, 'param')
+        if idx >= 0:
+            data = data.split(os.linesep)[idx+1:]
+            end = self.dst.get_group_line(os.linesep.join(data))
+            end = end if end != -1 else len(data)
+            for i in xrange(end):
+                #FIXME: see how retrieve multiline param description and how get type
+                line = data[i]
+                param = None
+                desc = ''
+                ptype = ''
+                m = re.match(r'^\W*(\w+)[\W\s]+(\w[\s\w]+)', line.strip())
+                if m:
+                    param = m.group(1).strip()
+                    desc = m.group(2).strip()
+                else:
+                    m = re.match(r'^\W*(\w+)\W*', line.strip())
+                    if m:
+                        param = m.group(1).strip()
+                if param:
+                    self.docs['in']['params'].append((param, desc, ptype))
 
-        '''
+    def _extract_keystyle_docs_params(self):
         data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
         listed = 0
         loop = True
@@ -638,9 +738,28 @@ class DocString(object):
         if i > maxi:
             print("WARNING: an infinite loop was reached while extracting docstring parameters (>10000). This should never happen!!!")
 
-    def _extract_docs_return(self):
-        '''Extract return description and type
+    def _extract_docs_params(self):
+        '''Extract parameters description and type from docstring. The internal computed parameters list is
+        composed by tuples (parameter, description, type).
+
         '''
+        if self.dst.style['in'] == 'groups':
+            self._extract_groupstyle_docs_params()
+        else:
+            self._extract_keystyle_docs_params()
+
+    def _extract_groupstyle_docs_return(self):
+        #TODO: manage rtype
+        data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
+        idx = self.dst.get_group_key_line(data, 'return')
+        if idx >= 0:
+            data = data.split(os.linesep)[idx+1:]
+            end = self.dst.get_group_line(os.linesep.join(data))
+            end = end if end != -1 else len(data)
+            data = os.linesep.join(data[:end]).strip()
+            self.docs['in']['return'] = data.rstrip()
+
+    def _extract_keystyle_docs_return(self):
         data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
         start, end = self.dst.get_return_description_indexes(data)
         if start >= 0:
@@ -654,6 +773,14 @@ class DocString(object):
                 self.docs['in']['rtype'] = data[start:end].rstrip()
             else:
                 self.docs['in']['rtype'] = data[start:].rstrip()
+
+    def _extract_docs_return(self):
+        '''Extract return description and type
+        '''
+        if self.dst.style['in'] == 'groups':
+            self._extract_groupstyle_docs_return()
+        else:
+            self._extract_keystyle_docs_return()
 
     def parse_docs(self, raw=None):
         '''Parses the docstring

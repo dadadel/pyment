@@ -21,10 +21,13 @@ mydocs = '''        """This is a description of a method.
         @raise: KeyError
 
         """'''
-mygrpdocs = '''My desc of groups style.
+mygrpdocs = '''
+    """
+    My desc of groups style.
+    On two lines.
 
     Parameters:
-      first: the first param
+      first: the 1st param
       second: the 2nd param
       third: the 3rd param
 
@@ -34,8 +37,7 @@ mygrpdocs = '''My desc of groups style.
     Raises:
       KeyError: when a key error
       OtherError: when an other error
-
-    '''
+    """'''
 
 
 class DocStringTests(unittest.TestCase):
@@ -82,8 +84,15 @@ class DocStringTests(unittest.TestCase):
         doc = mydocs
         d = docs.DocString(myelem, '    ', doc)
         d.parse_docs()
-        self.failUnless(d.docs['in']['desc'].startswith('This '))
+        self.failUnless(d.docs['in']['desc'].strip().startswith('This '))
         self.failUnless(d.docs['in']['desc'].strip().endswith('style.'))
+
+    def testParsingGroupsDocsDesc(self):
+        doc = mygrpdocs
+        d = docs.DocString(myelem, '    ', doc)
+        d.parse_docs()
+        self.failUnless(d.docs['in']['desc'].strip().startswith('My '))
+        self.failUnless(d.docs['in']['desc'].strip().endswith('lines.'))
 
     def testParsingDocsParams(self):
         doc = mydocs.replace("@", ":")
@@ -99,12 +108,27 @@ class DocStringTests(unittest.TestCase):
         # param's description
         self.failUnless(d.docs['in']['params'][0][1].startswith("the 1"))
 
+    def testParsingGroupsDocsParams(self):
+        doc = mygrpdocs
+        d = docs.DocString(myelem, '    ', doc)
+        d.parse_docs()
+        self.failUnless(len(d.docs['in']['params']) == 3)
+        self.failUnless(d.docs['in']['params'][0][0] == 'first')
+        self.failUnless(d.docs['in']['params'][0][1].startswith('the 1'))
+        self.failUnless(d.docs['in']['params'][2][1].startswith('the 3rd'))
+
     def testParsingDocsReturn(self):
         doc = mydocs
         d = docs.DocString(myelem, '    ', doc)
         d.parse_docs()
         self.failUnless(d.docs['in']['return'].startswith('the result'))
         self.failUnless(d.docs['in']['rtype'] == 'int')
+
+    def testParsingGroupsDocsReturn(self):
+        doc = mygrpdocs
+        d = docs.DocString(myelem, '    ', doc)
+        d.parse_docs()
+        self.failUnless(d.docs['in']['return'] == 'a value in a string')
 
     def testGeneratingDocsDesc(self):
         doc = mydocs
@@ -118,8 +142,8 @@ class DocStringTests(unittest.TestCase):
         d = docs.DocString(myelem, '    ', doc)
         d.parse_docs()
         d.generate_docs()
-        self.failUnless(d.docs['out']['return'].startswith('the result'))
-        self.failUnless(d.docs['out']['rtype'] == 'int')
+        self.failUnless(d.docs['in']['return'].startswith('the result'))
+        self.failUnless(d.docs['in']['rtype'] == 'int')
 
     def testGeneratingDocsRaise(self):
         self.fail("TODO!")
