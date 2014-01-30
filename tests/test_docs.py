@@ -21,6 +21,7 @@ mydocs = '''        """This is a description of a method.
         @raise: KeyError
 
         """'''
+
 mygrpdocs = '''
     """
     My desc of groups style.
@@ -39,6 +40,31 @@ mygrpdocs = '''
       OtherError: when an other error
     """'''
 
+mygrpdocs2 = '''
+    """
+    My desc of an other kind 
+    of groups style.
+
+    Params:
+      first -- the 1st param
+      second -- the 2nd param
+      third -- the 3rd param
+
+    Returns:
+      a value in a string
+
+    Raises:
+      KeyError -- when a key error
+      OtherError -- when an other error
+    """'''
+
+
+def torest(docs):
+    docs = docs.replace("@", ":")
+    docs = docs.replace(":return", ":returns")
+    docs = docs.replace(":raise", ":raises")
+    return docs
+
 
 class DocStringTests(unittest.TestCase):
 
@@ -48,7 +74,7 @@ class DocStringTests(unittest.TestCase):
         self.failUnless(d.get_input_style() == 'javadoc')
 
     def testAutoInputStyleReST(self):
-        doc = mydocs.replace("@", ":")
+        doc = torest(mydocs)
         d = docs.DocString(myelem, '    ', doc)
         self.failUnless(d.get_input_style() == 'reST')
 
@@ -56,6 +82,15 @@ class DocStringTests(unittest.TestCase):
         doc = mygrpdocs
         d = docs.DocString(myelem, '    ', doc)
         self.failUnless(d.get_input_style() == 'groups')
+
+    def testSameOutputJavadocReST(self):
+        doc = mydocs
+        dj = docs.DocString(myelem, '    ', doc)
+        dj.parse_docs()
+        doc = torest(mydocs)
+        dr = docs.DocString(myelem, '    ', doc)
+        dr.parse_docs()
+        self.assertEqual(dj.get_raw_docs(), dr.get_raw_docs())
 
     def testParsingElement(self):
         d = docs.DocString(myelem, '    ')
@@ -95,7 +130,7 @@ class DocStringTests(unittest.TestCase):
         self.failUnless(d.docs['in']['desc'].strip().endswith('lines.'))
 
     def testParsingDocsParams(self):
-        doc = mydocs.replace("@", ":")
+        doc = torest(mydocs)
         d = docs.DocString(myelem, '    ', doc)
         d.parse_docs()
         self.failUnless(len(d.docs['in']['params']) == 2)
@@ -110,6 +145,15 @@ class DocStringTests(unittest.TestCase):
 
     def testParsingGroupsDocsParams(self):
         doc = mygrpdocs
+        d = docs.DocString(myelem, '    ', doc)
+        d.parse_docs()
+        self.failUnless(len(d.docs['in']['params']) == 3)
+        self.failUnless(d.docs['in']['params'][0][0] == 'first')
+        self.failUnless(d.docs['in']['params'][0][1].startswith('the 1'))
+        self.failUnless(d.docs['in']['params'][2][1].startswith('the 3rd'))
+
+    def testParsingGroups2DocsParams(self):
+        doc = mygrpdocs2
         d = docs.DocString(myelem, '    ', doc)
         d.parse_docs()
         self.failUnless(len(d.docs['in']['params']) == 3)
