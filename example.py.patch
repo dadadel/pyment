@@ -1,0 +1,69 @@
+--- a/example.py
++++ b/example.py
+@@ -1,41 +1,47 @@
+ def func1(parameter='default val'):
+-    '''Description of func with docstring javadoc style.
++    """Description of func with docstring javadoc style.
+ 
+-    @param parameter: descr of param
+-    @type parameter: type
+-    @return: some value
++    :param parameter: descr of param (Default value = 'default val')
++    :type parameter: type
++    :returns: some value
+ 
+-    '''
++    """
+     pass
+ 
+ def func2(parameter='default val2'):
+-    '''Description of func with docstring reST style.
++    """Description of func with docstring reST style.
+ 
+-    :param parameter: descr of param
++    :param parameter: descr of param (Default value = 'default val2')
+     :type parameter: type
+-    :return: some value
++:return: some value
+ 
+-    '''
++    """
+     pass
+ 
+ def func3(myparam='default val'):
+-    '''Description of func with docstring groups style.
++    """Description of func with docstring groups style.
+ 
+-    Params: 
+-        myparam - descr of param
++    :param myparam: descr of param (Default value = 'default val')
++    :returns: some value
+ 
+-    Returns:
+-        some value
+-
+-    '''
++    """
+     pass
+ 
+ class SomeClass(object):
+-    '''My class.
+-    '''
++    """My class."""
+     def method(self, prm):
+-        '''description'''
++        """description
++
++        :param prm: 
++
++        """
+         pass
+ 
+     def method2(self, prm1, prm2='defaultprm'):
++        """
++
++        :param prm1: 
++        :param prm2:  (Default value = 'defaultprm')
++
++        """
+         pass
