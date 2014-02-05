@@ -85,11 +85,11 @@ class DocStringTests(unittest.TestCase):
 
     def testSameOutputJavadocReST(self):
         doc = mydocs
-        dj = docs.DocString(myelem, '    ', doc)
-        dj.parse_docs()
+        dj = docs.DocString(myelem, '    ')
+        dj.parse_docs(doc)
         doc = torest(mydocs)
-        dr = docs.DocString(myelem, '    ', doc)
-        dr.parse_docs()
+        dr = docs.DocString(myelem, '    ')
+        dr.parse_docs(doc)
         self.assertEqual(dj.get_raw_docs(), dr.get_raw_docs())
 
     def testParsingElement(self):
@@ -128,7 +128,7 @@ class DocStringTests(unittest.TestCase):
         d.parse_docs()
         self.failUnless(d.docs['in']['desc'].strip().startswith('My '))
         self.failUnless(d.docs['in']['desc'].strip().endswith('lines.'))
-
+    
     def testParsingDocsParams(self):
         doc = torest(mydocs)
         d = docs.DocString(myelem, '    ', doc)
