@@ -45,6 +45,12 @@ It is called "groups style", the kind of docstring like:
 	This is description of what is returned
     """
 
+Example
+-------
+The example.py.patch was obtained with the following command:
+
+        $ ./pyment.py example.py
+
 Usage
 -----
 - get help:
