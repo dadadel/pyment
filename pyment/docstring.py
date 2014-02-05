@@ -676,6 +676,8 @@ class DocString(object):
         data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
         if self.dst.style['in'] == 'groups':
             idx = self.dst.get_group_index(data)
+        elif self.dst.style['in'] == 'unknown':
+            idx = -1
         else:
             idx = self.dst.get_elem_index(data)
         if idx == 0:
@@ -730,6 +732,7 @@ class DocString(object):
                 start, pend = self.dst.get_param_type_indexes(data, name=param, prev=end)
                 if start > 0:
                     ptype = data[start: pend].strip()
+                # a parameter is stored with: (name, description, type)
                 self.docs['in']['params'].append((param, desc, ptype))
                 data = data[end:]
                 listed += 1
@@ -745,7 +748,7 @@ class DocString(object):
         '''
         if self.dst.style['in'] == 'groups':
             self._extract_groupstyle_docs_params()
-        else:
+        elif self.dst.style['in'] in ['javadoc', 'reST']:
             self._extract_keystyle_docs_params()
 
     def _extract_groupstyle_docs_return(self):
@@ -779,7 +782,7 @@ class DocString(object):
         '''
         if self.dst.style['in'] == 'groups':
             self._extract_groupstyle_docs_return()
-        else:
+        elif self.dst.style['in'] in ['javadoc', 'reST']:
             self._extract_keystyle_docs_return()
 
     def parse_docs(self, raw=None):
@@ -795,6 +798,7 @@ class DocString(object):
             if raw.endswith('"""') or raw.endswith("'''"):
                 raw = raw[:-3]
             self.docs['in']['raw'] = raw
+            self.dst.autodetect_style(raw)
         if self.docs['in']['raw'] is None:
             return
         self.dst.set_known_parameters(self.element['params'])
@@ -813,22 +817,25 @@ class DocString(object):
             self.docs['out']['desc'] = ''
 
     def _set_params(self):
-        '''Sets the parameters with return types, descriptions and default value if any
+        '''Sets the parameters with types, descriptions and default value if any
         '''
         #TODO: manage different in/out styles
-        if len(self.docs['in']['params']) > 0:
+        if self.docs['in']['params']:
+            # list of parameters is like: (name, description, type)
             self.docs['out']['params'] = list(self.docs['in']['params'])
         for e in self.element['params']:
-            param = e
             if type(e) is tuple:
+                # tuple is: (name, default)
                 param = e[0]
+            else:
+                param = e
             found = False
             for i, p in enumerate(self.docs['out']['params']):
                 if param == p[0]:
                     found = True
                     # add default value if any
                     if type(e) is tuple:
-                        # tuple: (name, desc, type, default)
+                        # param will contain: (name, desc, type, default)
                         self.docs['out']['params'][i] = (p[0], p[1], p[2], e[1])
             if not found:
                 if type(e) is tuple:
@@ -848,7 +855,7 @@ class DocString(object):
     def _set_raw(self):
         '''Sets the output raw docstring
         '''
-        sep = self.dst.get_sep()
+        sep = self.dst.get_sep(target='out')
         sep = sep + ' ' if sep != ' ' else sep
         with_space = lambda s: os.linesep.join([self.docs['out']['spaces'] + l if i > 0 else l for i, l in enumerate(s.split(os.linesep))])
 
