@@ -7,7 +7,7 @@ Description
 -----------
 
 This Python (2.7+/3+, or 2.6 if installed argparser) program intends to help Python programmers to enhance inside code documentation using docstrings. 
-It is usefull for code not well documented, or code without docstrings, or some not yet or partially documented code.
+It is usefull for code not well documented, or code without docstrings, or some not yet or partially documented code, or a mix of all of this :-)
 It can be helpfull also to haromize or change a project docstring style format.
 
 It will parse one or several python scripts and retrieve existing docstrings.
