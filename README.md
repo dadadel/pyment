@@ -17,34 +17,6 @@ At the end, patches are generated for each file. Then, man can apply the patches
 It is also possible to generate the python file with the new docstrings, or to retrieve only the docstrings...
 
 
-Limitations
------------
-Note that this work is in progress! It comes with no warranty. And it don't yet offer all its intended functionalities.
-
-Currently, no raise managed. Only javadoc, one variant of reST and a part of groups (only input) styles are managed both in input and output, but that should evolve quickly in time. 
-
-The tool can only at the time offer to generate patches or get a list of the new docstrings.
-
-The functions definitions on several lines are not yet managed, that is for instance:
-
-    def func(param1,
-             param2,
-             param3):
-
-*Note*:
-It is called "groups style", the kind of docstring like:
-
-    """
-    This is a groups style docs.
-
-    Parameters:
-	param1 - this is the first param
-	param2 - this is a second param
-
-    Returns:
-	This is description of what is returned
-    """
-
 Example
 -------
 The example.py.patch was obtained with the following command:
@@ -94,3 +66,32 @@ Usage
         c.diff_to_file(os.path.basename(filename) + ".patch")
         for s in c.get_output_docs():
             print(s)
+
+
+Limitations
+-----------
+Note that this work is in progress! It comes with no warranty. And it don't yet offer all its intended functionalities.
+
+Currently, no raise managed. Only javadoc, one variant of reST and a part of groups (only input) styles are managed both in input and output, but that should evolve quickly in time. 
+
+The tool can only at the time offer to generate patches or get a list of the new docstrings.
+
+The functions definitions on several lines are not yet managed, that is for instance:
+
+    def func(param1,
+             param2,
+             param3):
+
+*Note*:
+It is called "groups style", the kind of docstring like:
+
+    """
+    This is a groups style docs.
+
+    Parameters:
+	param1 - this is the first param
+	param2 - this is a second param
+
+    Returns:
+	This is description of what is returned
+    """
