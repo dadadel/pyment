@@ -63,6 +63,13 @@ class DocStringTests(unittest.TestCase):
         pr._parse()
         self.assertEqual(pj.get_output_docs(), pr.get_output_docs())
 
+    def testMultiLinesElements(self):
+        p = pym.PyComment(inifile)
+        p._parse()
+        self.failUnless('first' in p.get_output_docs()[1])
+        self.failUnless('second' in p.get_output_docs()[1])
+        self.failUnless('third' in p.get_output_docs()[1])
+        self.failUnless('multiline' in p.get_output_docs()[1])
 
 def main():
     unittest.main()

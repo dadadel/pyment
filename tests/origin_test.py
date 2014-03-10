@@ -3,12 +3,12 @@
 import unittest
 
 def my_func_full(first, second=None, third="value"):
-"""This is a description of a method.
+    """This is a description of a method.
     It is on several lines.
     Several styles exists:
       -javadoc,
       -reST,
-      -cstyle.
+      -groups.
     It uses the javadoc style.
 
     @param first: the 1st argument.
@@ -21,6 +21,12 @@ def my_func_full(first, second=None, third="value"):
 
     """
     print ("this is the code of my full func")
+
+def my_func_multiline_elem(first,
+                           second,
+                           third=""):
+    '''multiline'''
+    print ("this has elems in several lines")
 
 def my_func_empty_params(first, second=None, third="value"):
     print ("this is the code of my empty func")
