@@ -67,15 +67,6 @@ Usage
         for s in c.get_output_docs():
             print(s)
 
-
-Limitations
------------
-Note that this work is in progress! It comes with no warranty. And it don't yet offer all its intended functionalities.
-
-Currently, no raise managed. Only javadoc, one variant of reST and a part of groups (only input) styles are managed both in input and output, but that should evolve quickly in time. 
-
-The tool can only at the time offer to generate patches or get a list of the new docstrings.
-
 *Note*:
 It is called "groups style", the kind of GoogleDoc style, with docstrings like:
 
@@ -89,3 +80,11 @@ It is called "groups style", the kind of GoogleDoc style, with docstrings like:
     Returns:
 	This is description of what is returned
     """
+
+Limitations
+-----------
+Note that this work is in progress! It comes with no warranty. And it don't yet offer all its intended functionalities.
+
+Currently, no raise managed. Only javadoc, one variant of reST and a part of groups (only input) styles are managed both in input and output, but that should evolve quickly in time. 
+
+The tool can only at the time offer to generate patches or get a list of the new docstrings.
