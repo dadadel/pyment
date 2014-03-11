@@ -76,14 +76,8 @@ Currently, no raise managed. Only javadoc, one variant of reST and a part of gro
 
 The tool can only at the time offer to generate patches or get a list of the new docstrings.
 
-The functions definitions on several lines are not yet managed, that is for instance:
-
-    def func(param1,
-             param2,
-             param3):
-
 *Note*:
-It is called "groups style", the kind of docstring like:
+It is called "groups style", the kind of GoogleDoc style, with docstrings like:
 
     """
     This is a groups style docs.

@@ -67,11 +67,12 @@ class PyComment(object):
         '''
         #TODO manage decorators
         #TODO manage default params with strings escaping chars as (, ), ', ', #, ...
-        #TODO manage multilines
+        #TODO manage elements ending with comments like: def func(param): # blabla
         elem_list = []
-        reading_element = False
+        reading_element = None
         reading_docs = None
         waiting_docs = False
+        elem = ''
         raw = ''
         start = 0
         end = 0
@@ -82,13 +83,18 @@ class PyComment(object):
             raise msg
         for i, ln in enumerate(fd.readlines()):
             l = ln.strip()
-            if (l.startswith('def ') or l.startswith('class ')) and not reading_docs:
+            if reading_element:
+                elem += l
+                if l.endswith(':'):
+                    reading_element = 'end'
+            elif (l.startswith('def ') or l.startswith('class ')) and not reading_docs:
+                reading_element = 'start'
+                elem = l
+                if l.endswith(':'):
+                    reading_element = 'end'
+            if reading_element == 'end':
+                reading_element = None
                 # if currently reading an element content
-                if reading_element:
-                    if reading_docs is not None:
-                        #FIXME there is a pb
-                        raise Exception('reach new element before end of docstring')
-                reading_element = True
                 waiting_docs = True
                 m = re.match(r'^(\s*)[dc]{1}', ln)
                 if m is not None and m.group(1) is not None:
@@ -96,7 +102,7 @@ class PyComment(object):
                 else:
                     spaces = ''
                 # *** Creates the DocString object ***
-                e = DocString(l, spaces, cotes=self.cotes,
+                e = DocString(elem.replace(os.linesep, ' '), spaces, cotes=self.cotes,
                               input_style=self.input_style,
                               output_style=self.output_style)
                 elem_list.append({'docs': e, 'location': (-i, -i)})
