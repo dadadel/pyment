@@ -28,13 +28,13 @@ class DocsTools(object):
     Currently the following are managed:
     - 'javadoc': javadoc style
     - 'reST': restructure text style compatible with Sphinx
-    - 'groups': parameters on beginning of lines
+    - 'groups': parameters on beginning of lines (like Google Docs)
     - 'unknown': undefined
 
     '''
     #TODO: enhance style dependent separation
     #TODO: add set methods to generate style specific outputs
-    #TODO: manage reST (:param) style and C style (\param)
+    #TODO: manage C style (\param)
     def __init__(self, style_in='javadoc', style_out='reST', params=None):
         '''Choose the kind of docstring type.
 
@@ -54,7 +54,7 @@ class DocsTools(object):
         self.params = params
 
     def _set_available_styles(self):
-        '''Sets the internal styles list and available options in a structure as following:
+        '''Set the internal styles list and available options in a structure as following:
 
             param: javadoc: name = '@param'
                             sep  = ':'
@@ -105,7 +105,7 @@ class DocsTools(object):
         return found
 
     def autodetect_style(self, data):
-        '''Determines the style of a docstring,
+        '''Determine the style of a docstring,
         and sets it as the default input one for the instance.
 
         @param data: the docstring's data to recognize.
@@ -139,7 +139,7 @@ class DocsTools(object):
         return detected_style
 
     def set_input_style(self, style):
-        '''Sets the input docstring style
+        '''Set the input docstring style
 
         @param style: style to set for input docstring
         @type style: str
@@ -148,7 +148,7 @@ class DocsTools(object):
         self.style['in'] = style
 
     def set_output_style(self, style):
-        '''Sets the output docstring style
+        '''Set the output docstring style
 
         @param style: style to set for output docstring
         @type style: str
@@ -157,7 +157,7 @@ class DocsTools(object):
         self.style['out'] = style
 
     def _get_options(self, style):
-        '''Gets the list of keywords for a particular style
+        '''Get the list of keywords for a particular style
 
         @param style: the style that the keywords are wanted
 
@@ -317,6 +317,72 @@ class DocsTools(object):
     def get_elem_param(self):
         '''
         '''
+
+    def get_raise_indexes(self, data):
+        '''Get from a docstring the next raise name indexes.
+        In javadoc style it is after @raise.
+
+        @param data: string to parse
+        @return: start and end indexes of found element else (-1, -1)
+        or else (-2, -2) if try to use params style but no parameters were provided.
+        Note: the end index is the index after the last name character
+        @rtype: tuple
+
+        '''
+        start, end = -1, -1
+        stl_param = self.opt['raise'][self.style['in']]['name']
+        if self.style['in'] in self.keystyles + ['unknown']:
+            idx_p = self.get_key_index(data, 'raise')
+            if idx_p >= 0:
+                idx_p += len(stl_param)
+                m = re.match(r'^([\w]+)', data[idx_p:].strip())
+                if m:
+                    param = m.group(1)
+                    start = idx_p + data[idx_p:].find(param)
+                    end = start + len(param)
+
+        if self.style['in'] in ['groups', 'unknown'] and (start, end) == (-1, -1):
+            #search = '\s*(%s)' % '|'.join(self.groups['param'])
+            #m = re.match(search, data.lower())
+            #if m:
+            #    key_param = m.group(1)
+            pass
+
+        return (start, end)
+
+    def get_raise_description_indexes(self, data, prev=None):
+        '''Get from a docstring the next raise's description.
+        In javadoc style it is after @param.
+
+        @param data: string to parse
+        @param prev: index after the param element name
+        @return: start and end indexes of found element else (-1, -1)
+        @rtype: tuple
+
+        '''
+        start, end = -1, -1
+        if not prev:
+            _, prev = self.get_raise_indexes(data)
+        if prev < 0:
+            return (-1, -1)
+        m = re.match(r'\W*(\w+)', data[prev:])
+        if m:
+            first = m.group(1)
+            start = data[prev:].find(first)
+            if start >= 0:
+                start += prev
+                if self.style['in'] in self.keystyles + ['unknown']:
+                    end = self.get_elem_index(data[start:])
+                    if end >= 0:
+                        end += start
+                if self.style['in'] in ['params', 'unknown'] and end == -1:
+                    p1, _ = self.get_raise_indexes(data[start:])
+                    if p1 >= 0:
+                        end = p1
+                    else:
+                        end = len(data)
+
+        return (start, end)
 
     def get_param_indexes(self, data):
         '''Get from a docstring the next parameter name indexes.
@@ -552,7 +618,8 @@ class DocString(object):
                 'params': [],
                 'types': [],
                 'return': None,
-                'rtype': None
+                'rtype': None,
+                'raises': []
                 },
             'out': {
                 'raw': '',
@@ -561,6 +628,7 @@ class DocString(object):
                 'types': [],
                 'return': None,
                 'rtype': None,
+                'raises': [],
                 'spaces': spaces + ' ' * 2
                 }
             }
@@ -639,7 +707,6 @@ class DocString(object):
 
         '''
         #TODO: retrieve return from element external code (in parameter)
-        #TODO: manage multilines
         if raw is None:
             l = self.element['raw'].strip()
         else:
@@ -751,6 +818,65 @@ class DocString(object):
         elif self.dst.style['in'] in ['javadoc', 'reST']:
             self._extract_keystyle_docs_params()
 
+    def _extract_groupstyle_docs_raises(self):
+        data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
+        idx = self.dst.get_group_key_line(data, 'raise')
+        if idx >= 0:
+            data = data.split(os.linesep)[idx+1:]
+            end = self.dst.get_group_line(os.linesep.join(data))
+            end = end if end != -1 else len(data)
+            for i in xrange(end):
+                #FIXME: see how retrieve multiline raise description
+                line = data[i]
+                param = None
+                desc = ''
+                m = re.match(r'^\W*(\w+)[\W\s]+(\w[\s\w]+)', line.strip())
+                if m:
+                    param = m.group(1).strip()
+                    desc = m.group(2).strip()
+                else:
+                    m = re.match(r'^\W*(\w+)\W*', line.strip())
+                    if m:
+                        param = m.group(1).strip()
+                if param:
+                    self.docs['in']['raises'].append((param, desc))
+
+    def _extract_keystyle_docs_raises(self):
+        data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
+        listed = 0
+        loop = True
+        maxi = 10000  # avoid infinite loop but should never happen
+        i = 0
+        while loop:
+            i += 1
+            if i > maxi:
+                loop = False
+            start, end = self.dst.get_raise_indexes(data)
+            if start >= 0:
+                param = data[start: end]
+                desc = ''
+                start, end = self.dst.get_raise_description_indexes(data, prev=end)
+                if start > 0:
+                    desc = data[start: end].strip()
+                # a parameter is stored with: (name, description)
+                self.docs['in']['raises'].append((param, desc))
+                data = data[end:]
+                listed += 1
+            else:
+                loop = False
+        if i > maxi:
+            print("WARNING: an infinite loop was reached while extracting docstring parameters (>10000). This should never happen!!!")
+
+    def _extract_docs_raises(self):
+        '''Extract raises description from docstring. The internal computed raises list is
+        composed by tuples (raise, description).
+
+        '''
+        if self.dst.style['in'] == 'groups':
+            self._extract_groupstyle_docs_raises()
+        elif self.dst.style['in'] in ['javadoc', 'reST']:
+            self._extract_keystyle_docs_raises()
+
     def _extract_groupstyle_docs_return(self):
         #TODO: manage rtype
         data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
@@ -804,6 +930,7 @@ class DocString(object):
         self.dst.set_known_parameters(self.element['params'])
         self._extract_docs_params()
         self._extract_docs_return()
+        self._extract_docs_raises()
         self._extract_docs_description()
         self.parsed_docs = True
 
@@ -844,6 +971,14 @@ class DocString(object):
                     p = (param, '', None, None)
                 self.docs['out']['params'].append(p)
 
+    def _set_raises(self):
+        '''Sets the raises and descriptions
+        '''
+        #TODO: manage different in/out styles
+        if self.docs['in']['raises']:
+            # list of parameters is like: (name, description)
+            self.docs['out']['raises'] = list(self.docs['in']['raises'])
+
     def _set_return(self):
         '''Sets the return parameter with description and rtype if any
         '''
@@ -863,8 +998,7 @@ class DocString(object):
         raw = self.docs['out']['spaces'] + self.cotes
         desc = self.docs['out']['desc'].strip()
         if not desc or not desc.count(os.linesep):
-            # TODO: manage raise
-            if not self.docs['out']['params'] and not self.docs['out']['return'] and not self.docs['out']['rtype']:
+            if not self.docs['out']['params'] and not self.docs['out']['return'] and not self.docs['out']['rtype'] and not self.docs['out']['raises']:
                 raw += desc if desc else ' '
                 raw += self.cotes
                 self.docs['out']['raw'] = raw.rstrip()
@@ -895,8 +1029,13 @@ class DocString(object):
             if not self.docs['out']['params']:
                 raw += os.linesep
             raw += self.docs['out']['spaces'] + self.dst.get_key('rtype', 'out') + sep + self.docs['out']['rtype'].rstrip() + os.linesep
+
+        # sets the raises section
+        if len(self.docs['out']['raises']):
+            for p in self.docs['out']['raises']:
+                raw += self.docs['out']['spaces'] + self.dst.get_key('raise', 'out') + ' ' + p[0] + sep + with_space(p[1]) + os.linesep
         raw += os.linesep
-        #TODO: add raises
+
         if raw.count(self.cotes) == 1:
             raw += self.docs['out']['spaces'] + self.cotes
         self.docs['out']['raw'] = raw.rstrip()
@@ -907,6 +1046,7 @@ class DocString(object):
         self._set_desc()
         self._set_params()
         self._set_return()
+        self._set_raises()
         self._set_raw()
         self.generated_docs = True
 
