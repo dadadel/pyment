@@ -17,7 +17,7 @@ def my_func_full(first, second=None, third="value"):
     @param second: the 2nd argument.
     @return: the result value
     @rtype: int
-    @raise: KeyError
+    @raise KeyError: raises an exception
 
     """
     print ("this is the code of my full func")
@@ -98,6 +98,7 @@ class MyTestClass(object):
         @type third: str
         @return: the value
         @rtype: str
+        @raise KeyError: key exception
 
         '''
         print("method full")

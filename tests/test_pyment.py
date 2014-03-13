@@ -20,7 +20,7 @@ mydocs = '''        """This is a description of a method.
         @param second: the 2nd argument.
         @return: the result value
         @rtype: int
-        @raise: KeyError
+        @raise KeyError: raises exception
 
         """'''
 inifile = 'origin_test.py'

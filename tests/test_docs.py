@@ -18,7 +18,8 @@ mydocs = '''        """This is a description of a method.
         @param second: the 2nd argument.
         @return: the result value
         @rtype: int
-        @raise: KeyError
+        @raise KeyError: raises a key error exception
+        @raise OtherError: raises an other error exception
 
         """'''
 
@@ -161,6 +162,37 @@ class DocStringTests(unittest.TestCase):
         self.failUnless(d.docs['in']['params'][0][1].startswith('the 1'))
         self.failUnless(d.docs['in']['params'][2][1].startswith('the 3rd'))
 
+    def testParsingDocsRaises(self):
+        doc = mydocs
+        d = docs.DocString(myelem, '    ', doc)
+        d.parse_docs()
+        d.generate_docs()
+        self.failUnless(len(d.docs['in']['raises']) == 2)
+        self.failUnless(d.docs['in']['raises'][0][0].startswith('KeyError'))
+        self.failUnless(d.docs['in']['raises'][0][1].startswith('raises a key'))
+        self.failUnless(d.docs['in']['raises'][1][0].startswith('OtherError'))
+        self.failUnless(d.docs['in']['raises'][1][1].startswith('raises an other'))
+
+    def testParsingGroupsDocsRaises(self):
+        doc = mygrpdocs
+        d = docs.DocString(myelem, '    ', doc)
+        d.parse_docs()
+        self.failUnless(len(d.docs['in']['raises']) == 2)
+        self.failUnless(d.docs['in']['raises'][0][0] == 'KeyError')
+        self.failUnless(d.docs['in']['raises'][0][1].startswith('when a key'))
+        self.failUnless(d.docs['in']['raises'][1][0] == 'OtherError')
+        self.failUnless(d.docs['in']['raises'][1][1].startswith('when an other'))
+
+    def testParsingGroups2DocsRaises(self):
+        doc = mygrpdocs2
+        d = docs.DocString(myelem, '    ', doc)
+        d.parse_docs()
+        self.failUnless(len(d.docs['in']['raises']) == 2)
+        self.failUnless(d.docs['in']['raises'][0][0] == 'KeyError')
+        self.failUnless(d.docs['in']['raises'][0][1].startswith('when a key'))
+        self.failUnless(d.docs['in']['raises'][1][0] == 'OtherError')
+        self.failUnless(d.docs['in']['raises'][1][1].startswith('when an other'))
+
     def testParsingDocsReturn(self):
         doc = mydocs
         d = docs.DocString(myelem, '    ', doc)
@@ -186,11 +218,19 @@ class DocStringTests(unittest.TestCase):
         d = docs.DocString(myelem, '    ', doc)
         d.parse_docs()
         d.generate_docs()
-        self.failUnless(d.docs['in']['return'].startswith('the result'))
-        self.failUnless(d.docs['in']['rtype'] == 'int')
+        self.failUnless(d.docs['out']['return'].startswith('the result'))
+        self.failUnless(d.docs['out']['rtype'] == 'int')
 
     def testGeneratingDocsRaise(self):
-        self.fail("TODO!")
+        doc = mydocs
+        d = docs.DocString(myelem, '    ', doc)
+        d.parse_docs()
+        d.generate_docs()
+        self.failUnless(len(d.docs['out']['raises']) == 2)
+        self.failUnless(d.docs['out']['raises'][0][0].startswith('KeyError'))
+        self.failUnless(d.docs['out']['raises'][0][1].startswith('raises a key'))
+        self.failUnless(d.docs['out']['raises'][1][0].startswith('OtherError'))
+        self.failUnless(d.docs['out']['raises'][1][1].startswith('raises an other'))
 
     def testGeneratingDocsParams(self):
         doc = mydocs
