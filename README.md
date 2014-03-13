@@ -1,7 +1,7 @@
-pyment
+pyment 
 ======
 
-Create, update or convert style of docstrings in existing Python files.
+Create, update or convert docstrings in existing Python files, managing several styles.
 
 Description
 -----------
@@ -16,12 +16,56 @@ Then, for all found functions/methods/classes, it will generate formated docstri
 At the end, patches are generated for each file. Then, man can apply the patches to the initial scripts.
 It is also possible to generate the python file with the new docstrings, or to retrieve only the docstrings...
 
+Currently, the managed styles (input/output) are javadoc, one variant of reST (restructured text, used by Sphinx) and groups (only input, style like used by Google). 
+
+The tool can only at the time offer to generate patches or get a list of the new docstrings.
 
 Example
 -------
-The example.py.patch was obtained with the following command:
+See the **example.py.patch** file to see what kind of result can be obtained.
+That patch was obtained using the following command:
 
         $ ./pyment.py example.py
+
+Examples of managed docstrings:
+
+- "javadoc" style:
+
+        """
+        This is a javadoc style.
+
+        @param param1: this is a first param
+        @param param2: this is a second param
+        @return: this is a description of what is returned
+        @raise keyError: raises an exception
+        """
+
+- "reST" style (the kind managed by Sphinx):
+
+        """
+        This is a javadoc style.
+
+        :param param1: this is a first param
+        :param param2: this is a second param
+        :returns: this is a description of what is returned
+        :raises keyError: raises an exception
+        """
+
+- "groups" style (the kind used by Google):
+
+        """
+        This is a groups style docs.
+
+        Parameters:
+            param1 - this is the first param
+            param2 - this is a second param
+
+        Returns:
+            This is a description of what is returned
+
+        Raises:
+            KeyError - raises an exception
+        """
 
 Usage
 -----
@@ -67,24 +111,3 @@ Usage
         for s in c.get_output_docs():
             print(s)
 
-*Note*:
-It is called "groups style", the kind of GoogleDoc style, with docstrings like:
-
-    """
-    This is a groups style docs.
-
-    Parameters:
-	param1 - this is the first param
-	param2 - this is a second param
-
-    Returns:
-	This is description of what is returned
-    """
-
-Limitations
------------
-Note that this work is in progress! It comes with no warranty. And it don't yet offer all its intended functionalities.
-
-Currently, no raise managed. Only javadoc, one variant of reST and a part of groups (only input) styles are managed both in input and output, but that should evolve quickly in time. 
-
-The tool can only at the time offer to generate patches or get a list of the new docstrings.
