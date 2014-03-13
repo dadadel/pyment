@@ -1,46 +1,56 @@
 --- a/example.py
 +++ b/example.py
-@@ -1,41 +1,47 @@
- def func1(parameter='default val'):
+@@ -1,47 +1,54 @@
+ def func1(param1, param2='default val'):
 -    '''Description of func with docstring javadoc style.
 +    """Description of func with docstring javadoc style.
  
--    @param parameter: descr of param
--    @type parameter: type
+-    @param param1: descr of param
+-    @type param1: type
 -    @return: some value
-+    :param parameter: descr of param (Default value = 'default val')
-+    :type parameter: type
+-    @raise KeyError: raises a key exception
++    :param param1: descr of param
++    :type param1: type
++    :param param2:  (Default value = 'default val')
 +    :returns: some value
++    :raises KeyError: raises a key exception
  
 -    '''
 +    """
      pass
  
- def func2(parameter='default val2'):
+ def func2(param1, param2='default val2'):
 -    '''Description of func with docstring reST style.
 +    """Description of func with docstring reST style.
  
--    :param parameter: descr of param
-+    :param parameter: descr of param (Default value = 'default val2')
-     :type parameter: type
--    :return: some value
-+:return: some value
+     :param param1: descr of param
+     :type param1: type
++    :param param2:  (Default value = 'default val2')
+     :returns: some value
+     :raises keyError: raises exception
  
 -    '''
 +    """
      pass
  
- def func3(myparam='default val'):
+ def func3(param1, param2='default val'):
 -    '''Description of func with docstring groups style.
 +    """Description of func with docstring groups style.
  
 -    Params: 
--        myparam - descr of param
-+    :param myparam: descr of param (Default value = 'default val')
+-        param1 - descr of param
++    :param param1: descr of param
++    :param param2:  (Default value = 'default val')
 +    :returns: some value
++    :raises keyError: raises key exception
++    :raises TypeError: raises type exception
  
 -    Returns:
 -        some value
+-
+-    Raises:
+-        keyError: raises key exception
+-        TypeError: raises type exception
 -
 -    '''
 +    """
