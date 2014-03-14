@@ -9,12 +9,10 @@ __maintainer__ = "A. Daouzli"
 
 """
 Formats supported at the time:
- - javadoc, reST:
- managed  -> param, type, return, rtype
- intended -> raise
- - groups:
- managed  -> description, parameters, return
- intended -> raises
+ - javadoc, reST (restructured text, Sphinx):
+ managed  -> description, param, type, return, rtype, raise
+ - groups (Google like):
+ managed  -> description, parameters, return, raises
 
 """
 
