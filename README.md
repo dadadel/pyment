@@ -43,7 +43,7 @@ Examples of managed docstrings:
 - "reST" style (the kind managed by Sphinx):
 
         """
-        This is a javadoc style.
+        This is a reST style.
 
         :param param1: this is a first param
         :param param2: this is a second param
