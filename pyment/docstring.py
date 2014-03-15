@@ -581,12 +581,12 @@ class DocString(object):
     '''This class represents the docstring'''
     #TODO: manage raising
 
-    def __init__(self, elem_raw, spaces='', docs_raw=None, cotes="'''", input_style=None, output_style=None):
+    def __init__(self, elem_raw, spaces='', docs_raw=None, quotes="'''", input_style=None, output_style=None):
         '''
         @param elem_raw: raw data of the element (def or class).
         @param spaces: the leading whitespaces before the element
         @param docs_raw: the raw data of the docstring part if any.
-        @param cotes: the type of cotes to use for output: ' ' ' or " " "
+        @param quotes: the type of quotes to use for output: ' ' ' or " " "
 
         '''
         self.dst = DocsTools()
@@ -640,7 +640,7 @@ class DocString(object):
         self.generated_docs = False
 
         self.parse_element()
-        self.cotes = cotes
+        self.quotes = quotes
 
     def __str__(self):
         # !!! for debuging
@@ -993,12 +993,12 @@ class DocString(object):
         with_space = lambda s: os.linesep.join([self.docs['out']['spaces'] + l if i > 0 else l for i, l in enumerate(s.split(os.linesep))])
 
         # sets the description section
-        raw = self.docs['out']['spaces'] + self.cotes
+        raw = self.docs['out']['spaces'] + self.quotes
         desc = self.docs['out']['desc'].strip()
         if not desc or not desc.count(os.linesep):
             if not self.docs['out']['params'] and not self.docs['out']['return'] and not self.docs['out']['rtype'] and not self.docs['out']['raises']:
                 raw += desc if desc else ' '
-                raw += self.cotes
+                raw += self.quotes
                 self.docs['out']['raw'] = raw.rstrip()
                 return
         raw += with_space(self.docs['out']['desc']).strip() + os.linesep
@@ -1034,8 +1034,8 @@ class DocString(object):
                 raw += self.docs['out']['spaces'] + self.dst.get_key('raise', 'out') + ' ' + p[0] + sep + with_space(p[1]) + os.linesep
         raw += os.linesep
 
-        if raw.count(self.cotes) == 1:
-            raw += self.docs['out']['spaces'] + self.cotes
+        if raw.count(self.quotes) == 1:
+            raw += self.docs['out']['spaces'] + self.quotes
         self.docs['out']['raw'] = raw.rstrip()
 
     def generate_docs(self):
