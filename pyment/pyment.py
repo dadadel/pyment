@@ -272,7 +272,9 @@ def get_files_from_dir(path, recursive=True, depth=0, file_ext='.py'):
 
 
 def main(files=[], input_style='auto', output_style='reST'):
-    input_style = None if 'auto' else input_style
+    if input_style == 'auto':
+        input_style = None
+
     for f in files:
         if os.path.isdir(source):
             path = source + os.sep + os.path.relpath(os.path.abspath(f), os.path.abspath(source))
