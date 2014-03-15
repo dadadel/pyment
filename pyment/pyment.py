@@ -271,7 +271,7 @@ def get_files_from_dir(path, recursive=True, depth=0, file_ext='.py'):
     return file_list
 
 
-def main(files=[], input_style='auto', output_style='reST'):
+def run(source, files=[], input_style='auto', output_style='reST'):
     if input_style == 'auto':
         input_style = None
 
@@ -288,8 +288,7 @@ def main(files=[], input_style='auto', output_style='reST'):
         c.diff_to_file(os.path.basename(f) + ".patch", path, path)
 
 
-if __name__ == "__main__":
-
+def main():
     desc = 'Pyment %s - %s - %s - %s' % (__version__, __copyright__, __author__, __licence__)
     parser = argparse.ArgumentParser(description='Generates patches after (re)writing docstrings.')
     parser.add_argument('path', type=str,
@@ -308,4 +307,7 @@ if __name__ == "__main__":
 
     files = get_files_from_dir(source)
 
-    main(files, args.input, args.output)
+    run(source, files, args.input, args.output)
+
+if __name__ == "__main__":
+    main()
