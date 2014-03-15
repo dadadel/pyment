@@ -23,7 +23,7 @@ The tool can only at the time offer to generate patches or get a list of the new
 Example
 -------
 See the **example.py.patch** file to see what kind of result can be obtained.
-That patch was obtained using the following command:
+That patch was generated using the following command:
 
         $ ./pyment.py example.py
 
