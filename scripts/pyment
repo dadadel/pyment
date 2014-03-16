@@ -1,0 +1,78 @@
+#!/usr/bin/python
+# -*- coding: utf8 -*-
+
+import glob
+import argparse
+import os
+
+from pyment import PyComment
+from pyment.pyment import __version__, __copyright__, __author__, __licence__
+
+MAX_DEPTH_RECUR = 50
+''' The maximum depth to reach wargs.hile recursively exploring sub folders'''
+
+
+def get_files_from_dir(path, recursive=True, depth=0, file_ext='.py'):
+    '''Retrieve the list of files from a folder.
+
+    @param path: file or directory where to search files
+    @param recursive: if True will search also sub-directories
+    @param depth: if explore recursively, the depth of sub directories to follow
+    @param file_ext: the files extension to get. Default is '.py'
+    @return: the file list retrieved. if the input is a file then a one element list.
+
+    '''
+    file_list = []
+    if os.path.isfile(path):
+        return [path]
+    if path[-1] != os.sep:
+        path = path + os.sep
+    for f in glob.glob(path + "*"):
+        if os.path.isdir(f):
+            if depth < MAX_DEPTH_RECUR:  # avoid infinite recursive loop
+                file_list.extend(get_files_from_dir(f, recursive, depth + 1))
+            else:
+                continue
+        elif f.endswith(file_ext):
+            file_list.append(f)
+    return file_list
+
+
+def main(files=[], input_style='auto', output_style='reST'):
+    if input_style == 'auto':
+        input_style = None
+
+    for f in files:
+        if os.path.isdir(source):
+            path = source + os.sep + os.path.relpath(os.path.abspath(f), os.path.abspath(source))
+            path = path[:-len(os.path.basename(f))]
+        else:
+            path = ''
+        c = PyComment(f, quotes='"""',
+                      input_style=input_style,
+                      output_style=output_style)
+        c.proceed()
+        c.diff_to_file(os.path.basename(f) + ".patch", path, path)
+
+
+if __name__ == "__main__":
+
+    desc = 'Pyment %s - %s - %s - %s' % (__version__, __copyright__, __author__, __licence__)
+    parser = argparse.ArgumentParser(description='Generates patches after (re)writing docstrings.')
+    parser.add_argument('path', type=str,
+                        help='python file or folder containing python files to proceed')
+    parser.add_argument('-i', '--input', metavar='style', default='auto',
+                        dest='input', help='Input docstring style in ["javadoc", "reST", "auto"] (default autodetected)')
+    parser.add_argument('-o', '--output', metavar='style', default="reST",
+                        dest='output', help='Output docstring style in ["javadoc", "reST"] (default "reST")')
+    parser.add_argument('-v', '--version', action='version',
+                        version=desc)
+    #parser.add_argument('-c', '--config', metavar='config_file',
+    #                   dest='config', help='Configuration file')
+
+    args = parser.parse_args()
+    source = args.path
+
+    files = get_files_from_dir(source)
+
+    main(files, args.input, args.output)
