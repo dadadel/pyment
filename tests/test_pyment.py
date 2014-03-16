@@ -23,9 +23,13 @@ mydocs = '''        """This is a description of a method.
         @raise KeyError: raises exception
 
         """'''
-inifile = 'origin_test.py'
-jvdfile = 'javadoc_test.py'
-rstfile = 'rest_test.py'
+
+current_dir = os.path.dirname(__file__)
+absdir = lambda f: os.path.join(current_dir, f)
+
+inifile = absdir('origin_test.py')
+jvdfile = absdir('javadoc_test.py')
+rstfile = absdir('rest_test.py')
 
 
 class DocStringTests(unittest.TestCase):
