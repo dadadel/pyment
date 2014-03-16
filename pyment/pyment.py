@@ -35,7 +35,7 @@ class PyComment(object):
     The changes are then provided in a patch file.
 
     '''
-    def __init__(self, input_file, input_style=None, output_style='reST', param_type='standard', cotes="'''"):
+    def __init__(self, input_file, input_style=None, output_style='reST', param_type='standard', quotes="'''"):
         '''Sets the configuration including the source to proceed and options.
 
         @param input_file: path name (file or folder)
@@ -46,7 +46,7 @@ class PyComment(object):
             - standard:
                 The style used is the javadoc style.
                 e.g.: @ param my_param: the description
-        @param cotes: the type of cotes to use for output: ' ' ' or " " "
+        @param quotes: the type of quotes to use for output: ' ' ' or " " "
 
         '''
         self.file_type = '.py'
@@ -59,7 +59,7 @@ class PyComment(object):
         self.file_index = 0
         self.docs_list = []
         self.parsed = False
-        self.cotes = cotes
+        self.quotes = quotes
 
     def _parse(self):
         '''Parses the input file's content and generates a list of its elements/docstrings.
@@ -102,7 +102,7 @@ class PyComment(object):
                 else:
                     spaces = ''
                 # *** Creates the DocString object ***
-                e = DocString(elem.replace(os.linesep, ' '), spaces, cotes=self.cotes,
+                e = DocString(elem.replace(os.linesep, ' '), spaces, quotes=self.quotes,
                               input_style=self.input_style,
                               output_style=self.output_style)
                 elem_list.append({'docs': e, 'location': (-i, -i)})
@@ -281,7 +281,7 @@ def main(files=[], input_style='auto', output_style='reST'):
             path = path[:-len(os.path.basename(f))]
         else:
             path = ''
-        c = PyComment(f, cotes='"""',
+        c = PyComment(f, quotes='"""',
                       input_style=input_style,
                       output_style=output_style)
         c.proceed()
