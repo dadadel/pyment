@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf8 -*-
 
 __author__ = "A. Daouzli"
@@ -211,7 +210,7 @@ class DocsTools(object):
 #        m = re.match(search, data.lower())
 #        if m:
 #            key_param = m.group(1)
-        
+
     def get_group_key_index(self, data, key):
         '''Get the next groups style's starting line index for a key
 
@@ -1001,6 +1000,7 @@ class DocString(object):
                 raw += self.quotes
                 self.docs['out']['raw'] = raw.rstrip()
                 return
+        raw += os.linesep + self.docs['out']['spaces']
         raw += with_space(self.docs['out']['desc']).strip() + os.linesep
 
         # sets the parameters section
