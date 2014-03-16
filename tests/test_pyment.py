@@ -75,6 +75,16 @@ class DocStringTests(unittest.TestCase):
         self.failUnless('third' in p.get_output_docs()[1])
         self.failUnless('multiline' in p.get_output_docs()[1])
 
+    def testMultiLinesShiftElements(self):
+        p = pym.PyComment(inifile)
+        p._parse()
+        #TODO: improve this test
+        self.assertEqual((len(p.get_output_docs()[13])-len(p.get_output_docs()[13].lstrip())), 8)
+        self.failUnless('first' in p.get_output_docs()[13])
+        self.failUnless('second' in p.get_output_docs()[13])
+        self.failUnless('third' in p.get_output_docs()[13])
+        self.failUnless('multiline' in p.get_output_docs()[13])
+
 def main():
     unittest.main()
 

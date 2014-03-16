@@ -86,6 +86,13 @@ class MyTestClass(object):
     def my_method_params_no_docs(self, first, second=None, third="value"):
         print("method params no docs")
 
+    def my_method_multiline_shift_elem(self, first,
+                                             second,
+                                             third="",
+                                             **kwargs):
+        '''there are multilines, shift and kwargs'''
+        print ("this has elems in several lines")
+
     def my_method_full(self, first, second=None, third="value"):
         '''The desctiption of method with 3 params and return value
         on several lines
