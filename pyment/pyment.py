@@ -89,17 +89,17 @@ class PyComment(object):
             elif (l.startswith('def ') or l.startswith('class ')) and not reading_docs:
                 reading_element = 'start'
                 elem = l
+                m = re.match(r'^(\s*)[dc]{1}', ln)
+                if m is not None and m.group(1) is not None:
+                    spaces = m.group(1)
+                else:
+                    spaces = ''
                 if l.endswith(':'):
                     reading_element = 'end'
             if reading_element == 'end':
                 reading_element = None
                 # if currently reading an element content
                 waiting_docs = True
-                m = re.match(r'^(\s*)[dc]{1}', ln)
-                if m is not None and m.group(1) is not None:
-                    spaces = m.group(1)
-                else:
-                    spaces = ''
                 # *** Creates the DocString object ***
                 e = DocString(elem.replace(os.linesep, ' '), spaces, quotes=self.quotes,
                               input_style=self.input_style,
