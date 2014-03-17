@@ -20,7 +20,61 @@ Currently, the managed styles (input/output) are javadoc, one variant of reST (r
 
 The tool can only at the time offer to generate patches or get a list of the new docstrings.
 
-You can contact the developer *dadel* and speak about the project on IRC Freenode's channel #pyment.
+You can contact the developer *dadel* and speak about the project on IRC **Freenode**'s channel **#pyment**.
+
+Usage
+-----
+- get and install:
+
+        $ git clone git@github.com:dadadel/pyment.git # or https://github.com/dadadel/pyment.git
+        $ cd pyment
+        $ python setup.py install
+
+- run from the command line:
+
+        pyment  myfile.py
+
+    or
+
+        pyment  my/folder/
+
+- get help:
+
+        $ pyment -h
+
+        usage: pyment [-h] [-i style] [-o style] [-v] path
+
+        Generates patches after (re)writing docstrings.
+
+        positional arguments:
+          path                  python file or folder containing python files to
+                                proceed
+
+        optional arguments:
+          -h, --help            show this help message and exit
+          -i style, --input style
+                                Input docstring style in ["javadoc", "reST", "groups", "auto"]
+                                (default autodetected)
+          -o style, --output style
+                                Output docstring style in ["javadoc", "reST"] (default "reST")
+          -v, --version         show program's version number and exit
+
+- running tests:
+
+        $ python setup.py test
+
+- run from a script:
+
+        import os
+        from pyment import PyComment
+
+        filename = 'test.py'
+
+        c = PyComment(filename)
+        c.proceed()
+        c.diff_to_file(os.path.basename(filename) + ".patch")
+        for s in c.get_output_docs():
+            print(s)
 
 Example
 -------
@@ -68,48 +122,4 @@ Examples of managed docstrings:
         Raises:
             KeyError - raises an exception
         """
-
-Usage
------
-- get help:
-
-        $ pyment -h
-
-        usage: pyment [-h] [-i style] [-o style] [-v] path
-
-        Generates patches after (re)writing docstrings.
-
-        positional arguments:
-          path                  python file or folder containing python files to
-                                proceed
-
-        optional arguments:
-          -h, --help            show this help message and exit
-          -i style, --input style
-                                Input docstring style in ["javadoc", "reST", "groups", "auto"]
-                                (default autodetected)
-          -o style, --output style
-                                Output docstring style in ["javadoc", "reST"] (default "reST")
-          -v, --version         show program's version number and exit
-
-- run from the command line:
-
-        pyment  myfile.py
-
-    or
-
-        pyment  my/folder/
-
-- run from a script:
-
-        import os
-        from pyment import PyComment
-
-        filename = 'test.py'
-
-        c = PyComment(filename)
-        c.proceed()
-        c.diff_to_file(os.path.basename(filename) + ".patch")
-        for s in c.get_output_docs():
-            print(s)
 
