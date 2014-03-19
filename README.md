@@ -20,7 +20,7 @@ Currently, the managed styles (input/output) are javadoc, one variant of reST (r
 
 The tool can only at the time offer to generate patches or get a list of the new docstrings.
 
-You can contact the developer *dadel* and speak about the project on IRC **Freenode**'s channel **#pyment**.
+You can contact the developer *dadel* and speak about the project on **IRC** **Freenode**'s channel **#pyment**.
 
 Usage
 -----
@@ -78,7 +78,7 @@ Usage
 
 Example
 -------
-See the **example.py.patch** file to see what kind of result can be obtained.
+See the [example.py.patch](https://github.com/dadadel/pyment/blob/master/example.py.patch) file to see what kind of result can be obtained.
 That patch was generated using the following command:
 
         $ pyment example.py
