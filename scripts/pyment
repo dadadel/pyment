@@ -59,9 +59,9 @@ def main():
     desc = 'Pyment v%s - %s - %s - %s' % (__version__, __copyright__, __author__, __licence__)
     parser = argparse.ArgumentParser(description='Generates patches after (re)writing docstrings.')
     parser.add_argument('path', type=str,
-                        help='python file or folder containing python files to proceed')
+                        help='python file or folder containing python files to proceed (explore also sub-folders)')
     parser.add_argument('-i', '--input', metavar='style', default='auto',
-                        dest='input', help='Input docstring style in ["javadoc", "reST", "auto"] (default autodetected)')
+                        dest='input', help='Input docstring style in ["javadoc", "reST", "numpydoc", "auto"] (default autodetected)')
     parser.add_argument('-o', '--output', metavar='style', default="reST",
                         dest='output', help='Output docstring style in ["javadoc", "reST"] (default "reST")')
     parser.add_argument('-v', '--version', action='version',

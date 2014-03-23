@@ -3,8 +3,11 @@
 __author__ = "A. Daouzli"
 __copyright__ = "Copyright 2013/12"
 __licence__ = "GPL3"
-__version__ = "0.0.1"
+__version__ = "0.1.0"
 __maintainer__ = "A. Daouzli"
+
+#Changelog:
+# 0.1.0: add numpydoc management
 
 #TODO:
 # -generate a return if return is used with argument in element
