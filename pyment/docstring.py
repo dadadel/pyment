@@ -3,7 +3,7 @@
 __author__ = "A. Daouzli"
 __copyright__ = "Copyright dec. 2013, A. Daouzli"
 __licence__ = "GPL3"
-__version__ = "0.0.1"
+__version__ = "0.1.0"
 __maintainer__ = "A. Daouzli"
 
 """
@@ -20,6 +20,152 @@ import re
 from collections import defaultdict
 
 
+def isin_alone(elems, line):
+    '''Check if an element from a list is the only element of a string.
+
+    '''
+    found = False
+    for e in elems:
+        if line.strip().lower() == e.lower():
+            found = True
+            break
+    return found
+
+def isin_start(elems, line):
+    '''Check if an element from a list starts a string.
+
+    '''
+    found = False
+    for e in elems:
+        if line.lstrip().lower().startswith(e):
+            found = True
+            break
+    return found
+
+def isin(elems, line):
+    '''Check if an element from a list is in a string.
+
+    '''
+    found = False
+    for e in elems:
+        if e in line.lower():
+            found = True
+            break
+    return found
+
+def get_leading_spaces(data):
+    '''Get the leading space of a string if it is not empty
+    '''
+    spaces = ''
+    m = re.match(r'^(\s*)', data)
+    if m:
+        spaces = m.group(1)
+    return spaces
+
+
+class NumpydocTools:
+    def __init__(self):
+        self.opt = {
+                'param': 'parameters',
+                'return': 'returns',
+                'raise': 'raises',
+                'also': 'see also',
+                'ref': 'references',
+                'note': 'notes',
+                'other': 'Other parameters',
+                'example': 'examples'
+                }
+        self.keywords = [':math:', '.. math::', 'see also', '.. image::']
+
+    def __iter__(self):
+        return self.opt.__iter__()
+
+    def __getitem__(self, key):
+        return self.opt[key]
+
+    def get_next_section_start_line(self, data):
+        '''Get the starting line number of next section.
+        It will return -1 if no section was found.
+        The section is a section key (e.g. 'Parameters') followed by underline
+        (made by -), then the content
+        
+        '''
+        start = -1
+        for i, line in enumerate(data):
+            if start != -1:
+                # we found the key so check if this is the underline
+                if line.strip() and isin_alone(['-' * len(line.strip())], line):
+                    break
+                else:
+                    start = -1
+            if isin_alone(self.opt.values(), line):
+                start = i
+        return start
+
+    def get_section_key_line(self, data, key):
+        '''Get the next section line for a given key.
+        '''
+        found = False
+        start = None
+        while start != -1:
+            start = self.get_next_section_start_line(data[start])
+            if start != -1:
+                if data[start].strip() == self.opt[key]:
+                    found = True
+                    break
+                start += 1
+        return start
+
+    def get_next_section_lines(self, data):
+        '''Get the starting line number and the ending line number of next section.
+        It will return (-1, -1) if no section was found.
+        The section is a section key (e.g. 'Parameters') followed by underline
+        (made by -), then the content
+        The ending line number is the line after the end of the section or -1 if
+        the section is at the end.
+        
+        '''
+        end = -1
+        start = self.get_next_section_start_line(data)
+        if start != -1:
+            end = self.get_next_section_start_line(data[start+1:])
+        return start, end
+
+    def get_param_list(self, data):
+        '''Get the list of parameters.
+        Each parameter is a tuple (name, desc, (start, end), type=None)
+        
+        '''
+        param_list = []
+        data = data.split(os.linesep)
+        start = self.get_section_key_line(data, 'param')
+        if start == -1:
+            return []
+        start, end = self.get_next_section_lines(data[start:])
+        
+        # get the spacing of line with key
+        spaces = get_leading_spaces(data[start])
+        start += 2
+        parse_param = False
+        param, desc, ptype = None, '', None
+        for line in data[start:end]:
+            if len(line.strip()) == 0:
+                continue
+            # on the same column of the key is the param
+            curr_spaces = get_leading_spaces(line)
+            if len(curr_spaces) == len(spaces):
+                if parse_param == True:
+                    param_list.append(param, desc, ptype)
+                elems = line.lsplit(':')
+                param = elems[0].strip()
+                ptype = elems[1].strip() if len(elems) > 0 else None
+                desc = ''
+                parse_param = True
+            else:
+                desc += line + os.linesep
+        return param_list
+                
+
 class DocsTools(object):
     '''This class provides the tools to manage several type of docstring.
     Currently the following are managed:
@@ -27,6 +173,8 @@ class DocsTools(object):
     - 'reST': restructure text style compatible with Sphinx
     - 'groups': parameters on beginning of lines (like Google Docs)
     - 'unknown': undefined
+    In progress:
+    - 'numpydoc': the numpydoc docstring format
 
     '''
     #TODO: enhance style dependent separation
@@ -49,6 +197,7 @@ class DocsTools(object):
         self.keystyles = []
         self._set_available_styles()
         self.params = params
+        self.numpydoc = NumpydocTools()
 
     def _set_available_styles(self):
         '''Set the internal styles list and available options in a structure as following:
@@ -89,18 +238,6 @@ class DocsTools(object):
                     'raise': ['raises', 'exceptions', 'raise', 'exception']
                     }
 
-    def _isin_start(self, elems, line):
-        '''Check if an element from a list starts a string.
-        This is usefull for groups style.
-
-        '''
-        found = False
-        for e in elems:
-            if line.lstrip().lower().startswith(e):
-                found = True
-                break
-        return found
-
     def autodetect_style(self, data):
         '''Determine the style of a docstring,
         and sets it as the default input one for the instance.
@@ -124,13 +261,22 @@ class DocsTools(object):
 
         if detected_style == 'unknown':
             found_groups = 0
+            found_numpydoc = 0
+            found_numpydocsep = 0
             for line in data.strip().split(os.linesep):
                 for key in self.groups:
-                    found_groups += 1 if self._isin_start(self.groups[key], line) else 0
+                    found_groups += 1 if isin_start(self.groups[key], line) else 0
+                for key in self.numpydoc:
+                    found_numpydoc += 1 if isin_start(self.numpydoc[key], line) else 0
+                if line.strip() and isin_alone(['-' * len(line.strip())], line):
+                    found_numpydocsep += 1
+                elif isin(self.numpydoc.keywords, line):
+                    found_numpydoc += 1
             #TODO: check if not necessary to have > 1??
-            if found_groups:
+            if found_numpydoc and found_numpydocsep:
+                detected_style = 'numpydoc'
+            elif found_groups:
                 detected_style = 'groups'
-
         self.style['in'] = detected_style
 
         return detected_style
@@ -203,7 +349,7 @@ class DocsTools(object):
         '''
         idx = -1
         for i, line in enumerate(data.split(os.linesep)):
-            if self._isin_start(self.groups[key], line):
+            if isin_start(self.groups[key], line):
                 idx = i
         return idx
 #        search = '\s*(%s)' % '|'.join(self.groups[key])
