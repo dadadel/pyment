@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+# -*- coding: utf-8 -*-
 import unittest
 import pyment.docstring as docs
 
@@ -59,6 +59,60 @@ mygrpdocs2 = '''
       OtherError -- when an other error
     """'''
 
+mynumpydocs = '''
+    """
+    My numpydoc description of a kind 
+    of very exhautive numpydoc format docstring.
+
+    Parameters
+    ----------
+    first : array_like
+        the 1st param name `first`
+    second :
+        the 2nd param
+    third : {'value', 'other'}, optional
+        the 3rd param, by default 'value'
+
+    Returns
+    -------
+    a value in a string
+
+    Raises
+    ------
+    KeyError
+        when a key error
+    OtherError
+        when an other error
+
+    See Also
+    --------
+    a_func : linked (optional), with things to say
+             on several lines
+    some blabla
+
+    Note
+    ----
+    Some informations.
+
+    Some maths also:
+    .. math:: f(x) = e^{- x}
+
+    References
+    ----------
+    Biblio with cited ref [1]_. The ref can be cited in Note section.
+
+    .. [1] Adel Daouzli, Sylvain Saïghi, Michelle Rudolph, Alain Destexhe, 
+       Sylvie Renaud: Convergence in an Adaptive Neural Network: 
+       The Influence of Noise Inputs Correlation. IWANN (1) 2009: 140-148
+
+    Examples
+    --------
+    This is example of use
+    >>> print "a"
+    a
+
+    """'''
+
 
 def torest(docs):
     docs = docs.replace("@", ":")
@@ -68,6 +122,11 @@ def torest(docs):
 
 
 class DocStringTests(unittest.TestCase):
+
+    def testAutoInputStyleNumpydoc(self):
+        doc = mynumpydocs
+        d = docs.DocString(myelem, '    ', doc)
+        self.failUnless(d.get_input_style() == 'numpydoc')
 
     def testAutoInputStyleJavadoc(self):
         doc = mydocs
@@ -130,6 +189,13 @@ class DocStringTests(unittest.TestCase):
         self.failUnless(d.docs['in']['desc'].strip().startswith('My '))
         self.failUnless(d.docs['in']['desc'].strip().endswith('lines.'))
     
+    def testParsingNumpyDocsDesc(self):
+        doc = mynumpydocs
+        d = docs.DocString(myelem, '    ', doc)
+        d.parse_docs()
+        self.failUnless(d.docs['in']['desc'].strip().startswith('My numpydoc'))
+        self.failUnless(d.docs['in']['desc'].strip().endswith('format docstring.'))
+    
     def testParsingDocsParams(self):
         doc = torest(mydocs)
         d = docs.DocString(myelem, '    ', doc)
@@ -162,6 +228,15 @@ class DocStringTests(unittest.TestCase):
         self.failUnless(d.docs['in']['params'][0][1].startswith('the 1'))
         self.failUnless(d.docs['in']['params'][2][1].startswith('the 3rd'))
 
+    def testParsingNumpyDocsParams(self):
+        doc = mynumpydocs
+        d = docs.DocString(myelem, '    ', doc)
+        d.parse_docs()
+        self.failUnless(len(d.docs['in']['params']) == 3)
+        self.failUnless(d.docs['in']['params'][0][0] == 'first')
+        self.failUnless(d.docs['in']['params'][0][1].startswith('the 1'))
+        self.failUnless(d.docs['in']['params'][2][1].endswith("default 'value'"))
+
     def testParsingDocsRaises(self):
         doc = mydocs
         d = docs.DocString(myelem, '    ', doc)
@@ -185,6 +260,16 @@ class DocStringTests(unittest.TestCase):
 
     def testParsingGroups2DocsRaises(self):
         doc = mygrpdocs2
+        d = docs.DocString(myelem, '    ', doc)
+        d.parse_docs()
+        self.failUnless(len(d.docs['in']['raises']) == 2)
+        self.failUnless(d.docs['in']['raises'][0][0] == 'KeyError')
+        self.failUnless(d.docs['in']['raises'][0][1].startswith('when a key'))
+        self.failUnless(d.docs['in']['raises'][1][0] == 'OtherError')
+        self.failUnless(d.docs['in']['raises'][1][1].startswith('when an other'))
+
+    def testParsingNumpyDocsRaises(self):
+        doc = mynumpydocs
         d = docs.DocString(myelem, '    ', doc)
         d.parse_docs()
         self.failUnless(len(d.docs['in']['raises']) == 2)
