@@ -75,7 +75,8 @@ mynumpydocs = '''
 
     Returns
     -------
-    a value in a string
+    string
+        a value in a string
 
     Raises
     ------
@@ -234,8 +235,8 @@ class DocStringTests(unittest.TestCase):
         d.parse_docs()
         self.failUnless(len(d.docs['in']['params']) == 3)
         self.failUnless(d.docs['in']['params'][0][0] == 'first')
-        self.failUnless(d.docs['in']['params'][0][1].startswith('the 1'))
-        self.failUnless(d.docs['in']['params'][2][1].endswith("default 'value'"))
+        self.failUnless(d.docs['in']['params'][0][1].strip().startswith('the 1'))
+        self.failUnless(d.docs['in']['params'][2][1].strip().endswith("default 'value'"))
 
     def testParsingDocsRaises(self):
         doc = mydocs
@@ -274,9 +275,9 @@ class DocStringTests(unittest.TestCase):
         d.parse_docs()
         self.failUnless(len(d.docs['in']['raises']) == 2)
         self.failUnless(d.docs['in']['raises'][0][0] == 'KeyError')
-        self.failUnless(d.docs['in']['raises'][0][1].startswith('when a key'))
+        self.failUnless(d.docs['in']['raises'][0][1].strip().startswith('when a key'))
         self.failUnless(d.docs['in']['raises'][1][0] == 'OtherError')
-        self.failUnless(d.docs['in']['raises'][1][1].startswith('when an other'))
+        self.failUnless(d.docs['in']['raises'][1][1].strip().startswith('when an other'))
 
     def testParsingDocsReturn(self):
         doc = mydocs
@@ -287,6 +288,12 @@ class DocStringTests(unittest.TestCase):
 
     def testParsingGroupsDocsReturn(self):
         doc = mygrpdocs
+        d = docs.DocString(myelem, '    ', doc)
+        d.parse_docs()
+        self.failUnless(d.docs['in']['return'] == 'a value in a string')
+
+    def testParsingNumpyDocsReturn(self):
+        doc = mynumpydocs
         d = docs.DocString(myelem, '    ', doc)
         d.parse_docs()
         self.failUnless(d.docs['in']['return'] == 'a value in a string')
