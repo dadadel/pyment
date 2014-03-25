@@ -1,0 +1,735 @@
+--- a/./docstring.py
++++ b/./docstring.py
+@@ -24,28 +24,28 @@
+ 
+ 
+ class DocsTools(object):
+-    '''This class provides the tools to manage several type of docstring.
++    """This class provides the tools to manage several type of docstring.
+     Currently the following are managed:
+     - 'javadoc': javadoc style
+     - 'reST': restructure text style compatible with Sphinx
+     - 'groups': parameters on beginning of lines
+     - 'unknown': undefined
+ 
+-    '''
++    """
+     #TODO: enhance style dependent separation
+     #TODO: add set methods to generate style specific outputs
+     #TODO: manage reST (:param) style and C style (\param)
+     def __init__(self, style_in='javadoc', style_out='reST', params=None):
+-        '''Choose the kind of docstring type.
+-
+-        @param style_in: docstring input style ('javadoc', 'reST', 'groups', 'unknown')
+-        @type style_in: string
+-        @param style_out: docstring output style ('javadoc', 'reST', 'groups', 'unknown')
+-        @type style_out: string
+-        @param params: if known the parameters names that should be found in the docstring.
+-        @type params: list
+-
+-        '''
++        """Choose the kind of docstring type.
++
++        :param style_in: docstring input style ('javadoc', 'reST', 'groups', 'unknown') (Default value = 'javadoc')
++        :type style_in: string
++        :param style_out: docstring output style ('javadoc', 'reST', 'groups', 'unknown') (Default value = 'reST')
++        :type style_out: string
++        :param params: if known the parameters names that should be found in the docstring. (Default value = None)
++        :type params: list
++
++        """
+         self.style = {'in': style_in,
+                       'out': style_out}
+         self.opt = {}
+@@ -54,8 +54,8 @@
+         self.params = params
+ 
+     def _set_available_styles(self):
+-        '''Sets the internal styles list and available options in a structure as following:
+-
++        """Sets the internal styles list and available options in a structure as following:
++        
+             param: javadoc: name = '@param'
+                             sep  = ':'
+                    reST:    name = ':param'
+@@ -65,13 +65,13 @@
+                             sep  = ':'
+                    ...
+             ...
+-
++        
+         And sets the internal groups style:
+             param:  'params', 'args', 'parameters', 'arguments'
+             return: 'returns', 'return'
+             raise:  'raises', 'raise', 'exceptions', 'exception'
+ 
+-        '''
++        """
+         options_keystyle = {'keys': ['param', 'type', 'return', 'rtype', 'raise'],
+                             'styles': {'javadoc': ('@', ':'),  # tuple:  key prefix, separator
+                                        'reST': (':', ':'),
+@@ -93,10 +93,13 @@
+                     }
+ 
+     def _isin_start(self, elems, line):
+-        '''Check if an element from a list starts a string.
++        """Check if an element from a list starts a string.
+         This is usefull for groups style.
+ 
+-        '''
++        :param elems: 
++        :param line: 
++
++        """
+         found = False
+         for e in elems:
+             if line.lstrip().lower().startswith(e):
+@@ -105,15 +108,15 @@
+         return found
+ 
+     def autodetect_style(self, data):
+-        '''Determines the style of a docstring,
++        """Determines the style of a docstring,
+         and sets it as the default input one for the instance.
+ 
+-        @param data: the docstring's data to recognize.
+-        @type data: str
+-        @return: the style detected else 'unknown'
+-        @rtype: str
+-
+-        '''
++        :param data: the docstring's data to recognize.
++        :type data: str
++        :returns: the style detected else 'unknown'
++        :rtype: str
++
++        """
+         # evaluate styles with keys
+ 
+         found_keys = defaultdict(int)
+@@ -139,71 +142,72 @@
+         return detected_style
+ 
+     def set_input_style(self, style):
+-        '''Sets the input docstring style
+-
+-        @param style: style to set for input docstring
+-        @type style: str
+-
+-        '''
++        """Sets the input docstring style
++
++        :param style: style to set for input docstring
++        :type style: str
++
++        """
+         self.style['in'] = style
+ 
+     def set_output_style(self, style):
+-        '''Sets the output docstring style
+-
+-        @param style: style to set for output docstring
+-        @type style: str
+-
+-        '''
++        """Sets the output docstring style
++
++        :param style: style to set for output docstring
++        :type style: str
++
++        """
+         self.style['out'] = style
+ 
+     def _get_options(self, style):
+-        '''Gets the list of keywords for a particular style
+-
+-        @param style: the style that the keywords are wanted
+-
+-        '''
++        """Gets the list of keywords for a particular style
++
++        :param style: the style that the keywords are wanted
++
++        """
+         return [self.opt[o][style]['name'] for o in self.opt]
+ 
+     def get_key(self, key, target='in'):
+-        '''Get the name of a key in current style.
++        """Get the name of a key in current style.
+         e.g.: in javadoc style, the returned key for 'param' is '@param'
+ 
+-        @param key: the key wanted (param, type, return, rtype,..)
+-        @param target: the target docstring is 'in' for the input or
+-        'out' for the output to generate.
+-
+-        '''
++        :param key: the key wanted (param, type, return, rtype,..)
++        :param target: the target docstring is 'in' for the input or
++        'out' for the output to generate. (Default value = 'in')
++
++        """
+         target = 'out' if target == 'out' else 'in'
+         return self.opt[key][self.style[target]]['name']
+ 
+     def get_sep(self, key='param', target='in'):
+-        '''Get the separator of current style.
++        """Get the separator of current style.
+         e.g.: in javadoc style, it is ":"
+ 
+-        @param key: the key which separator is wanted (param, type, return, rtype,..)
+-        @param target: the target docstring is 'in' for the input or
+-        'out' for the output to generate.
+-
+-        '''
++        :param key: the key which separator is wanted (param, type, return, rtype,..) (Default value = 'param')
++        :param target: the target docstring is 'in' for the input or
++        'out' for the output to generate. (Default value = 'in')
++
++        """
+         target = 'out' if target == 'out' else 'in'
+         return self.opt[key][self.style[target]]['sep']
+ 
+     def set_known_parameters(self, params):
+-        '''Set known parameters names.
+-
+-        @param params: the docstring parameters names
+-        @type params: list
+-        '''
++        """Set known parameters names.
++
++        :param params: the docstring parameters names
++        :type params: list
++
++        """
+         self.params = params
+ 
+     def get_group_key_line(self, data, key):
+-        '''Get the next group-style key's line number.
+-
+-        @param data: string to parse
+-        @param key: the key category
+-        @return: the found line number else -1
+-
+-        '''
++        """Get the next group-style key's line number.
++
++        :param data: string to parse
++        :param key: the key category
++        :returns: the found line number else -1
++
++        """
+         idx = -1
+         for i, line in enumerate(data.split(os.linesep)):
+             if self._isin_start(self.groups[key], line):
+@@ -215,13 +219,13 @@
+ #            key_param = m.group(1)
+         
+     def get_group_key_index(self, data, key):
+-        '''Get the next groups style's starting line index for a key
+-
+-        @param data: string to parse
+-        @param key: the key category
+-        @return: the index if found else -1
+-
+-        '''
++        """Get the next groups style's starting line index for a key
++
++        :param data: string to parse
++        :param key: the key category
++        :returns: the index if found else -1
++
++        """
+         idx = -1
+         li = self.get_group_key_line(data, key)
+         if li != -1:
+@@ -231,8 +235,11 @@
+         return idx
+ 
+     def get_group_line(self, data):
+-        '''Get the next group-style key's line.
+-        '''
++        """Get the next group-style key's line.
++
++        :param data: 
++
++        """
+         idx = -1
+         for key in self.groups:
+             i = self.get_group_key_line(data, key)
+@@ -241,12 +248,12 @@
+         return idx
+ 
+     def get_group_index(self, data):
+-        '''Get the next groups style's starting line index
+-
+-        @param data: string to parse
+-        @return: the index if found else -1
+-
+-        '''
++        """Get the next groups style's starting line index
++
++        :param data: string to parse
++        :returns: the index if found else -1
++
++        """
+         idx = -1
+         li = self.get_group_line(data)
+         if li != -1:
+@@ -256,16 +263,16 @@
+         return idx
+ 
+     def get_key_index(self, data, key, starting=True):
+-        '''Get from a docstring the next option with a given key.
+-
+-        @param data: string to parse
+-        @param starting: does the key element must start the line
+-        @type starting: boolean
+-        @param key: the key category. Can be 'param', 'type', 'return', ...
+-        @return: index of found element else -1
+-        @rtype: integer
+-
+-        '''
++        """Get from a docstring the next option with a given key.
++
++        :param data: string to parse
++        :param starting: does the key element must start the line (Default value = True)
++        :type starting: boolean
++        :param key: the key category. Can be 'param', 'type', 'return', ...
++        :returns: index of found element else -1
++        :rtype: integer
++
++        """
+         key = self.opt[key][self.style['in']]['name']
+         idx = len(data)
+         ini = 0
+@@ -291,16 +298,16 @@
+         return idx
+ 
+     def get_elem_index(self, data, starting=True):
+-        '''Get from a docstring the next option.
++        """Get from a docstring the next option.
+         In javadoc style it could be @param, @return, @type,...
+ 
+-        @param data: string to parse
+-        @param starting: does the key element must start the line
+-        @type starting: boolean
+-        @return: index of found element else -1
+-        @rtype: integer
+-
+-        '''
++        :param data: string to parse
++        :param starting: does the key element must start the line (Default value = True)
++        :type starting: boolean
++        :returns: index of found element else -1
++        :rtype: integer
++
++        """
+         idx = len(data)
+         for opt in self.opt.keys():
+             i = self.get_key_index(data, opt, starting)
+@@ -311,24 +318,27 @@
+         return idx
+ 
+     def get_elem_desc(self, data, key):
+-        '''
+-        '''
++        """
++
++        :param data: 
++        :param key: 
++
++        """
+ 
+     def get_elem_param(self):
+-        '''
+-        '''
++        """ """
+ 
+     def get_param_indexes(self, data):
+-        '''Get from a docstring the next parameter name indexes.
++        """Get from a docstring the next parameter name indexes.
+         In javadoc style it is after @param.
+ 
+-        @param data: string to parse
+-        @return: start and end indexes of found element else (-1, -1)
++        :param data: string to parse
++        :returns: start and end indexes of found element else (-1, -1)
+         or else (-2, -2) if try to use params style but no parameters were provided.
+         Note: the end index is the index after the last name character
+-        @rtype: tuple
+-
+-        '''
++        :rtype: tuple
++
++        """
+         #TODO: new method to extract an element's name so will be available for @param and @types and other styles (:param, \param)
+         start, end = -1, -1
+         stl_param = self.opt['param'][self.style['in']]['name']
+@@ -367,15 +377,15 @@
+         return (start, end)
+ 
+     def get_param_description_indexes(self, data, prev=None):
+-        '''Get from a docstring the next parameter's description.
++        """Get from a docstring the next parameter's description.
+         In javadoc style it is after @param.
+ 
+-        @param data: string to parse
+-        @param prev: index after the param element name
+-        @return: start and end indexes of found element else (-1, -1)
+-        @rtype: tuple
+-
+-        '''
++        :param data: string to parse
++        :param prev: index after the param element name (Default value = None)
++        :returns: start and end indexes of found element else (-1, -1)
++        :rtype: tuple
++
++        """
+         start, end = -1, -1
+         if not prev:
+             _, prev = self.get_param_indexes(data)
+@@ -401,18 +411,18 @@
+         return (start, end)
+ 
+     def get_param_type_indexes(self, data, name=None, prev=None):
+-        '''Get from a docstring a parameter type indexes.
++        """Get from a docstring a parameter type indexes.
+         In javadoc style it is after @type.
+ 
+-        @param data: string to parse
+-        @param name: the name of the parameter
+-        @param prev: index after the previous element (param or param's description)
+-        @return: start and end indexes of found element else (-1, -1)
++        :param data: string to parse
++        :param name: the name of the parameter (Default value = None)
++        :param prev: index after the previous element (param or param's description) (Default value = None)
++        :returns: start and end indexes of found element else (-1, -1)
+         Note: the end index is the index after the last included character or -1 if
+         reached the end
+-        @rtype: tuple
+-
+-        '''
++        :rtype: tuple
++
++        """
+         start, end = -1, -1
+         stl_type = self.opt['type'][self.style['in']]['name']
+         if not prev:
+@@ -439,16 +449,16 @@
+         return (start, end)
+ 
+     def get_return_description_indexes(self, data):
+-        '''Get from a docstring the return parameter description indexes.
++        """Get from a docstring the return parameter description indexes.
+         In javadoc style it is after @return.
+ 
+-        @param data: string to parse
+-        @return: start and end indexes of found element else (-1, -1)
++        :param data: string to parse
++        :returns: start and end indexes of found element else (-1, -1)
+         Note: the end index is the index after the last included character or -1 if
+         reached the end
+-        @rtype: tuple
+-
+-        '''
++        :rtype: tuple
++
++        """
+         start, end = -1, -1
+         stl_return = self.opt['return'][self.style['in']]['name']
+         if self.style['in'] in self.keystyles + ['unknown']:
+@@ -478,16 +488,16 @@
+         return (start, end)
+ 
+     def get_return_type_indexes(self, data):
+-        '''Get from a docstring the return parameter type indexes.
++        """Get from a docstring the return parameter type indexes.
+         In javadoc style it is after @rtype.
+ 
+-        @param data: string to parse
+-        @return: start and end indexes of found element else (-1, -1)
++        :param data: string to parse
++        :returns: start and end indexes of found element else (-1, -1)
+         Note: the end index is the index after the last included character or -1 if
+         reached the end
+-        @rtype: tuple
+-
+-        '''
++        :rtype: tuple
++
++        """
+         start, end = -1, -1
+         stl_rtype = self.opt['rtype'][self.style['in']]['name']
+         if self.style['in'] in self.keystyles + ['unknown']:
+@@ -514,17 +524,20 @@
+ 
+ 
+ class DocString(object):
+-    '''This class represents the docstring'''
++    """This class represents the docstring"""
+     #TODO: manage raising
+ 
+     def __init__(self, elem_raw, spaces='', docs_raw=None, cotes="'''", input_style=None, output_style=None):
+-        '''
+-        @param elem_raw: raw data of the element (def or class).
+-        @param spaces: the leading whitespaces before the element
+-        @param docs_raw: the raw data of the docstring part if any.
+-        @param cotes: the type of cotes to use for output: ' ' ' or " " "
+-
+-        '''
++        """
++
++        :param elem_raw: raw data of the element (def or class).
++        :param spaces: the leading whitespaces before the element (Default value = '')
++        :param docs_raw: the raw data of the docstring part if any. (Default value = None)
++        :param cotes: the type of cotes to use for output: ' ' ' or " " " (Default value = "'''")
++        :param input_style:  (Default value = None)
++        :param output_style:  (Default value = None)
++
++        """
+         self.dst = DocsTools()
+         if docs_raw and not input_style:
+             self.dst.autodetect_style(docs_raw)
+@@ -577,6 +590,7 @@
+         self.cotes = cotes
+ 
+     def __str__(self):
++        """ """
+         # !!! for debuging
+         txt = "\n\n** " + str(self.element['name'])
+         txt += ' of type ' + str(self.element['type']) + ':'
+@@ -586,58 +600,61 @@
+         return txt
+ 
+     def __repr__(self):
++        """ """
+         return self.__str__()
+ 
+     def get_input_style(self):
+-        '''Gets the input docstring style
+-
+-        @return: the style for input docstring
+-        @rtype style: str
+-
+-        '''
++        """Gets the input docstring style
++
++        :returns: the style for input docstring
++
++        :rtype: style: str
++
++        """
+         #TODO: use a getter
+         return self.dst.style['in']
+ 
+     def set_input_style(self, style):
+-        '''Sets the input docstring style
+-
+-        @param style: style to set for input docstring
+-        @type style: str
+-
+-        '''
++        """Sets the input docstring style
++
++        :param style: style to set for input docstring
++        :type style: str
++
++        """
+         #TODO: use a setter
+         self.dst.style['in'] = style
+ 
+     def get_output_style(self):
+-        '''Sets the output docstring style
+-
+-        @return: the style for output docstring
+-        @rtype style: str
+-
+-        '''
++        """Sets the output docstring style
++
++        :returns: the style for output docstring
++
++        :rtype: style: str
++
++        """
+         #TODO: use a getter
+         return self.dst.style['out']
+ 
+     def set_output_style(self, style):
+-        '''Sets the output docstring style
+-
+-        @param style: style to set for output docstring
+-        @type style: str
+-
+-        '''
++        """Sets the output docstring style
++
++        :param style: style to set for output docstring
++        :type style: str
++
++        """
+         #TODO: use a setter
+         self.dst.style['out'] = style
+ 
+     def parse_element(self, raw=None):
+-        '''Parses the element's elements (type, name and parameters) :)
++        """Parses the element's elements (type, name and parameters) :)
+         e.g.: def methode(param1, param2='default')
+             def                      -> type
+             methode                  -> name
+             param1, param2='default' -> parameters
+ 
+-        @param raw: raw data of the element (def or class).
+-
+-        '''
++        :param raw: raw data of the element (def or class). (Default value = None)
++
++        """
+         #TODO: retrieve return from element external code (in parameter)
+         #TODO: manage multilines
+         if raw is None:
+@@ -671,7 +688,7 @@
+         self.parsed_elem = True
+ 
+     def _extract_docs_description(self):
+-        '''Extract main description from docstring'''
++        """Extract main description from docstring"""
+         #FIXME: the indentation of descriptions is lost
+         data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
+         if self.dst.style['in'] == 'groups':
+@@ -688,6 +705,7 @@
+             self.docs['in']['desc'] = data[:idx]
+ 
+     def _extract_groupstyle_docs_params(self):
++        """ """
+         data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
+         idx = self.dst.get_group_key_line(data, 'param')
+         if idx >= 0:
+@@ -712,6 +730,7 @@
+                     self.docs['in']['params'].append((param, desc, ptype))
+ 
+     def _extract_keystyle_docs_params(self):
++        """ """
+         data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
+         listed = 0
+         loop = True
+@@ -742,16 +761,17 @@
+             print("WARNING: an infinite loop was reached while extracting docstring parameters (>10000). This should never happen!!!")
+ 
+     def _extract_docs_params(self):
+-        '''Extract parameters description and type from docstring. The internal computed parameters list is
++        """Extract parameters description and type from docstring. The internal computed parameters list is
+         composed by tuples (parameter, description, type).
+ 
+-        '''
++        """
+         if self.dst.style['in'] == 'groups':
+             self._extract_groupstyle_docs_params()
+         elif self.dst.style['in'] in ['javadoc', 'reST']:
+             self._extract_keystyle_docs_params()
+ 
+     def _extract_groupstyle_docs_return(self):
++        """ """
+         #TODO: manage rtype
+         data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
+         idx = self.dst.get_group_key_line(data, 'return')
+@@ -763,6 +783,7 @@
+             self.docs['in']['return'] = data.rstrip()
+ 
+     def _extract_keystyle_docs_return(self):
++        """ """
+         data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
+         start, end = self.dst.get_return_description_indexes(data)
+         if start >= 0:
+@@ -778,19 +799,18 @@
+                 self.docs['in']['rtype'] = data[start:].rstrip()
+ 
+     def _extract_docs_return(self):
+-        '''Extract return description and type
+-        '''
++        """Extract return description and type"""
+         if self.dst.style['in'] == 'groups':
+             self._extract_groupstyle_docs_return()
+         elif self.dst.style['in'] in ['javadoc', 'reST']:
+             self._extract_keystyle_docs_return()
+ 
+     def parse_docs(self, raw=None):
+-        '''Parses the docstring
+-
+-        @param raw: the data to parse if not internally provided
+-
+-        '''
++        """Parses the docstring
++
++        :param raw: the data to parse if not internally provided (Default value = None)
++
++        """
+         if raw is not None:
+             raw = raw.strip()
+             if raw.startswith('"""') or raw.startswith("'''"):
+@@ -808,8 +828,7 @@
+         self.parsed_docs = True
+ 
+     def _set_desc(self):
+-        '''Sets the global description if any
+-        '''
++        """Sets the global description if any"""
+         #TODO: manage different in/out styles
+         if self.docs['in']['desc']:
+             self.docs['out']['desc'] = self.docs['in']['desc']
+@@ -817,8 +836,7 @@
+             self.docs['out']['desc'] = ''
+ 
+     def _set_params(self):
+-        '''Sets the parameters with types, descriptions and default value if any
+-        '''
++        """Sets the parameters with types, descriptions and default value if any"""
+         #TODO: manage different in/out styles
+         if self.docs['in']['params']:
+             # list of parameters is like: (name, description, type)
+@@ -845,16 +863,14 @@
+                 self.docs['out']['params'].append(p)
+ 
+     def _set_return(self):
+-        '''Sets the return parameter with description and rtype if any
+-        '''
++        """Sets the return parameter with description and rtype if any"""
+         #TODO: manage return retrieved from element code (external)
+         #TODO: manage different in/out styles
+         self.docs['out']['return'] = self.docs['in']['return']
+         self.docs['out']['rtype'] = self.docs['in']['rtype']
+ 
+     def _set_raw(self):
+-        '''Sets the output raw docstring
+-        '''
++        """Sets the output raw docstring"""
+         sep = self.dst.get_sep(target='out')
+         sep = sep + ' ' if sep != ' ' else sep
+         with_space = lambda s: os.linesep.join([self.docs['out']['spaces'] + l if i > 0 else l for i, l in enumerate(s.split(os.linesep))])
+@@ -902,8 +918,7 @@
+         self.docs['out']['raw'] = raw.rstrip()
+ 
+     def generate_docs(self):
+-        '''
+-        '''
++        """ """
+         self._set_desc()
+         self._set_params()
+         self._set_return()
+@@ -911,11 +926,11 @@
+         self.generated_docs = True
+ 
+     def get_raw_docs(self):
+-        '''Generates raw docstring
+-
+-        @return: the raw docstring
+-
+-        '''
++        """Generates raw docstring
++
++        :returns: the raw docstring
++
++        """
+         if not self.generated_docs:
+             self.generate_docs()
+         return self.docs['out']['raw']
