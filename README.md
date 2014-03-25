@@ -56,8 +56,8 @@ Usage
                                 Input docstring style in ["javadoc", "reST",
                                 "numpydoc", "auto"] (default autodetected)
           -o style, --output style
-                                Output docstring style in ["javadoc", "reST"] (default
-                                "reST")
+                                Output docstring style in ["javadoc", "reST",
+                                "numpydoc"] (default "reST")
           -v, --version         show program's version number and exit
 
 - running tests:
@@ -80,10 +80,13 @@ Usage
 Example
 -------
 See the [example.py.patch](https://github.com/dadadel/pyment/blob/master/example.py.patch) or [example.py.patch](https://github.com/dadadel/pyment/blob/master/example_numpy.py.patch) file to see what kind of results can be obtained.
-Such a patch is generated using the following command:
+The 1st patch was generated using the following command:
 
         $ pyment example.py
 
+The second using:
+
+        $ pyment -o numpydoc example.py
 
 Examples of managed docstrings:
 
@@ -126,6 +129,7 @@ Examples of managed docstrings:
         """
 
 - "numpydoc" style:
+
         """
         My numpydoc description of a kind 
         of very exhautive numpydoc format docstring.
