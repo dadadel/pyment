@@ -296,7 +296,8 @@ class DocStringTests(unittest.TestCase):
         doc = mynumpydocs
         d = docs.DocString(myelem, '    ', doc)
         d.parse_docs()
-        self.failUnless(d.docs['in']['return'] == 'a value in a string')
+        self.failUnless(d.docs['in']['return'][0][1] == 'a value in a string')
+        d.set_output_style('numpydoc')
 
     def testGeneratingDocsDesc(self):
         doc = mydocs

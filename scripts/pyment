@@ -63,7 +63,7 @@ def main():
     parser.add_argument('-i', '--input', metavar='style', default='auto',
                         dest='input', help='Input docstring style in ["javadoc", "reST", "numpydoc", "auto"] (default autodetected)')
     parser.add_argument('-o', '--output', metavar='style', default="reST",
-                        dest='output', help='Output docstring style in ["javadoc", "reST"] (default "reST")')
+                        dest='output', help='Output docstring style in ["javadoc", "reST", "numpydoc"] (default "reST")')
     parser.add_argument('-v', '--version', action='version',
                         version=desc)
     #parser.add_argument('-c', '--config', metavar='config_file',
