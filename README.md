@@ -16,7 +16,7 @@ Then, for all found functions/methods/classes, it will generate formated docstri
 At the end, patches are generated for each file. Then, man can apply the patches to the initial scripts.
 It is also possible to generate the python file with the new docstrings, or to retrieve only the docstrings...
 
-Currently, the managed styles (input/output) are javadoc, one variant of reST (re-Structured Text, used by Sphinx), numpydoc and groups (only input, style like used by Google).
+Currently, the managed styles in input/output are javadoc, one variant of reST (re-Structured Text, used by Sphinx), numpydoc, groups (only input, Google style).
 
 The tool can only at the time offer to generate patches or get a list of the new docstrings.
 
@@ -58,6 +58,9 @@ Usage
           -o style, --output style
                                 Output docstring style in ["javadoc", "reST",
                                 "numpydoc"] (default "reST")
+          -f style, --first-line style
+                                Does the comment starts on the first line after the
+                                quotes (default "True")
           -v, --version         show program's version number and exit
 
 - running tests:
@@ -82,11 +85,11 @@ Example
 See the [example.py.patch](https://github.com/dadadel/pyment/blob/master/example.py.patch) or [example.py.patch](https://github.com/dadadel/pyment/blob/master/example_numpy.py.patch) file to see what kind of results can be obtained.
 The 1st patch was generated using the following command:
 
-        $ pyment example.py
+        $ pyment -f false example.py
 
 The second using:
 
-        $ pyment -o numpydoc example.py
+        $ pyment -f false -o numpydoc example.py
 
 Examples of managed docstrings:
 
