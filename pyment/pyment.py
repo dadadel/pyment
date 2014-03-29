@@ -37,7 +37,7 @@ class PyComment(object):
     The changes are then provided in a patch file.
 
     '''
-    def __init__(self, input_file, input_style=None, output_style='reST', param_type='standard', quotes="'''"):
+    def __init__(self, input_file, input_style=None, output_style='reST', param_type='standard', quotes="'''", first_line=True):
         '''Sets the configuration including the source to proceed and options.
 
         @param input_file: path name (file or folder)
@@ -49,9 +49,13 @@ class PyComment(object):
                 The style used is the javadoc style.
                 e.g.: @ param my_param: the description
         @param quotes: the type of quotes to use for output: ' ' ' or " " "
+        @param first_line: indicate if description should start
+        on first or second line. By default it is True
+        @type first_line: boolean
 
         '''
         self.file_type = '.py'
+        self.first_line = first_line
         self.filename_list = []
         self.input_file = input_file
         self.input_style = input_style
@@ -106,7 +110,8 @@ class PyComment(object):
                 # *** Creates the DocString object ***
                 e = DocString(elem.replace(os.linesep, ' '), spaces, quotes=self.quotes,
                               input_style=self.input_style,
-                              output_style=self.output_style)
+                              output_style=self.output_style,
+                              first_line=self.first_line)
                 elem_list.append({'docs': e, 'location': (-i, -i)})
             else:
                 if waiting_docs and ('"""' in l or "'''" in l):
