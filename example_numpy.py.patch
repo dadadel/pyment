@@ -2,7 +2,7 @@
 
 --- a/example.py
 +++ b/example.py
-@@ -1,49 +1,115 @@
+@@ -1,49 +1,109 @@
  def func1(param1, param2='default val'):
 -    '''Description of func with docstring javadoc style.
 +    """
@@ -114,9 +114,6 @@
 +        Returns
 +        -------
 +
-+        Raises
-+        ------
-+
 +        """
          pass
  
@@ -134,43 +131,11 @@
 +        Returns
 +        -------
 +
-+        Raises
-+        ------
-+
 +        """
          pass
  
      def method_numpy(self):
-@@ -54,50 +120,48 @@
-         Parameters
-         ----------
-         first : array_like
--            the 1st param name `first`
-+                the 1st param name `first`
-         second :
--            the 2nd param
-+                the 2nd param
-         third : {'value', 'other'}, optional
--            the 3rd param, by default 'value'
-+                the 3rd param, by default 'value'
- 
-         Returns
-         -------
-         string
--            a value in a string
--
-+                a value in a string
-         Raises
-         ------
-         KeyError
--            when a key error
-+                when a key error
-         OtherError
--            when an other error
-+                when an other error
- 
-         See Also
-         --------
+@@ -77,27 +137,24 @@
          a_func : linked (optional), with things to say
                   on several lines
          some blabla
@@ -199,8 +164,5 @@
          >>> print "a"
          a
 -
--        """
-+        
-+        
-+                """
+         """
          pass
