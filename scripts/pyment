@@ -41,7 +41,6 @@ def get_files_from_dir(path, recursive=True, depth=0, file_ext='.py'):
 def run(source, files=[], input_style='auto', output_style='reST', first_line=True):
     if input_style == 'auto':
         input_style = None
-    print "fl=",first_line,type(first_line)
 
     for f in files:
         if os.path.isdir(source):
