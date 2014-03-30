@@ -7,19 +7,18 @@ __version__ = "0.1.0"
 __maintainer__ = "A. Daouzli"
 
 #Changelog:
-# 0.1.0: add numpydoc management
+# 0.1.0: -add numpydoc management
+#        -make more configurable (first line, __init__ docstring to class,..)
+#        -fix some bugs
 
 #TODO:
 # -generate a return if return is used with argument in element
 # -generate raises if raises are used
-# -choose input style and output style
 # -generate diagnosis/statistics
 # -parse classes public methods and list them in class docstring
-# -create a real command line management (options, ..., perhaps move PyComment outside and make Pyment a manager)
 # -allow excluding files from processing
 # -add managing a unique patch
 # -manage docstrings templates
-#
 # -manage c/c++ sources
 # -accept archives containing source files
 # -dev a server that take sources and send back patches
