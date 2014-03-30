@@ -981,6 +981,22 @@ class DocString(object):
         #TODO: use a setter
         self.dst.style['out'] = style
 
+    def get_spaces(self):
+        '''Get the output docstring initial spaces. 
+
+        @return: the spaces
+
+        '''
+        return self.docs['out']['spaces']
+
+    def set_spaces(self, spaces):
+        '''Set for output docstring the initial spaces. 
+
+        @param spaces: the spaces to set
+
+        '''
+        self.docs['out']['spaces'] = spaces
+
     def parse_element(self, raw=None):
         '''Parses the element's elements (type, name and parameters) :)
         e.g.: def methode(param1, param2='default')

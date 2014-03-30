@@ -189,6 +189,12 @@ class PyComment(object):
                 start, _ = i['location']
                 if start > 0:
                     result = True
+                    cspaces = c['docs'].get_spaces()
+                    ispaces = i['docs'].get_spaces()
+                    c['docs'].set_spaces(ispaces)
+                    i['docs'].set_spaces(cspaces)
+                    c['docs'].generate_docs()
+                    i['docs'].generate_docs()
                     c['docs'], i['docs'] = i['docs'], c['docs']
         return result
 
