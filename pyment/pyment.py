@@ -164,6 +164,34 @@ class PyComment(object):
         self.parsed = True
         return elem_list
 
+    def docs_init_to_class(self):
+        '''If found a __init__ method's docstring and the class 
+        without any docstring, so set the class docstring with __init__one,
+        and let __init__ without docstring.
+
+        @return: True if done
+        @rtype: boolean
+
+        '''
+        result = False
+        if not self.parsed:
+            self._parse()
+        einit = []
+        eclass = []
+        for e in self.docs_list:
+            if len(eclass) == len(einit) + 1 and e['docs'].element['name'] == '__init__':
+                einit.append(e)
+            elif not eclass and e['docs'].element['type'] ==  'class':
+                eclass.append(e)
+        for c, i in zip(eclass, einit):
+            start, _ = c['location']
+            if start < 0:
+                start, _ = i['location']
+                if start > 0:
+                    result = True
+                    c['docs'], i['docs'] = i['docs'], c['docs']
+        return result
+
     def get_output_docs(self):
         '''Return the output docstrings once formated
 
