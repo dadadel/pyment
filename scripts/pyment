@@ -38,7 +38,7 @@ def get_files_from_dir(path, recursive=True, depth=0, file_ext='.py'):
     return file_list
 
 
-def run(source, files=[], input_style='auto', output_style='reST', first_line=True):
+def run(source, files=[], input_style='auto', output_style='reST', first_line=True, init2class=False):
     if input_style == 'auto':
         input_style = None
 
@@ -53,6 +53,8 @@ def run(source, files=[], input_style='auto', output_style='reST', first_line=Tr
                       output_style=output_style,
                       first_line=first_line)
         c.proceed()
+        if init2class:
+            c.docs_init_to_class()
         c.diff_to_file(os.path.basename(f) + ".patch", path, path)
 
 
@@ -69,6 +71,8 @@ def main():
                         dest='first_line', help='Does the comment starts on the first line after the quotes (default "True")')
     parser.add_argument('-v', '--version', action='version',
                         version=desc)
+    parser.add_argument('-d', '--init2class', help='If no docstring to class, then move the __init__ one',
+                        action="store_true")
     #parser.add_argument('-c', '--config', metavar='config_file',
     #                   dest='config', help='Configuration file')
 
@@ -78,7 +82,7 @@ def main():
     files = get_files_from_dir(source)
 
     tobool = lambda s: True if s in ['True', 'true'] else False
-    run(source, files, args.input, args.output, tobool(args.first_line))
+    run(source, files, args.input, args.output, tobool(args.first_line), args.init2class)
 
 if __name__ == "__main__":
     main()
