@@ -62,6 +62,7 @@ Usage
                                 Does the comment starts on the first line after the
                                 quotes (default "True")
           -v, --version         show program's version number and exit
+          -d, --init2class      If no docstring to class, then move the __init__ one
 
 - running tests:
 
