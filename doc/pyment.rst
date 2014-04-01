@@ -1,4 +1,12 @@
-The configuration parameters that you can set in the configuration file are:
+Configuration file
+------------------
+
+You can provide a configuration file to manage some settings.
+
+Note that if you use command line parameters that are also set in the
+configuration file, then the command line ones will be ignored.
+
+The configuration parameters that you can set are:
 
 - first_line:
 
