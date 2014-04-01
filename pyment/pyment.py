@@ -36,21 +36,18 @@ class PyComment(object):
     The changes are then provided in a patch file.
 
     '''
-    def __init__(self, input_file, input_style=None, output_style='reST', param_type='standard', quotes="'''", first_line=True):
+    def __init__(self, input_file, input_style=None, output_style='reST', quotes="'''", first_line=True, config_file=None, **kwargs):
         '''Sets the configuration including the source to proceed and options.
 
         @param input_file: path name (file or folder)
         @param input_style: the type of doctrings format of the output. By default, it will
         autodetect the format for each docstring.
         @param output_style: the docstring docstyle to generate.
-        @param param_type: the type of parameters format. Can be:
-            - standard:
-                The style used is the javadoc style.
-                e.g.: @ param my_param: the description
         @param quotes: the type of quotes to use for output: ' ' ' or " " "
         @param first_line: indicate if description should start
         on first or second line. By default it is True
         @type first_line: boolean
+        @param config_file: if given configuration file for Pyment
 
         '''
         self.file_type = '.py'
@@ -59,12 +56,13 @@ class PyComment(object):
         self.input_file = input_file
         self.input_style = input_style
         self.output_style = output_style
-        self.param_type = param_type
         self.doc_index = -1
         self.file_index = 0
         self.docs_list = []
         self.parsed = False
         self.quotes = quotes
+        self.config_file = config_file
+        self.kwargs = kwargs
 
     def _parse(self):
         '''Parses the input file's content and generates a list of its elements/docstrings.
@@ -110,7 +108,8 @@ class PyComment(object):
                 e = DocString(elem.replace(os.linesep, ' '), spaces, quotes=self.quotes,
                               input_style=self.input_style,
                               output_style=self.output_style,
-                              first_line=self.first_line)
+                              first_line=self.first_line,
+                              **self.kwargs)
                 elem_list.append({'docs': e, 'location': (-i, -i)})
             else:
                 if waiting_docs and ('"""' in l or "'''" in l):

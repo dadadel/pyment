@@ -319,9 +319,9 @@ class DocsTools(object):
     def __init__(self, style_in='javadoc', style_out='reST', params=None):
         '''Choose the kind of docstring type.
 
-        @param style_in: docstring input style ('javadoc', 'reST', 'groups', 'unknown')
+        @param style_in: docstring input style ('javadoc', 'reST', 'groups', 'numpydoc')
         @type style_in: string
-        @param style_out: docstring output style ('javadoc', 'reST', 'groups', 'unknown')
+        @param style_out: docstring output style ('javadoc', 'reST', 'groups', 'numpydoc')
         @type style_out: string
         @param params: if known the parameters names that should be found in the docstring.
         @type params: list
@@ -864,7 +864,7 @@ class DocString(object):
     '''This class represents the docstring'''
     #TODO: manage raising
 
-    def __init__(self, elem_raw, spaces='', docs_raw=None, quotes="'''", input_style=None, output_style=None, first_line=False):
+    def __init__(self, elem_raw, spaces='', docs_raw=None, quotes="'''", input_style=None, output_style=None, first_line=False, **kwargs):
         '''
         @param elem_raw: raw data of the element (def or class).
         @param spaces: the leading whitespaces before the element
