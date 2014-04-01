@@ -18,6 +18,9 @@ It is also possible to generate the python file with the new docstrings, or to r
 
 Currently, the managed styles in input/output are javadoc, one variant of reST (re-Structured Text, used by Sphinx), numpydoc, groups (only input, Google style).
 
+You can also configure some settings via the command line or a configuration
+file (for more informations refer to the [documentation](https://github.com/dadadel/pyment/blob/master/doc/pyment.rst)) .
+
 The tool can only at the time offer to generate patches or get a list of the new docstrings.
 
 You can contact the developer *dadel* and speak about the project on **IRC** **Freenode**'s channel **#pyment**.
@@ -58,11 +61,14 @@ Usage
           -o style, --output style
                                 Output docstring style in ["javadoc", "reST",
                                 "numpydoc"] (default "reST")
-          -f style, --first-line style
+          -c config, --config-file config
+                                Get a Pyment configuration from a file. Note that the
+                                config values will overload the command line ones.
+          -f status, --first-line status
                                 Does the comment starts on the first line after the
                                 quotes (default "True")
-          -v, --version         show program's version number and exit
           -d, --init2class      If no docstring to class, then move the __init__ one
+          -v, --version         show program's version number and exit
 
 - running tests:
 
