@@ -188,7 +188,7 @@ Examples
 Results examples
 ----------------
 
-See the [example.py.patch](https://github.com/dadadel/pyment/blob/master/example.py.patch) or [example.py.patch](https://github.com/dadadel/pyment/blob/master/example_numpy.py.patch) file to see what kind of results can be obtained.
+Refer to the files `example.py.patch <https://github.com/dadadel/pyment/blob/master/example.py.patch>`_ or `example.py.patch <https://github.com/dadadel/pyment/blob/master/example_numpy.py.patch>`_ to see what kind of results can be obtained.
 
 The 1st patch was generated using the following command:
 
