@@ -306,11 +306,9 @@ class DocsTools(object):
     '''This class provides the tools to manage several type of docstring.
     Currently the following are managed:
     - 'javadoc': javadoc style
-    - 'reST': restructure text style compatible with Sphinx
+    - 'reST': restructured text style compatible with Sphinx
     - 'groups': parameters on beginning of lines (like Google Docs)
-    - 'unknown': undefined
-    In progress:
-    - 'numpydoc': the numpydoc docstring format
+    - 'numpydoc': the numpy format for docstrings (using an external module)
 
     '''
     #TODO: enhance style dependent separation
@@ -870,6 +868,10 @@ class DocString(object):
         @param spaces: the leading whitespaces before the element
         @param docs_raw: the raw data of the docstring part if any.
         @param quotes: the type of quotes to use for output: ' ' ' or " " "
+        @param style_in: docstring input style ('javadoc', 'reST', 'groups', 'numpydoc', None). If None will be autodetected
+        @type style_in: string
+        @param style_out: docstring output style ('javadoc', 'reST', 'groups', 'numpydoc')
+        @type style_out: string
         @param first_line: indicate if description should start
         on first or second line
         @type first_line: boolean
