@@ -1,5 +1,136 @@
+==================================================
+Pyment: the docstrings manager (creator/converter)
+==================================================
+
+.. Contents::
+
+
+Intoduction
+===========
+
+Pyment is a software allowing to create, update or convert several docstrings formats in existing Python files.
+So it should help Python programmers to enhance inside code documentation using docstrings.
+
+It should be useful for code not yet documented, not well documented, or partially documented and also to harmonize files using several docstring formats.
+
+Pyment will then be helpful to harmonize or change a project docstring style format.
+
+How does it work
+----------------
+
+Pyment will parse one python file or several (automatically exploring a folder and its sub-folder) and retrieve existing docstrings.
+Then, for each found function/method/class, it will generate a formated docstrings with parameters, default values,...
+
+At the end, patches are generated for each file. Then, you just have to apply the patches.
+
+What are the supported formats
+------------------------------
+
+Currently, the managed styles are javadoc, reST (re-Structured Text, used by Sphinx), numpydoc, groups.
+Note however that groups is only managed in input, and the reST format is known in only one variant (especially concerning the parameters types).
+
+Customization
+-------------
+
+It is planed to provide a large customization properties. However, it is currently limited to some settings.
+
+There are two ways to customize Pyment.
+
+The first is using the command line options (`pyment --help`). The second is providing a configuration file as explained later in that document.
+
+
+Using Pyment
+============
+
+Pyment runs under Python 2.7+/3+. But if *argparser* is installed it can run under Python 2.6, and maybe less.
+
+Pyment is usable as is on command line using pyment script. But it can also be used into a Python program.
+
+How to install
+--------------
+
+The better way is to get the latest version from Github:
+
+.. code-block:: sh
+
+    git clone git@github.com:dadadel/pyment.git # or https://github.com/dadadel/pyment.git    
+    cd pyment
+    python setup.py install
+
+You can also get an archive of a released version `from Github <https://github.com/dadadel/pyment/releases>`_.
+
+How to run
+----------
+
+- To run Pyment from the command line the easiest way is to provide a Python file or a folder:
+
+.. code-block:: sh
+
+    pyment example.py
+    pyment folder/to/python/progs
+
+- To get the available options, run:
+
+.. code-block:: sh
+
+    pyment -h
+
+Will provide the output:
+
+.. code-block:: sh
+
+    usage: pyment [-h] [-i style] [-o style] [-c config] [-f status] [-d] [-v]
+                  path
+    
+    Generates patches after (re)writing docstrings.
+    
+    positional arguments:
+      path                  python file or folder containing python files to
+                            proceed (explore also sub-folders)
+    
+    optional arguments:
+      -h, --help            show this help message and exit
+      -i style, --input style
+                            Input docstring style in ["javadoc", "reST",
+                            "numpydoc", "auto"] (default autodetected)
+      -o style, --output style
+                            Output docstring style in ["javadoc", "reST",
+                            "numpydoc"] (default "reST")
+      -c config, --config-file config
+                            Get a Pyment configuration from a file. Note that the
+                            config values will overload the command line ones.
+      -f status, --first-line status
+                            Does the comment starts on the first line after the
+                            quotes (default "True")
+      -d, --init2class      If no docstring to class, then move the __init__ one
+      -v, --version         show program's version number and exit
+
+- To run the unit-tests:
+
+.. code-block:: sh
+
+    python setup.py test
+
+- To run from a Python program:
+
+.. code-block:: python
+
+    import os
+    from pyment import PyComment
+
+    filename = 'test.py'
+
+    c = PyComment(filename)
+    c.proceed()
+    c.diff_to_file(os.path.basename(filename) + ".patch")
+    for s in c.get_output_docs():
+        print(s)
+
+Note that a documentation will be provided later. Now you can use Python introspection like: *>>> help(PyComment)*
+
+
 Configuration file
-------------------
+==================
 
 You can provide a configuration file to manage some settings.
 
@@ -42,3 +173,157 @@ Pyment to autodetect for each docstring its format.
 Set to **True** to move the generated docstring for __init__ to the class docstring.
 If there was already a docstring for the class, then the __init__ will conserve
 its docstring and the class its own.
+
+
+**Coming soon...**
+
+- *optional/excluded sections*
+
+Pyment will ignore some sections (like *raises*) or will generate some sections only if there was an existing corresponding section in input docstring.
+
+
+Examples
+========
+
+Results examples
+----------------
+
+See the [example.py.patch](https://github.com/dadadel/pyment/blob/master/example.py.patch) or [example.py.patch](https://github.com/dadadel/pyment/blob/master/example_numpy.py.patch) file to see what kind of results can be obtained.
+
+The 1st patch was generated using the following command:
+
+.. code-block:: sh
+
+    pyment -f false example.py
+
+And the second using:
+
+.. code-block:: sh
+
+    pyment -f false -o numpydoc example.py
+
+
+Managed docstrings examples
+---------------------------
+
+There follows examples of docstrings that be recognized or generated.
+
+- "javadoc" style:
+
+.. code-block:: python
+
+        """
+        This is a javadoc style.
+
+        @param param1: this is a first param
+        @param param2: this is a second param
+        @return: this is a description of what is returned
+        @raise keyError: raises an exception
+        """
+
+- "reST" style (the kind managed by Sphinx):
+
+.. code-block:: python
+
+        """
+        This is a reST style.
+
+        :param param1: this is a first param
+        :param param2: this is a second param
+        :returns: this is a description of what is returned
+        :raises keyError: raises an exception
+        """
+
+- "groups" style (the kind used by Google):
+
+.. code-block:: python
+
+        """
+        This is a groups style docs.
+
+        Parameters:
+            param1 - this is the first param
+            param2 - this is a second param
+
+        Returns:
+            This is a description of what is returned
+
+        Raises:
+            KeyError - raises an exception
+        """
+
+- "numpydoc" style:
+
+.. code-block:: python
+
+        """
+        My numpydoc description of a kind 
+        of very exhautive numpydoc format docstring.
+
+        Parameters
+        ----------
+        first : array_like
+            the 1st param name `first`
+        second :
+            the 2nd param
+        third : {'value', 'other'}, optional
+            the 3rd param, by default 'value'
+
+        Returns
+        -------
+        string
+            a value in a string
+
+        Raises
+        ------
+        KeyError
+            when a key error
+        OtherError
+            when an other error
+
+        See Also
+        --------
+        a_func : linked (optional), with things to say
+                 on several lines
+        some blabla
+
+        Note
+        ----
+        Some informations.
+
+        Some maths also:
+        .. math:: f(x) = e^{- x}
+
+        References
+        ----------
+        Biblio with cited ref [1]_. The ref can be cited in Note section.
+
+        .. [1] Adel Daouzli, Sylvain Saïghi, Michelle Rudolph, Alain Destexhe, 
+           Sylvie Renaud: Convergence in an Adaptive Neural Network: 
+           The Influence of Noise Inputs Correlation. IWANN (1) 2009: 140-148
+
+        Examples
+        --------
+        This is example of use
+        >>> print "a"
+        a
+
+        """
+
+Contact/Donation/Contributing
+=============================
+
+- Contact / Donate
+
+There is a dedicated **IRC** channel on **Freenode**: **#pyment**. The developer is *dadel*.
+
+You can also send him an email to daouzli AT gmail DOT com (please head your subject with *[Pyment]*).
+
+- Contribute
+
+Concerning contributing, note that the development is in early steps, and the global code arrangement can change, especially concerning making easier to add new format support.
+However you can contribute by opening issues, proposing pull requests, or contacting directly the developer.
+
+The tests are unfortunately not good enough, so you can contribute in that field, that would be really great!
+An other useful way to contribute should be to create a plugin for you favorite IDE.
+You can also find in the code some TODOs, not always up-to-date, that should be taken into account.
