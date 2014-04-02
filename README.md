@@ -7,8 +7,8 @@ Description
 -----------
 
 This Python (2.7+/3+, or 2.6 if installed argparser) program intends to help Python programmers to enhance inside code documentation using docstrings.
-It is usefull for code not well documented, or code without docstrings, or some not yet or partially documented code, or a mix of all of this :-)
-It can be helpfull also to haromize or change a project docstring style format.
+It is useful for code not well documented, or code without docstrings, or some not yet or partially documented code, or a mix of all of this :-)
+It can be helpful also to haromize or change a project docstring style format.
 
 It will parse one or several python scripts and retrieve existing docstrings.
 Then, for all found functions/methods/classes, it will generate formated docstrings with parameters, default values,...
@@ -19,14 +19,16 @@ It is also possible to generate the python file with the new docstrings, or to r
 Currently, the managed styles in input/output are javadoc, one variant of reST (re-Structured Text, used by Sphinx), numpydoc, groups (only input, Google style).
 
 You can also configure some settings via the command line or a configuration
-file (for more informations refer to the [documentation](https://github.com/dadadel/pyment/blob/master/doc/pyment.rst)) .
+file.
 
-The tool can only at the time offer to generate patches or get a list of the new docstrings.
+To get further informations please refer to the [**documentation**](https://github.com/dadadel/pyment/blob/master/doc/pyment.rst).
+
+The tool, at the time, offer to generate patches or get a list of the new docstrings (created or converted).
 
 You can contact the developer *dadel* and speak about the project on **IRC** **Freenode**'s channel **#pyment**.
 
-Usage
------
+Start quickly
+-------------
 - get and install:
 
         $ git clone git@github.com:dadadel/pyment.git # or https://github.com/dadadel/pyment.git
@@ -35,44 +37,15 @@ Usage
 
 - run from the command line:
 
-        pyment  myfile.py
+        $ pyment  myfile.py
 
     or
 
-        pyment  my/folder/
+        $ pyment  my/folder/
 
 - get help:
 
         $ pyment -h
-
-        usage: pyment [-h] [-i style] [-o style] [-v] path
-
-        Generates patches after (re)writing docstrings.
-
-        positional arguments:
-          path                  python file or folder containing python files to
-                                proceed (explore also sub-folders)
-
-        optional arguments:
-          -h, --help            show this help message and exit
-          -i style, --input style
-                                Input docstring style in ["javadoc", "reST",
-                                "numpydoc", "auto"] (default autodetected)
-          -o style, --output style
-                                Output docstring style in ["javadoc", "reST",
-                                "numpydoc"] (default "reST")
-          -c config, --config-file config
-                                Get a Pyment configuration from a file. Note that the
-                                config values will overload the command line ones.
-          -f status, --first-line status
-                                Does the comment starts on the first line after the
-                                quotes (default "True")
-          -d, --init2class      If no docstring to class, then move the __init__ one
-          -v, --version         show program's version number and exit
-
-- running tests:
-
-        $ python setup.py test
 
 - run from a script:
 
@@ -98,98 +71,3 @@ The second using:
 
         $ pyment -f false -o numpydoc example.py
 
-Examples of managed docstrings:
-
-- "javadoc" style:
-
-        """
-        This is a javadoc style.
-
-        @param param1: this is a first param
-        @param param2: this is a second param
-        @return: this is a description of what is returned
-        @raise keyError: raises an exception
-        """
-
-- "reST" style (the kind managed by Sphinx):
-
-        """
-        This is a reST style.
-
-        :param param1: this is a first param
-        :param param2: this is a second param
-        :returns: this is a description of what is returned
-        :raises keyError: raises an exception
-        """
-
-- "groups" style (the kind used by Google):
-
-        """
-        This is a groups style docs.
-
-        Parameters:
-            param1 - this is the first param
-            param2 - this is a second param
-
-        Returns:
-            This is a description of what is returned
-
-        Raises:
-            KeyError - raises an exception
-        """
-
-- "numpydoc" style:
-
-        """
-        My numpydoc description of a kind 
-        of very exhautive numpydoc format docstring.
-
-        Parameters
-        ----------
-        first : array_like
-            the 1st param name `first`
-        second :
-            the 2nd param
-        third : {'value', 'other'}, optional
-            the 3rd param, by default 'value'
-
-        Returns
-        -------
-        string
-            a value in a string
-
-        Raises
-        ------
-        KeyError
-            when a key error
-        OtherError
-            when an other error
-
-        See Also
-        --------
-        a_func : linked (optional), with things to say
-                 on several lines
-        some blabla
-
-        Note
-        ----
-        Some informations.
-
-        Some maths also:
-        .. math:: f(x) = e^{- x}
-
-        References
-        ----------
-        Biblio with cited ref [1]_. The ref can be cited in Note section.
-
-        .. [1] Adel Daouzli, Sylvain Saïghi, Michelle Rudolph, Alain Destexhe, 
-           Sylvie Renaud: Convergence in an Adaptive Neural Network: 
-           The Influence of Noise Inputs Correlation. IWANN (1) 2009: 140-148
-
-        Examples
-        --------
-        This is example of use
-        >>> print "a"
-        a
-
-        """
