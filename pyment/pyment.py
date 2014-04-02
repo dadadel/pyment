@@ -3,10 +3,12 @@
 __author__ = "A. Daouzli"
 __copyright__ = "Copyright 2013/12"
 __licence__ = "GPL3"
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __maintainer__ = "A. Daouzli"
 
 #Changelog:
+# 0.2.0: -enhance customization allowing to use a configuration file
+#        -improve the documentation
 # 0.1.0: -add numpydoc management
 #        -make more configurable (first line, __init__ docstring to class,..)
 #        -fix some bugs
