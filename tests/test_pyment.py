@@ -38,15 +38,13 @@ class DocStringTests(unittest.TestCase):
     def setUpClass(cls):
         # prepare test file
         shutil.copyfile(inifile, jvdfile)
-        fs = open(jvdfile, 'r')
-        ft = open(rstfile, 'w')
-        txt = fs.read()
+        with open(jvdfile, 'r') as fs:
+            txt = fs.read()
         txt = txt.replace("@return", ":returns")
         txt = txt.replace("@raise", ":raises")
         txt = txt.replace("@", ":")
-        ft.write(txt)
-        fs.close()
-        ft.close()
+        with open(rstfile, 'w') as ft:
+            ft.write(txt)
         print("setup")
 
     @classmethod
@@ -90,5 +88,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
