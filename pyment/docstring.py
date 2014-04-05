@@ -117,10 +117,10 @@ class NumpydocTools:
 
     def get_optional_sections(self):
         return self.optional_sections
-    
+
     def get_excluded_sections(self):
         return self.excluded_sections
-    
+
     def get_mandatory_sections(self):
         return [s for s in self.opt
                 if s not in self.optional_sections and
@@ -131,7 +131,7 @@ class NumpydocTools:
         It will return -1 if no section was found.
         The section is a section key (e.g. 'Parameters') followed by underline
         (made by -), then the content
-        
+
         '''
         start = -1
         for i, line in enumerate(data):
@@ -148,7 +148,6 @@ class NumpydocTools:
     def get_section_key_line(self, data, key):
         '''Get the next section line for a given key.
         '''
-        found = False
         start = 0
         init = 0
         while start != -1:
@@ -156,7 +155,6 @@ class NumpydocTools:
             init += start
             if start != -1:
                 if data[init].strip().lower() == self.opt[key]:
-                    found = True
                     break
                 init += 1
         if start != -1:
@@ -170,7 +168,7 @@ class NumpydocTools:
         (made by -), then the content
         The ending line number is the line after the end of the section or -1 if
         the section is at the end.
-        
+
         '''
         end = -1
         start = self.get_next_section_start_line(data)
@@ -182,11 +180,11 @@ class NumpydocTools:
         '''Get the list of a key elements.
         Each element is a tuple (key=None, description, type=None).
         Note that the tuple's element can differ depending on the key.
-        
+
         '''
         key_list = []
         data = data.split(os.linesep)
-        init  = self.get_section_key_line(data, key)
+        init = self.get_section_key_line(data, key)
         if init == -1:
             return []
         start, end = self.get_next_section_lines(data[init:])
@@ -203,7 +201,7 @@ class NumpydocTools:
             # on the same column of the key is the key
             curr_spaces = get_leading_spaces(line)
             if len(curr_spaces) == len(spaces):
-                if parse_key == True:
+                if parse_key:
                     key_list.append((key, desc, ptype))
                 elems = line.split(':', 1)
                 key = elems[0].strip()
@@ -216,7 +214,7 @@ class NumpydocTools:
                 if desc:
                     desc += os.linesep
                 desc += line
-        if parse_key == True:
+        if parse_key:
             key_list.append((key, desc, ptype))
 
         return key_list
@@ -224,21 +222,21 @@ class NumpydocTools:
     def get_attr_list(self, data):
         '''Get the list of attributes.
         The list contains tuples (name, desc, type=None)
-        
+
         '''
         return self.get_list_key(data, 'attr')
 
     def get_param_list(self, data):
         '''Get the list of parameters.
         The list contains tuples (name, desc, type=None)
-        
+
         '''
         return self.get_list_key(data, 'param')
 
     def get_return_list(self, data):
         '''Get the list of return elements/values.
         The list contains tuples (name=None, desc, type)
-        
+
         '''
         return_list = []
         lst = self.get_list_key(data, 'return')
@@ -253,7 +251,7 @@ class NumpydocTools:
     def get_raise_list(self, data):
         '''Get the list of exceptions.
         The list contains tuples (name, desc)
-        
+
         '''
         return_list = []
         lst = self.get_list_key(data, 'raise')
@@ -984,7 +982,7 @@ class DocString(object):
         self.dst.style['out'] = style
 
     def get_spaces(self):
-        '''Get the output docstring initial spaces. 
+        '''Get the output docstring initial spaces.
 
         @return: the spaces
 
@@ -992,7 +990,7 @@ class DocString(object):
         return self.docs['out']['spaces']
 
     def set_spaces(self, spaces):
-        '''Set for output docstring the initial spaces. 
+        '''Set for output docstring the initial spaces.
 
         @param spaces: the spaces to set
 
