@@ -43,7 +43,7 @@ Start quickly
 
         $ pyment  myfile.py
 
-    or
+or
 
 .. code-block:: sh
 
