@@ -81,6 +81,7 @@ class PyComment(object):
         raw = ''
         start = 0
         end = 0
+        lines = []
         try:
             with open(self.input_file) as fd:
                 lines = fd.readlines()
@@ -226,6 +227,7 @@ class PyComment(object):
         #TODO: manage which
         if not self.parsed:
             self._parse()
+        list_from = []
         try:
             with open(self.input_file) as fd:
                 list_from = fd.readlines()

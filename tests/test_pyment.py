@@ -37,6 +37,7 @@ class DocStringTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # prepare test file
+        txt = ""
         shutil.copyfile(inifile, jvdfile)
         with open(jvdfile, 'r') as fs:
             txt = fs.read()
