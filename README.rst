@@ -184,4 +184,4 @@ Now the original *test.py* was updated and its content is now:
                 """
                 pass
 
-Also refer to the files `example.py.patch <https://github.com/dadadel/pyment/blob/master/example.py.patch>`_ or `example.py.patch <https://github.com/dadadel/pyment/blob/master/example_numpy.py.patch>`_ to see some other results that can be obtained based on the file `example.py <https://github.com/dadadel/pyment/blob/master/example.py>`_ 
+Also refer to the files `example.py.patch <https://github.com/dadadel/pyment/blob/master/example.py.patch>`_ or `example_numpy.py.patch <https://github.com/dadadel/pyment/blob/master/example_numpy.py.patch>`_ to see some other results that can be obtained processing the file `example.py <https://github.com/dadadel/pyment/blob/master/example.py>`_ 
