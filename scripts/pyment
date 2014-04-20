@@ -64,11 +64,10 @@ def get_config(config_file):
     return config
 
 
-def run(source, files=[], input_style='auto', output_style='reST', first_line=True, init2class=False, config_file=None):
+def run(source, files=[], input_style='auto', output_style='reST', first_line=True, quotes='"""', init2class=False, config_file=None):
     if input_style == 'auto':
         input_style = None
 
-    quotes='"""'
     config = get_config(config_file)
     if 'init2class' in config:
         init2class = config.pop('init2class')
@@ -106,10 +105,12 @@ def main():
                         dest='input', help='Input docstring style in ["javadoc", "reST", "numpydoc", "auto"] (default autodetected)')
     parser.add_argument('-o', '--output', metavar='style', default="reST",
                         dest='output', help='Output docstring style in ["javadoc", "reST", "numpydoc"] (default "reST")')
-    parser.add_argument('-c', '--config-file', metavar='config', default="",
-                        dest='config_file', help='Get a Pyment configuration from a file. Note that the config values will overload the command line ones.')
+    parser.add_argument('-q', '--quotes', metavar='quotes', default='"""',
+                        dest='quotes', help='Type of docstring delimiter quotes: \'\'\' or \"\"\" (default \"\"\"). Note that you may escape the characters using \\ like \\\'\\\'\\\', or surround it with the opposite quotes like \"\'\'\'\"')
     parser.add_argument('-f', '--first-line', metavar='status', default="True",
                         dest='first_line', help='Does the comment starts on the first line after the quotes (default "True")')
+    parser.add_argument('-c', '--config-file', metavar='config', default="",
+                        dest='config_file', help='Get a Pyment configuration from a file. Note that the config values will overload the command line ones.')
     parser.add_argument('-d', '--init2class', help='If no docstring to class, then move the __init__ one',
                         action="store_true")
     parser.add_argument('-v', '--version', action='version',
@@ -127,7 +128,7 @@ def main():
         config_file = args.config_file
 
     tobool = lambda s: True if s in ['True', 'true'] else False
-    run(source, files, args.input, args.output, tobool(args.first_line), args.init2class, config_file)
+    run(source, files, args.input, args.output, tobool(args.first_line), args.quotes, args.init2class, config_file)
 
 if __name__ == "__main__":
     main()
