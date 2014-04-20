@@ -3,10 +3,13 @@
 __author__ = "A. Daouzli"
 __copyright__ = "Copyright 2013/12"
 __licence__ = "GPL3"
-__version__ = "0.2.0"
+__version__ = "0.2.1-dev"
 __maintainer__ = "A. Daouzli"
 
 #Changelog:
+# 0.2.1: -improve documentation
+#        -clean a bit the code
+#        -change readme format from markdown to reStructuredText
 # 0.2.0: -enhance customization allowing to use a configuration file
 #        -improve the documentation
 # 0.1.0: -add numpydoc management

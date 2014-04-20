@@ -3,7 +3,7 @@
 __author__ = "A. Daouzli"
 __copyright__ = "Copyright dec. 2013, A. Daouzli"
 __licence__ = "GPL3"
-__version__ = "0.2.0"
+__version__ = "0.2.1-dev"
 __maintainer__ = "A. Daouzli"
 
 """
