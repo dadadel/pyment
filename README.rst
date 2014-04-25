@@ -21,7 +21,7 @@ Currently, the managed styles in input/output are javadoc, one variant of reST (
 You can also configure some settings via the command line or a configuration
 file.
 
-To get further informations please refer to the [**documentation**](https://github.com/dadadel/pyment/blob/master/doc/pyment.rst).
+To get further informations please refer to the `documentation <https://github.com/dadadel/pyment/blob/master/doc/pyment.rst>`_.
 
 The tool, at the time, offer to generate patches or get a list of the new docstrings (created or converted).
 

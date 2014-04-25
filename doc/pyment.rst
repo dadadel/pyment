@@ -26,7 +26,7 @@ At the end, patches are generated for each file. Then, you just have to apply th
 What are the supported formats
 ------------------------------
 
-Currently, the managed styles are javadoc, reST (re-Structured Text, used by Sphinx), numpydoc, groups.
+Currently, the managed styles are javadoc, reST (re-Structured Text, used by Sphinx), numpydoc, groups (contain Google docstrings style).
 Note however that groups is only managed in input, and the reST format is known in only one variant (especially concerning the parameters types).
 
 Customization
