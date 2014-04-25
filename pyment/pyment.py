@@ -10,6 +10,7 @@ __maintainer__ = "A. Daouzli"
 # 0.2.1: -improve documentation
 #        -clean a bit the code
 #        -change readme format from markdown to reStructuredText
+#        -add option to ignore private methods/functions
 # 0.2.0: -enhance customization allowing to use a configuration file
 #        -improve the documentation
 # 0.1.0: -add numpydoc management
@@ -41,7 +42,8 @@ class PyComment(object):
     The changes are then provided in a patch file.
 
     '''
-    def __init__(self, input_file, input_style=None, output_style='reST', quotes="'''", first_line=True, config_file=None, **kwargs):
+    def __init__(self, input_file, input_style=None, output_style='reST', quotes="'''", first_line=True,
+                 config_file=None, ignore_private=False, **kwargs):
         '''Sets the configuration including the source to proceed and options.
 
         @param input_file: path name (file or folder)
@@ -53,6 +55,7 @@ class PyComment(object):
         on first or second line. By default it is True
         @type first_line: boolean
         @param config_file: if given configuration file for Pyment
+        @param ignore_private: don't proceed the private methods/functions starting with __ (two underscores)
 
         '''
         self.file_type = '.py'
@@ -67,6 +70,7 @@ class PyComment(object):
         self.parsed = False
         self.quotes = quotes
         self.config_file = config_file
+        self.ignore_private = ignore_private
         self.kwargs = kwargs
 
     def _parse(self):
@@ -98,6 +102,8 @@ class PyComment(object):
                 if l.endswith(':'):
                     reading_element = 'end'
             elif (l.startswith('def ') or l.startswith('class ')) and not reading_docs:
+                if self.ignore_private and l[l.find(' '):].strip().startswith("__"):
+                    continue
                 reading_element = 'start'
                 elem = l
                 m = re.match(r'^(\s*)[dc]{1}', ln)

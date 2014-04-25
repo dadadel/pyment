@@ -64,7 +64,7 @@ def get_config(config_file):
     return config
 
 
-def run(source, files=[], input_style='auto', output_style='reST', first_line=True, quotes='"""', init2class=False, config_file=None):
+def run(source, files=[], input_style='auto', output_style='reST', first_line=True, quotes='"""', init2class=False, config_file=None, ignore_private=False):
     if input_style == 'auto':
         input_style = None
 
@@ -89,6 +89,7 @@ def run(source, files=[], input_style='auto', output_style='reST', first_line=Tr
                       input_style=input_style,
                       output_style=output_style,
                       first_line=first_line,
+                      ignore_private=ignore_private,
                       **config)
         c.proceed()
         if init2class:
@@ -113,6 +114,8 @@ def main():
                         dest='config_file', help='Get a Pyment configuration from a file. Note that the config values will overload the command line ones.')
     parser.add_argument('-d', '--init2class', help='If no docstring to class, then move the __init__ one',
                         action="store_true")
+    parser.add_argument('-p', '--ignore-private', metavar='status', default="True",
+                        dest='ignore_private', help='Don\'t proceed the private methods/functions starting with __ (two underscores) (default "True")')
     parser.add_argument('-v', '--version', action='version',
                         version=desc)
     #parser.add_argument('-c', '--config', metavar='config_file',
@@ -128,7 +131,10 @@ def main():
         config_file = args.config_file
 
     tobool = lambda s: True if s in ['True', 'true'] else False
-    run(source, files, args.input, args.output, tobool(args.first_line), args.quotes, args.init2class, config_file)
+    run(source, files, args.input, args.output,
+        tobool(args.first_line), args.quotes,
+        args.init2class, config_file,
+        tobool(args.ignore_private))
 
 if __name__ == "__main__":
     main()
