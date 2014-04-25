@@ -6,17 +6,6 @@ __licence__ = "GPL3"
 __version__ = "0.2.1-dev"
 __maintainer__ = "A. Daouzli"
 
-#Changelog:
-# 0.2.1: -improve documentation
-#        -clean a bit the code
-#        -change readme format from markdown to reStructuredText
-#        -add option to ignore private methods/functions
-# 0.2.0: -enhance customization allowing to use a configuration file
-#        -improve the documentation
-# 0.1.0: -add numpydoc management
-#        -make more configurable (first line, __init__ docstring to class,..)
-#        -fix some bugs
-
 #TODO:
 # -generate a return if return is used with argument in element
 # -generate raises if raises are used
