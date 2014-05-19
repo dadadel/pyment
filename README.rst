@@ -33,7 +33,7 @@ Start quickly
 
 .. code-block:: sh
 
-        $ git clone git@github.com:dadadel/pyment.git # or https://github.com/dadadel/pyment.git
+        $ git clone https://github.com/dadadel/pyment.git  # or git@github.com:dadadel/pyment.git
         $ cd pyment
         $ python setup.py install
 
