@@ -302,7 +302,7 @@ class NumpydocTools:
 
 class GoogledocTools:
     def __init__(self, first_line=None,
-                 optional_sections=['raise', 'also', 'ref', 'note', 'other', 'example', 'method', 'attr'],
+                 optional_sections=['raise'],
                  excluded_sections=[]):
         '''
         @param first_line: indicate if description should start
@@ -324,9 +324,11 @@ class GoogledocTools:
         self.optional_sections = optional_sections
         self.excluded_sections = excluded_sections
         self.opt = {
-                'param': 'parameters',
+                'param': 'args',
                 'return': 'returns',
                 'raise': 'raises',
+                'attr': 'attributes',
+                'yield': 'yields',
                 }
 
     def __iter__(self):
@@ -364,7 +366,18 @@ class GoogledocTools:
             if isin_alone(self.opt.values(), line):
                 start = i
         return start
-#TODO
+
+    def get_key_section_header(self, key, spaces):
+        if key == 'param':
+            header = 'Args'
+        elif key == 'return':
+            header = 'Returns'
+        elif key == 'raise':
+            header = 'Raises'
+        else:
+            return ''
+        header = spaces + header + ':' + os.linesep + spaces
+        return header
 
 
 class DocsTools(object):
