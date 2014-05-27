@@ -300,8 +300,75 @@ class NumpydocTools:
         return header
 
 
+class GoogledocTools:
+    def __init__(self, first_line=None,
+                 optional_sections=['raise', 'also', 'ref', 'note', 'other', 'example', 'method', 'attr'],
+                 excluded_sections=[]):
+        '''
+        @param first_line: indicate if description should start
+        on first or second line. By default it will follow global config.
+        @type first_line: boolean
+        @param optional_sections: list of sections that are not mandatory
+        if empty. The accepted sections are:
+        -param
+        -return
+        -raise
+        @type optional_sections: list
+        @param excluded_sections: list of sections that are excluded,
+        even if mandatory. The list is the same than for optional sections.
+        @type excluded_sections: list
+
+        '''
+        self.first_line = first_line
+        #TODO: if in the two lists see which is more important
+        self.optional_sections = optional_sections
+        self.excluded_sections = excluded_sections
+        self.opt = {
+                'param': 'parameters',
+                'return': 'returns',
+                'raise': 'raises',
+                }
+
+    def __iter__(self):
+        return self.opt.__iter__()
+
+    def __getitem__(self, key):
+        return self.opt[key]
+
+    def get_optional_sections(self):
+        return self.optional_sections
+
+    def get_excluded_sections(self):
+        return self.excluded_sections
+
+    def get_mandatory_sections(self):
+        return [s for s in self.opt
+                if s not in self.optional_sections and
+                   s not in self.excluded_sections]
+
+    def get_next_section_start_line(self, data):
+        '''Get the starting line number of next section.
+        It will return -1 if no section was found.
+        The section is a section key (e.g. 'Parameters') followed by underline
+        (made by -), then the content
+
+        '''
+        start = -1
+        for i, line in enumerate(data):
+            if start != -1:
+                # we found the key so check if this is the underline
+                if line.strip() and isin_alone(['-' * len(line.strip())], line):
+                    break
+                else:
+                    start = -1
+            if isin_alone(self.opt.values(), line):
+                start = i
+        return start
+#TODO
+
+
 class DocsTools(object):
-    '''This class provides the tools to manage several type of docstring.
+    '''This class provides the tools to manage several types of docstring.
     Currently the following are managed:
     - 'javadoc': javadoc style
     - 'reST': restructured text style compatible with Sphinx
