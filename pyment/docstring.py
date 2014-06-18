@@ -3,7 +3,7 @@
 __author__ = "A. Daouzli"
 __copyright__ = "Copyright dec. 2013, A. Daouzli"
 __licence__ = "GPL3"
-__version__ = "0.2.1-dev"
+__version__ = "0.2.1"
 __maintainer__ = "A. Daouzli"
 
 """
@@ -941,8 +941,17 @@ class DocString(object):
     def __repr__(self):
         return self.__str__()
 
+    def get_input_docstring(self):
+        '''Get the input raw docstring.
+        
+        @return: the input docstring if any.
+        @rtype: str or None
+        
+        '''
+        return self.docs['in']['raw']
+
     def get_input_style(self):
-        '''Gets the input docstring style
+        '''Get the input docstring style
 
         @return: the style for input docstring
         @rtype style: str

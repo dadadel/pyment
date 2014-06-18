@@ -79,8 +79,8 @@ Will provide the output:
 
 .. code-block:: sh
 
-usage: pyment [-h] [-i style] [-o style] [-q quotes] [-f status] [-c config]
-              [-d] [-p status] [-v]
+usage: pyment [-h] [-i style] [-o style] [-q quotes] [-f status] [-t]
+              [-c config] [-d] [-p status] [-v]
               path
 
 Generates patches after (re)writing docstrings.
@@ -105,6 +105,8 @@ optional arguments:
   -f status, --first-line status
                         Does the comment starts on the first line after the
                         quotes (default "True")
+  -t, --convert         Existing docstrings will be converted but won't create
+                        missing ones
   -c config, --config-file config
                         Get a Pyment configuration from a file. Note that the
                         config values will overload the command line ones.
@@ -182,6 +184,13 @@ Pyment to autodetect for each docstring its format.
 Set to **True** to move the generated docstring for __init__ to the class docstring.
 If there was already a docstring for the class, then the __init__ will conserve
 its docstring and the class its own.
+
+- **convert_only**
+
+*True or False*
+
+Set to **True** if you want only to convert existing docstring.
+So Pyment won't create missing docstrings.
 
 
 **Coming soon...**
