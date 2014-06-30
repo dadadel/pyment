@@ -3,7 +3,7 @@
 __author__ = "A. Daouzli"
 __copyright__ = "Copyright dec. 2013, A. Daouzli"
 __licence__ = "GPL3"
-__version__ = "0.2.1"
+__version__ = "0.3.0-dev"
 __maintainer__ = "A. Daouzli"
 
 """
@@ -938,7 +938,6 @@ class DocsTools(object):
 
 class DocString(object):
     '''This class represents the docstring'''
-    #TODO: manage raising
 
     def __init__(self, elem_raw, spaces='', docs_raw=None, quotes="'''", input_style=None, output_style=None, first_line=False, **kwargs):
         '''
