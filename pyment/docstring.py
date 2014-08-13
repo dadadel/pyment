@@ -65,7 +65,7 @@ def get_leading_spaces(data):
     return spaces
 
 
-class NumpydocTools:
+class NumpydocTools(object):
     def __init__(self, first_line=None,
                  optional_sections=['raise', 'also', 'ref', 'note', 'other', 'example', 'method', 'attr'],
                  excluded_sections=[]):
@@ -300,7 +300,7 @@ class NumpydocTools:
         return header
 
 
-class GoogledocTools:
+class GoogledocTools(object):
     def __init__(self, first_line=None,
                  optional_sections=['raise'],
                  excluded_sections=[]):
@@ -343,6 +343,86 @@ class GoogledocTools:
     def get_excluded_sections(self):
         return self.excluded_sections
 
+    def get_next_section_lines(self, data):
+        '''Get the starting line number and the ending line number of next section.
+        It will return (-1, -1) if no section was found.
+        The section is a section key (e.g. 'Parameters') then the content
+        The ending line number is the line after the end of the section or -1 if
+        the section is at the end.
+
+        '''
+        end = -1
+        start = self.get_next_section_start_line(data)
+        if start != -1:
+            end = self.get_next_section_start_line(data[start+1:])
+        return start, end
+
+    def get_section_key_line(self, data, key):
+        '''Get the next section line for a given key.
+        '''
+        start = 0
+        init = 0
+        while start != -1:
+            start = self.get_next_section_start_line(data[init:])
+            init += start
+            if start != -1:
+                if data[init].strip().lower() == self.opt[key]:
+                    break
+                init += 1
+        if start != -1:
+            start = init
+        return start
+
+    def get_list_key(self, data, key):
+        '''Get the list of a key elements.
+        Each element is a tuple (key=None, description, type=None).
+        Note that the tuple's element can differ depending on the key.
+
+        '''
+        key_list = []
+        data = data.split(os.linesep)
+        init = self.get_section_key_line(data, key)
+        if init == -1:
+            return []
+        start, end = self.get_next_section_lines(data[init:])
+
+        # get the spacing of line with key
+        spaces = get_leading_spaces(data[init + start])
+        start += init + 2
+        end += init
+        parse_key = False
+        key, desc, ptype = None, '', None
+        for line in data[start:end]:
+            if len(line.strip()) == 0:
+                continue
+            # on the same column of the key is the key
+            curr_spaces = get_leading_spaces(line)
+            if len(curr_spaces) == len(spaces):
+                if parse_key:
+                    key_list.append((key, desc, ptype))
+                elems = line.split(':', 1)
+                key = elems[0].strip()
+                ptype = elems[1].strip() if len(elems) > 1 else None
+                desc = ''
+                parse_key = True
+            else:
+                if len(curr_spaces) > len(spaces):
+                    line = line.replace(spaces, '', 1)
+                if desc:
+                    desc += os.linesep
+                desc += line
+        if parse_key:
+            key_list.append((key, desc, ptype))
+
+        return key_list
+
+    def get_param_list(self, data):
+        '''Get the list of parameters.
+        The list contains tuples (name, desc, type=None)
+
+        '''
+        return self.get_list_key(data, 'param')
+
     def get_mandatory_sections(self):
         return [s for s in self.opt
                 if s not in self.optional_sections and
@@ -351,20 +431,18 @@ class GoogledocTools:
     def get_next_section_start_line(self, data):
         '''Get the starting line number of next section.
         It will return -1 if no section was found.
-        The section is a section key (e.g. 'Parameters') followed by underline
-        (made by -), then the content
+        The section is a section key (e.g. 'Parameters:')
+        then the content
+
+        @param data: a list of strings containing the docstring's lines
+        @return: the index of next section else -1
 
         '''
         start = -1
         for i, line in enumerate(data):
-            if start != -1:
-                # we found the key so check if this is the underline
-                if line.strip() and isin_alone(['-' * len(line.strip())], line):
-                    break
-                else:
-                    start = -1
-            if isin_alone(self.opt.values(), line):
+            if isin_alone([k + ":" for k in self.opt.values()], line):
                 start = i
+                print i
         return start
 
     def get_key_section_header(self, key, spaces):
@@ -386,6 +464,7 @@ class DocsTools(object):
     - 'javadoc': javadoc style
     - 'reST': restructured text style compatible with Sphinx
     - 'groups': parameters on beginning of lines (like Google Docs)
+    - 'google': the numpy format for docstrings (using an external module)
     - 'numpydoc': the numpy format for docstrings (using an external module)
 
     '''
@@ -395,9 +474,9 @@ class DocsTools(object):
     def __init__(self, style_in='javadoc', style_out='reST', params=None):
         '''Choose the kind of docstring type.
 
-        @param style_in: docstring input style ('javadoc', 'reST', 'groups', 'numpydoc')
+        @param style_in: docstring input style ('javadoc', 'reST', 'groups', 'numpydoc', 'google')
         @type style_in: string
-        @param style_out: docstring output style ('javadoc', 'reST', 'groups', 'numpydoc')
+        @param style_out: docstring output style ('javadoc', 'reST', 'groups', 'numpydoc', 'google')
         @type style_out: string
         @param params: if known the parameters names that should be found in the docstring.
         @type params: list
@@ -410,6 +489,7 @@ class DocsTools(object):
         self._set_available_styles()
         self.params = params
         self.numpydoc = NumpydocTools()
+        self.googledoc = GoogledocTools()
 
     def _set_available_styles(self):
         '''Set the internal styles list and available options in a structure as following:
@@ -473,11 +553,14 @@ class DocsTools(object):
 
         if detected_style == 'unknown':
             found_groups = 0
+            found_googledoc = 0
             found_numpydoc = 0
             found_numpydocsep = 0
             for line in data.strip().split(os.linesep):
                 for key in self.groups:
                     found_groups += 1 if isin_start(self.groups[key], line) else 0
+                for key in self.googledoc:
+                    found_googledoc += 1 if isin_start(self.googledoc[key], line) else 0
                 for key in self.numpydoc:
                     found_numpydoc += 1 if isin_start(self.numpydoc[key], line) else 0
                 if line.strip() and isin_alone(['-' * len(line.strip())], line):
@@ -485,8 +568,11 @@ class DocsTools(object):
                 elif isin(self.numpydoc.keywords, line):
                     found_numpydoc += 1
             #TODO: check if not necessary to have > 1??
+            print "grp =", found_groups, ", goog =", found_googledoc
             if found_numpydoc and found_numpydocsep:
                 detected_style = 'numpydoc'
+            elif found_googledoc > found_groups:
+                detected_style = 'google'
             elif found_groups:
                 detected_style = 'groups'
         self.style['in'] = detected_style
@@ -1132,6 +1218,13 @@ class DocString(object):
         data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
         if self.dst.style['in'] == 'groups':
             idx = self.dst.get_group_index(data)
+        elif self.dst.style['in'] == 'google':
+            lines = data.split(os.linesep)
+            line_num = self.dst.googledoc.get_next_section_start_line(lines)
+            if line_num == -1:
+                idx = -1
+            else:
+                idx = len(os.linesep.join(lines[:line_num]))
         elif self.dst.style['in'] == 'numpydoc':
             lines = data.split(os.linesep)
             line_num = self.dst.numpydoc.get_next_section_start_line(lines)
@@ -1212,6 +1305,9 @@ class DocString(object):
         if self.dst.style['in'] == 'numpydoc':
             data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
             self.docs['in']['params'] += self.dst.numpydoc.get_param_list(data)
+        elif self.dst.style['in'] == 'google':
+            data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
+            self.docs['in']['params'] += self.dst.googledoc.get_param_list(data)
         elif self.dst.style['in'] == 'groups':
             self._extract_groupstyle_docs_params()
         elif self.dst.style['in'] in ['javadoc', 'reST']:
