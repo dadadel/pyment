@@ -41,6 +41,21 @@ mygrpdocs = '''
       OtherError: when an other error
     """'''
 
+googledocs = '''""""This is a Google style docs.
+
+    Parameters:
+      first(str): this is the first param
+      second(int): this is a second param
+      third(str, optional): this is a third param
+
+    Returns:
+      This is a description of what is returned
+
+    Raises:
+      KeyError: raises an exception
+      OtherError: when an other error
+"""'''
+
 mygrpdocs2 = '''
     """
     My desc of an other kind 
@@ -123,6 +138,18 @@ def torest(docs):
 
 
 class DocStringTests(unittest.TestCase):
+
+    def testChekListParamsGoogledoc(self):
+        doc = googledocs
+        d = docs.DocString(myelem, '    ', doc)
+        d._extract_docs_params()
+        print "+++ ", d.docs['in']['params']
+        self.failUnless(d.get_input_style() == 'google')
+
+    def testAutoInputStyleGoogledoc(self):
+        doc = googledocs
+        d = docs.DocString(myelem, '    ', doc)
+        self.failUnless(d.get_input_style() == 'google')
 
     def testAutoInputStyleNumpydoc(self):
         doc = mynumpydocs
