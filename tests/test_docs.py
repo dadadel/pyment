@@ -43,7 +43,7 @@ mygrpdocs = '''
 
 googledocs = '''""""This is a Google style docs.
 
-    Parameters:
+    Args:
       first(str): this is the first param
       second(int): this is a second param
       third(str, optional): this is a third param
@@ -143,7 +143,6 @@ class DocStringTests(unittest.TestCase):
         doc = googledocs
         d = docs.DocString(myelem, '    ', doc)
         d._extract_docs_params()
-        print "+++ ", d.docs['in']['params']
         self.failUnless(d.get_input_style() == 'google')
 
     def testAutoInputStyleGoogledoc(self):

@@ -38,6 +38,7 @@ def isin_start(elems, line):
 
     '''
     found = False
+    elems = [elems] if type(elems) is not list else elems
     for e in elems:
         if line.lstrip().lower().startswith(e):
             found = True
@@ -442,7 +443,6 @@ class GoogledocTools(object):
         for i, line in enumerate(data):
             if isin_alone([k + ":" for k in self.opt.values()], line):
                 start = i
-                print i
         return start
 
     def get_key_section_header(self, key, spaces):
@@ -568,10 +568,9 @@ class DocsTools(object):
                 elif isin(self.numpydoc.keywords, line):
                     found_numpydoc += 1
             #TODO: check if not necessary to have > 1??
-            print "grp =", found_groups, ", goog =", found_googledoc
             if found_numpydoc and found_numpydocsep:
                 detected_style = 'numpydoc'
-            elif found_googledoc > found_groups:
+            elif found_googledoc >= found_groups:
                 detected_style = 'google'
             elif found_groups:
                 detected_style = 'groups'
