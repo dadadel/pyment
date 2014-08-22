@@ -237,6 +237,16 @@ class DocStringTests(unittest.TestCase):
         # param's description
         self.failUnless(d.docs['in']['params'][0][1].startswith("the 1"))
 
+    def testParsingGoogleDocsParams(self):
+        doc = googledocs
+        d = docs.DocString(myelem, '    ', doc)
+        d.parse_docs()
+        print d.docs['in']['params']
+        self.failUnless(len(d.docs['in']['params']) == 3)
+        self.failUnless(d.docs['in']['params'][0][0] == 'first')
+        self.failUnless(d.docs['in']['params'][0][1].startswith('this is the first'))
+        self.failUnless(d.docs['in']['params'][2][1].startswith('this is a third'))
+
     def testParsingGroupsDocsParams(self):
         doc = mygrpdocs
         d = docs.DocString(myelem, '    ', doc)
