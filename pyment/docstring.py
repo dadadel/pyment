@@ -395,7 +395,8 @@ class GoogledocTools(object):
         # get the spacing of line with key
         spaces = get_leading_spaces(data[init + start])
         start += init + 1
-        end += init
+        if end != -1:
+            end += init
         parse_key = False
         key, desc, ptype = None, '', None
         param_spaces = 0
@@ -412,13 +413,15 @@ class GoogledocTools(object):
                     elems = line.split(':', 1)
                     ptype = None
                     key = elems[0].strip()
+                    # the param's type is near the key in parenthesis
                     if '(' in key and ')' in key:
-                        start = key.index('(') + 1
-                        end = key.index(')')
+                        tstart = key.index('(') + 1
+                        tend = key.index(')')
+                        # the 'optional' keyword can follow the style after a comma
                         if ',' in key:
-                            end = key.index(',')
-                        ptype = key[start:end].strip()
-                        key = key[:start - 1]
+                            tend = key.index(',')
+                        ptype = key[tstart:tend].strip()
+                        key = key[:tstart - 1]
                     desc = elems[1].strip()
                     parse_key = True
                 else:
@@ -433,9 +436,9 @@ class GoogledocTools(object):
                 if desc:
                     desc += os.linesep
                 desc += line
-        if parse_key:
+        if parse_key or desc:
             key_list.append((key, desc, ptype))
-
+            
         return key_list
 
     def get_param_list(self, data):
@@ -444,6 +447,37 @@ class GoogledocTools(object):
 
         '''
         return self.get_list_key(data, 'param')
+
+    def get_return_list(self, data):
+        '''Get the list of returned values.
+        The list contains tuples (name=None, desc, type=None)
+
+        '''
+        return_list = []
+        lst = self.get_list_key(data, 'return')
+        for l in lst:
+            name, desc, rtype = l
+            if l[2] == None:
+                rtype = l[0]
+                name = None
+                desc = desc.strip()
+            return_list.append((name, desc, rtype))
+        
+        return return_list
+
+    def get_raise_list(self, data):
+        '''Get the list of exceptions.
+        The list contains tuples (name, desc)
+
+        '''
+        return_list = []
+        lst = self.get_list_key(data, 'raise')
+        for l in lst:
+        # assume raises are only a name and a description
+            name, desc, _ = l
+            return_list.append((name, desc))
+    
+        return return_list
 
     def get_mandatory_sections(self):
         return [s for s in self.opt
@@ -1387,6 +1421,9 @@ class DocString(object):
         if self.dst.style['in'] == 'numpydoc':
             data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
             self.docs['in']['raises'] += self.dst.numpydoc.get_raise_list(data)
+        if self.dst.style['in'] == 'google':
+            data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
+            self.docs['in']['raises'] += self.dst.googledoc.get_raise_list(data)
         elif self.dst.style['in'] == 'groups':
             self._extract_groupstyle_docs_raises()
         elif self.dst.style['in'] in ['javadoc', 'reST']:
@@ -1424,6 +1461,11 @@ class DocString(object):
         if self.dst.style['in'] == 'numpydoc':
             data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
             self.docs['in']['return'] = self.dst.numpydoc.get_return_list(data)
+            self.docs['in']['rtype'] = None
+#TODO: fix this
+        elif self.dst.style['in'] == 'google':
+            data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
+            self.docs['in']['return'] = self.dst.googledoc.get_return_list(data)
             self.docs['in']['rtype'] = None
         elif self.dst.style['in'] == 'groups':
             self._extract_groupstyle_docs_return()
@@ -1524,11 +1566,12 @@ class DocString(object):
             #TODO: manage return names
             #manage not setting return if not mandatory for numpy
             lst = self.docs['in']['return']
-            if lst[0][0] is not None:
-                self.docs['out']['return'] = "%s-> %s" % (lst[0][0], lst[0][1])
-            else:
-                self.docs['out']['return'] = lst[0][1]
-            self.docs['out']['rtype'] = lst[0][2]
+            if lst:
+                if lst[0][0] is not None:
+                    self.docs['out']['return'] = "%s-> %s" % (lst[0][0], lst[0][1])
+                else:
+                    self.docs['out']['return'] = lst[0][1]
+                self.docs['out']['rtype'] = lst[0][2]
         else:
             self.docs['out']['return'] = self.docs['in']['return']
             self.docs['out']['rtype'] = self.docs['in']['rtype']
