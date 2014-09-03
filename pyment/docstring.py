@@ -506,7 +506,7 @@ class GoogledocTools(object):
             header = self.section_headers[key]
         else:
             return ''
-        header = spaces + header + ':' + os.linesep + spaces
+        header = spaces + header + ':' + os.linesep
         return header
 
 
@@ -678,7 +678,7 @@ class DocsTools(object):
 
         '''
         target = 'out' if target == 'out' else 'in'
-        if self.style[target] == 'numpydoc':
+        if self.style[target] in ['numpydoc', 'google']:
             return ''
         return self.opt[key][self.style[target]]['sep']
 
@@ -1562,7 +1562,7 @@ class DocString(object):
         '''
         #TODO: manage return retrieved from element code (external)
         #TODO: manage different in/out styles
-        if type(self.docs['in']['return']) is list and self.dst.style['out'] not in ['groups', 'numpydoc']:
+        if type(self.docs['in']['return']) is list and self.dst.style['out'] not in ['groups', 'numpydoc', 'google']:
             #TODO: manage return names
             #manage not setting return if not mandatory for numpy
             lst = self.docs['in']['return']
@@ -1590,7 +1590,9 @@ class DocString(object):
         raw = os.linesep
         if self.dst.style['out'] == 'numpydoc':
             spaces = ' ' * 4
-            with_space = lambda s: os.linesep.join([self.docs['out']['spaces'] + spaces + l.lstrip() if i > 0 else l for i, l in enumerate(s.split(os.linesep))])
+            with_space = lambda s: os.linesep.join([self.docs['out']['spaces'] + spaces + \
+                                                    l.lstrip() if i > 0 else \
+                                                    l for i, l in enumerate(s.split(os.linesep))])
             raw += self.dst.numpydoc.get_key_section_header('param', self.docs['out']['spaces'])
             for p in self.docs['out']['params']:
                 raw += self.docs['out']['spaces'] + p[0] + ' :'
@@ -1602,10 +1604,29 @@ class DocString(object):
                     if 'default' not in p[1].lower() and len(p) > 3 and p[3] is not None:
                         raw += ' (Default value = ' + str(p[3]) + ')'
                 raw += os.linesep
+        elif self.dst.style['out'] == 'google':
+            spaces = ' ' * 2
+            with_space = lambda s: os.linesep.join([self.docs['out']['spaces'] + \
+                                                    l.lstrip() if i > 0 else \
+                                                    l for i, l in enumerate(s.split(os.linesep))])
+            raw += self.dst.googledoc.get_key_section_header('param', self.docs['out']['spaces'])
+            for p in self.docs['out']['params']:
+                raw += self.docs['out']['spaces'] + spaces + p[0]
+                if p[2] is not None and len(p[2]) > 0:
+                    raw += '(' + p[2]
+                    if len(p) > 3 and p[3] is not None:
+                        raw += ', optional'
+                    raw += ')'
+                raw += ': ' + with_space(p[1]).strip()
+                if len(p) > 2:
+                    if 'default' not in p[1].lower() and len(p) > 3 and p[3] is not None:
+                        raw += ' (Default value = ' + str(p[3]) + ')'
+                raw += os.linesep
         elif self.dst.style['out'] == 'groups':
             pass
         else:
-            with_space = lambda s: os.linesep.join([self.docs['out']['spaces'] + l if i > 0 else l for i, l in enumerate(s.split(os.linesep))])
+            with_space = lambda s: os.linesep.join([self.docs['out']['spaces'] + l \
+                                                    if i > 0 else l for i, l in enumerate(s.split(os.linesep))])
             if len(self.docs['out']['params']):
                 for p in self.docs['out']['params']:
                     raw += self.docs['out']['spaces'] + self.dst.get_key('param', 'out') + ' ' + p[0] + sep + with_space(p[1]).strip()
@@ -1636,6 +1657,20 @@ class DocString(object):
                         for p in self.docs['out']['raises']:
                             raw += self.docs['out']['spaces'] + p[0] + os.linesep
                             raw += self.docs['out']['spaces'] + spaces + with_space(p[1]).strip() + os.linesep
+                    raw += os.linesep
+        elif self.dst.style['out'] == 'google':
+            if 'raise' not in self.dst.googledoc.get_excluded_sections():
+                raw += os.linesep
+                if 'raise' in self.dst.googledoc.get_mandatory_sections() or \
+                        (self.docs['out']['raises'] and 'raise' in self.dst.googledoc.get_optional_sections()):
+                    spaces = ' ' * 2
+                    with_space = lambda s: os.linesep.join([self.docs['out']['spaces'] + spaces + \
+                                                            l.lstrip() if i > 0 else \
+                                                            l for i, l in enumerate(s.split(os.linesep))])
+                    raw += self.dst.googledoc.get_key_section_header('raise', self.docs['out']['spaces'])
+                    if len(self.docs['out']['raises']):
+                        for p in self.docs['out']['raises']:
+                            raw += self.docs['out']['spaces'] + spaces + p[0] + ': ' + p[1].strip() + os.linesep
                     raw += os.linesep
         elif self.dst.style['out'] == 'groups':
             pass
@@ -1680,6 +1715,35 @@ class DocString(object):
             elif self.docs['out']['return'] is not None:
                 raw += self.docs['out']['spaces'] + rtype
                 raw += os.linesep + self.docs['out']['spaces'] + spaces + with_space(self.docs['out']['return']).strip() + os.linesep
+        elif self.dst.style['out'] == 'google':
+            raw += os.linesep
+            spaces = ' ' * 2
+            with_space = lambda s: os.linesep.join([self.docs['out']['spaces'] + spaces + \
+                                                    l.lstrip() if i > 0 else \
+                                                    l for i, l in enumerate(s.split(os.linesep))])
+            raw += self.dst.googledoc.get_key_section_header('return', self.docs['out']['spaces'])
+            if self.docs['out']['rtype']:
+                rtype = self.docs['out']['rtype']
+            else:
+                rtype = None
+            # case of several returns
+            if type(self.docs['out']['return']) is list:
+                for ret_elem in self.docs['out']['return']:
+                    # if tuple (name=None, desc, rtype) else string desc
+                    if type(ret_elem) is tuple and len(ret_elem) == 3:
+                        rtype = ret_elem[2]
+                        raw += self.docs['out']['spaces'] + spaces
+                        raw += rtype + ': ' + with_space(ret_elem[1]).strip() + os.linesep
+                    else:
+                        # There can be a problem
+                        if rtype:
+                            raw += self.docs['out']['spaces'] + spaces + rtype + ': '
+                        raw += self.docs['out']['spaces'] + spaces + with_space(str(ret_elem)).strip() + os.linesep
+            # case of a unique return
+            elif self.docs['out']['return'] is not None:
+                if rtype:
+                    raw += self.docs['out']['spaces'] + spaces + rtype + ': '
+                raw += self.docs['out']['spaces'] + spaces + with_space(self.docs['out']['return']).strip() + os.linesep
         elif self.dst.style['out'] == 'groups':
             pass
         else:
@@ -1732,7 +1796,7 @@ class DocString(object):
         self.docs['out']['raw'] = raw.rstrip()
 
     def generate_docs(self):
-        '''
+        '''Generates the output docstring
         '''
         if self.dst.style['out'] == 'numpydoc' and self.dst.numpydoc.first_line is not None:
             self.first_line = self.dst.numpydoc.first_line
