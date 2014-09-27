@@ -26,8 +26,8 @@ At the end, patches are generated for each file. Then, you just have to apply th
 What are the supported formats
 ------------------------------
 
-Currently, the managed styles are javadoc, reST (re-Structured Text, used by Sphinx), numpydoc, groups (contain Google docstrings style).
-Note however that groups is only managed in input, and the reST format is known in only one variant (especially concerning the parameters types).
+Currently, the managed styles are javadoc, reST (re-Structured Text, used by Sphinx), numpydoc, google, other groups (like Google).
+
 
 Customization
 -------------
@@ -339,7 +339,7 @@ And the second using:
 Managed docstrings examples
 ---------------------------
 
-There follows examples of docstrings that be recognized or generated.
+There follows some examples of docstrings that can be recognized or generated.
 
 - "javadoc" style:
 
@@ -362,27 +362,30 @@ There follows examples of docstrings that be recognized or generated.
         This is a reST style.
 
         :param param1: this is a first param
+        :type param1: str
         :param param2: this is a second param
+        :type param2: int
         :returns: this is a description of what is returned
+        :rtype: bool
         :raises keyError: raises an exception
         """
 
-- "groups" style (the kind used by Google):
+- "google" style:
 
 .. code-block:: python
 
         """
-        This is a groups style docs.
+        This is a Google style docs.
 
-        Parameters:
-            param1 - this is the first param
-            param2 - this is a second param
+        Args:
+          param1(str): this is the first param
+          param2(int, optional): this is a second param
 
         Returns:
-            This is a description of what is returned
+            bool: This is a description of what is returned
 
         Raises:
-            KeyError - raises an exception
+            KeyError: raises an exception
         """
 
 - "numpydoc" style:
@@ -443,10 +446,28 @@ There follows examples of docstrings that be recognized or generated.
 
         """
 
-Contact/Donation/Contributing
+- other "groups" style:
+
+.. code-block:: python
+
+        """
+        This is a groups style docs.
+
+        Parameters:
+            param1 - this is the first param
+            param2 - this is a second param
+
+        Returns:
+            This is a description of what is returned
+
+        Raises:
+            KeyError - raises an exception
+        """
+
+Contact/Contributing
 =============================
 
-- Contact / Donate
+- Contact
 
 There is a dedicated **IRC** channel on **Freenode**: **#pyment**. The developer is *dadel*.
 
@@ -459,4 +480,4 @@ However you can contribute by opening issues, proposing pull requests, or contac
 
 The tests are unfortunately not good enough, so you can contribute in that field, that would be really great!
 An other useful way to contribute should be to create a plugin for you favorite IDE.
-You can also find in the code some TODOs, not always up-to-date, that should be taken into account.
+You can also find in the code some TODOs, not always up-to-date.

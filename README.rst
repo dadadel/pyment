@@ -16,7 +16,7 @@ Then, for all found functions/methods/classes, it will generate formated docstri
 At the end, patches are generated for each file. Then, man can apply the patches to the initial scripts.
 It is also possible to generate the python file with the new docstrings, or to retrieve only the docstrings...
 
-Currently, the managed styles in input/output are javadoc, one variant of reST (re-Structured Text, used by Sphinx), numpydoc, groups (only input, Google style).
+Currently, the managed styles in input/output are javadoc, one variant of reST (re-Structured Text, used by Sphinx), numpydoc, google docstrings, groups (other grouped style).
 
 You can also configure some settings via the command line or a configuration
 file.
@@ -80,7 +80,7 @@ Let's consider a file *test.py* with following content:
 .. code-block:: python
 
         def func(param1=True, param2='default val'):
-            '''Description of func with docstring groups style (Googledoc).
+            '''Description of func with docstring groups style.
 
             Params: 
                 param1 - descr of param1 that has True for default value.
@@ -117,8 +117,8 @@ So the previous command has generated the file *test.py.patch* with following co
         +++ b/test.py
         @@ -1,20 +1,22 @@
          def func(param1=True, param2='default val'):
-        -    '''Description of func with docstring groups style (Googledoc).
-        +    """Description of func with docstring groups style (Googledoc).
+        -    '''Description of func with docstring groups style.
+        +    """Description of func with docstring groups style.
          
         -    Params: 
         -        param1 - descr of param1 that has True for default value.
@@ -162,7 +162,7 @@ Now the original *test.py* was updated and its content is now:
 .. code-block:: python
 
         def func(param1=True, param2='default val'):
-            """Description of func with docstring groups style (Googledoc).
+            """Description of func with docstring groups style.
 
             :param param1: descr of param1 that has True for default value
             :param param2: descr of param2 (Default value = 'default val')
