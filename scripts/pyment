@@ -58,19 +58,21 @@ def get_config(config_file):
                 if len(line.strip()):
                     key, value = line.split("=", 1)
                     key, value = key.strip(), value.strip()
-                    if key in ['init2class', 'first_line']:
+                    if key in ['init2class', 'first_line', 'convert_only']:
                         value = tobool(value)
                     config[key] = value
     return config
 
 
-def run(source, files=[], input_style='auto', output_style='reST', first_line=True, quotes='"""', init2class=False, config_file=None, ignore_private=False):
+def run(source, files=[], input_style='auto', output_style='reST', first_line=True, quotes='"""', init2class=False, convert=False, config_file=None, ignore_private=False):
     if input_style == 'auto':
         input_style = None
 
     config = get_config(config_file)
     if 'init2class' in config:
         init2class = config.pop('init2class')
+    if 'convert_only' in config:
+        convert = config.pop('convert_only')
     if 'quotes' in config:
         quotes = config.pop('quotes')
     if 'input_style' in config:
@@ -90,6 +92,7 @@ def run(source, files=[], input_style='auto', output_style='reST', first_line=Tr
                       output_style=output_style,
                       first_line=first_line,
                       ignore_private=ignore_private,
+                      convert_only=convert,
                       **config)
         c.proceed()
         if init2class:
@@ -110,6 +113,8 @@ def main():
                         dest='quotes', help='Type of docstring delimiter quotes: \'\'\' or \"\"\" (default \"\"\"). Note that you may escape the characters using \\ like \\\'\\\'\\\', or surround it with the opposite quotes like \"\'\'\'\"')
     parser.add_argument('-f', '--first-line', metavar='status', default="True",
                         dest='first_line', help='Does the comment starts on the first line after the quotes (default "True")')
+    parser.add_argument('-t', '--convert', action="store_true", default=False,
+                        help="Existing docstrings will be converted but won't create missing ones")
     parser.add_argument('-c', '--config-file', metavar='config', default="",
                         dest='config_file', help='Get a Pyment configuration from a file. Note that the config values will overload the command line ones.')
     parser.add_argument('-d', '--init2class', help='If no docstring to class, then move the __init__ one',
@@ -133,7 +138,7 @@ def main():
     tobool = lambda s: True if s in ['True', 'true'] else False
     run(source, files, args.input, args.output,
         tobool(args.first_line), args.quotes,
-        args.init2class, config_file,
+        args.init2class, args.convert, config_file,
         tobool(args.ignore_private))
 
 if __name__ == "__main__":

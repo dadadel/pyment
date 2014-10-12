@@ -3,7 +3,7 @@
 __author__ = "A. Daouzli"
 __copyright__ = "Copyright 2013/12"
 __licence__ = "GPL3"
-__version__ = "0.2.1-dev"
+__version__ = "0.3.0-dev"
 __maintainer__ = "A. Daouzli"
 
 #TODO:
@@ -32,7 +32,7 @@ class PyComment(object):
 
     '''
     def __init__(self, input_file, input_style=None, output_style='reST', quotes="'''", first_line=True,
-                 config_file=None, ignore_private=False, **kwargs):
+                 convert_only=False, config_file=None, ignore_private=False, **kwargs):
         '''Sets the configuration including the source to proceed and options.
 
         @param input_file: path name (file or folder)
@@ -43,6 +43,7 @@ class PyComment(object):
         @param first_line: indicate if description should start
         on first or second line. By default it is True
         @type first_line: boolean
+        @param convert_only: if set only existing docstring will be converted. No missing docstring will be created.
         @param config_file: if given configuration file for Pyment
         @param ignore_private: don't proceed the private methods/functions starting with __ (two underscores)
 
@@ -58,6 +59,7 @@ class PyComment(object):
         self.docs_list = []
         self.parsed = False
         self.quotes = quotes
+        self.convert_only = convert_only
         self.config_file = config_file
         self.ignore_private = ignore_private
         self.kwargs = kwargs
@@ -159,7 +161,15 @@ class PyComment(object):
                 else:
                     if reading_docs is not None:
                         raw += ln
+        if self.convert_only:
+            i = 0
+            while i < len(elem_list):
+                if elem_list[i]['docs'].get_input_docstring() == None:
+                    elem_list.pop(i)
+                else:
+                    i += 1
         self.docs_list = elem_list
+        
         self.parsed = True
         return elem_list
 

@@ -41,6 +41,21 @@ mygrpdocs = '''
       OtherError: when an other error
     """'''
 
+googledocs = '''"""This is a Google style docs.
+
+    Args:
+      first(str): this is the first param
+      second(int): this is a second param
+      third(str, optional): this is a third param
+
+    Returns:
+      This is a description of what is returned
+
+    Raises:
+      KeyError: raises an exception
+      OtherError: when an other error
+"""'''
+
 mygrpdocs2 = '''
     """
     My desc of an other kind 
@@ -124,6 +139,17 @@ def torest(docs):
 
 class DocStringTests(unittest.TestCase):
 
+    def testChekListParamsGoogledoc(self):
+        doc = googledocs
+        d = docs.DocString(myelem, '    ', doc)
+        d._extract_docs_params()
+        self.failUnless(d.get_input_style() == 'google')
+
+    def testAutoInputStyleGoogledoc(self):
+        doc = googledocs
+        d = docs.DocString(myelem, '    ', doc)
+        self.failUnless(d.get_input_style() == 'google')
+
     def testAutoInputStyleNumpydoc(self):
         doc = mynumpydocs
         d = docs.DocString(myelem, '    ', doc)
@@ -196,7 +222,13 @@ class DocStringTests(unittest.TestCase):
         d.parse_docs()
         self.failUnless(d.docs['in']['desc'].strip().startswith('My numpydoc'))
         self.failUnless(d.docs['in']['desc'].strip().endswith('format docstring.'))
-    
+
+    def testParsingGoogleDocsDesc(self):
+        doc = googledocs
+        d = docs.DocString(myelem, '    ', doc)
+        d.parse_docs()
+        self.failUnless(d.docs['in']['desc'].strip().startswith('This is a Google style docs.'))
+
     def testParsingDocsParams(self):
         doc = torest(mydocs)
         d = docs.DocString(myelem, '    ', doc)
@@ -210,6 +242,15 @@ class DocStringTests(unittest.TestCase):
         self.failIf(d.docs['in']['params'][1][2])
         # param's description
         self.failUnless(d.docs['in']['params'][0][1].startswith("the 1"))
+
+    def testParsingGoogleDocsParams(self):
+        doc = googledocs
+        d = docs.DocString(myelem, '    ', doc)
+        d.parse_docs()
+        self.failUnless(len(d.docs['in']['params']) == 3)
+        self.failUnless(d.docs['in']['params'][0][0] == 'first')
+        self.failUnless(d.docs['in']['params'][0][1].startswith('this is the first'))
+        self.failUnless(d.docs['in']['params'][2][1].startswith('this is a third'))
 
     def testParsingGroupsDocsParams(self):
         doc = mygrpdocs
@@ -248,6 +289,16 @@ class DocStringTests(unittest.TestCase):
         self.failUnless(d.docs['in']['raises'][0][1].startswith('raises a key'))
         self.failUnless(d.docs['in']['raises'][1][0].startswith('OtherError'))
         self.failUnless(d.docs['in']['raises'][1][1].startswith('raises an other'))
+
+    def testParsingGoogleDocsRaises(self):
+        doc = googledocs
+        d = docs.DocString(myelem, '    ', doc)
+        d.parse_docs()
+        self.failUnless(len(d.docs['in']['raises']) == 2)
+        self.failUnless(d.docs['in']['raises'][0][0] == 'KeyError')
+        self.failUnless(d.docs['in']['raises'][0][1].startswith('raises an'))
+        self.failUnless(d.docs['in']['raises'][1][0] == 'OtherError')
+        self.failUnless(d.docs['in']['raises'][1][1].startswith('when an other'))
 
     def testParsingGroupsDocsRaises(self):
         doc = mygrpdocs
@@ -291,6 +342,12 @@ class DocStringTests(unittest.TestCase):
         d = docs.DocString(myelem, '    ', doc)
         d.parse_docs()
         self.failUnless(d.docs['in']['return'] == 'a value in a string')
+
+    def testParsingGoogleDocsReturn(self):
+        doc = googledocs
+        d = docs.DocString(myelem, '    ', doc)
+        d.parse_docs()
+        self.failUnless(d.docs['in']['return'][0][1] == 'This is a description of what is returned')
 
     def testParsingNumpyDocsReturn(self):
         doc = mynumpydocs
