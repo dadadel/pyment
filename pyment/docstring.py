@@ -1738,12 +1738,16 @@ class DocString(object):
                         # There can be a problem
                         if rtype:
                             raw += self.docs['out']['spaces'] + spaces + rtype + ': '
-                        raw += self.docs['out']['spaces'] + spaces + with_space(str(ret_elem)).strip() + os.linesep
+                            raw += with_space(str(ret_elem)).strip() + os.linesep
+                        else:
+                            raw += self.docs['out']['spaces'] + spaces + with_space(str(ret_elem)).strip() + os.linesep
             # case of a unique return
             elif self.docs['out']['return'] is not None:
                 if rtype:
                     raw += self.docs['out']['spaces'] + spaces + rtype + ': '
-                raw += self.docs['out']['spaces'] + spaces + with_space(self.docs['out']['return']).strip() + os.linesep
+                    raw += with_space(self.docs['out']['return']).strip() + os.linesep
+                else:
+                    raw += self.docs['out']['spaces'] + spaces + with_space(self.docs['out']['return']).strip() + os.linesep
         elif self.dst.style['out'] == 'groups':
             pass
         else:
