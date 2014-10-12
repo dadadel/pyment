@@ -1,4 +1,5 @@
-0.2.1 - DATE:
+0.2.1 - 2014/06/28:
+        - add option to only convert existing docstrings
         - improve documentation
         - clean a bit the code
         - change readme format from markdown to reStructuredText
