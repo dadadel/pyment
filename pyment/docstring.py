@@ -3,14 +3,14 @@
 __author__ = "A. Daouzli"
 __copyright__ = "Copyright dec. 2013, A. Daouzli"
 __licence__ = "GPL3"
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 __maintainer__ = "A. Daouzli"
 
 """
 Formats supported at the time:
  - javadoc, reST (restructured text, Sphinx):
  managed  -> description, param, type, return, rtype, raise
- - groups (Google like): only input
+ - google:
  managed  -> description, parameters, return, raises
  - numpydoc:
  managed  -> description, parameters, return (first of list only), raises
@@ -25,8 +25,8 @@ from collections import defaultdict
 def isin_alone(elems, line):
     """Check if an element from a list is the only element of a string.
 
-    :param elems: 
-    :param line: 
+    :type elems: list
+    :type line: str
 
     """
     found = False
@@ -39,8 +39,8 @@ def isin_alone(elems, line):
 def isin_start(elems, line):
     """Check if an element from a list starts a string.
 
-    :param elems: 
-    :param line: 
+    :type elems: list
+    :type line: str
 
     """
     found = False
@@ -54,8 +54,8 @@ def isin_start(elems, line):
 def isin(elems, line):
     """Check if an element from a list is in a string.
 
-    :param elems: 
-    :param line: 
+    :type elems: list
+    :type line: str
 
     """
     found = False
@@ -68,7 +68,7 @@ def isin(elems, line):
 def get_leading_spaces(data):
     """Get the leading space of a string if it is not empty
 
-    :param data: 
+    :type data: str
 
     """
     spaces = ''
@@ -84,10 +84,10 @@ class NumpydocTools(object):
                  optional_sections=['raise', 'also', 'ref', 'note', 'other', 'example', 'method', 'attr'],
                  excluded_sections=[]):
         '''
-        @param first_line: indicate if description should start
+        :param first_line: indicate if description should start
         on first or second line. By default it will follow global config.
-        @type first_line: boolean
-        @param optional_sections: list of sections that are not mandatory
+        :type first_line: boolean
+        :param optional_sections: list of sections that are not mandatory
         if empty. The accepted sections are:
         -param
         -return
@@ -99,10 +99,10 @@ class NumpydocTools(object):
         -example
         -method
         -attr
-        @type optional_sections: list
-        @param excluded_sections: list of sections that are excluded,
+        :type optional_sections: list
+        :param excluded_sections: list of sections that are excluded,
         even if mandatory. The list is the same than for optional sections.
-        @type excluded_sections: list
+        :type excluded_sections: list
 
         '''
         self.first_line = first_line
@@ -130,15 +130,12 @@ class NumpydocTools(object):
         return self.opt[key]
 
     def get_optional_sections(self):
-        """ """
         return self.optional_sections
 
     def get_excluded_sections(self):
-        """ """
         return self.excluded_sections
 
     def get_mandatory_sections(self):
-        """ """
         return [s for s in self.opt
                 if s not in self.optional_sections and
                    s not in self.excluded_sections]
@@ -149,7 +146,8 @@ class NumpydocTools(object):
         The section is a section key (e.g. 'Parameters') followed by underline
         (made by -), then the content
 
-        :param data: 
+        :param data: the data to proceed
+        :type data: str
 
         """
         start = -1
@@ -167,8 +165,8 @@ class NumpydocTools(object):
     def get_section_key_line(self, data, key):
         """Get the next section line for a given key.
 
-        :param data: 
-        :param key: 
+        :param data: the data to proceed
+        :param key: the key
 
         """
         start = 0
@@ -192,7 +190,7 @@ class NumpydocTools(object):
         The ending line number is the line after the end of the section or -1 if
         the section is at the end.
 
-        :param data: 
+        :param data: the data to proceed
 
         """
         end = -1
@@ -206,8 +204,8 @@ class NumpydocTools(object):
         Each element is a tuple (key=None, description, type=None).
         Note that the tuple's element can differ depending on the key.
 
-        :param data: 
-        :param key: 
+        :param data: the data to proceed
+        :param key: the key
 
         """
         key_list = []
@@ -251,7 +249,7 @@ class NumpydocTools(object):
         """Get the list of attributes.
         The list contains tuples (name, desc, type=None)
 
-        :param data: 
+        :param data: the data to proceed
 
         """
         return self.get_list_key(data, 'attr')
@@ -260,7 +258,7 @@ class NumpydocTools(object):
         """Get the list of parameters.
         The list contains tuples (name, desc, type=None)
 
-        :param data: 
+        :param data: the data to proceed
 
         """
         return self.get_list_key(data, 'param')
@@ -269,7 +267,7 @@ class NumpydocTools(object):
         """Get the list of return elements/values.
         The list contains tuples (name=None, desc, type)
 
-        :param data: 
+        :param data: the data to proceed
 
         """
         return_list = []
@@ -286,7 +284,7 @@ class NumpydocTools(object):
         """Get the list of exceptions.
         The list contains tuples (name, desc)
 
-        :param data: 
+        :param data: the data to proceed
 
         """
         return_list = []
@@ -300,7 +298,7 @@ class NumpydocTools(object):
     def get_raw_not_managed(self, data):
         """Get elements not managed. They can be used as is.
 
-        :param data: 
+        :param data: the data to proceed
 
         """
         keys = ['also', 'ref', 'note', 'other', 'example', 'method', 'attr']
@@ -326,10 +324,10 @@ class NumpydocTools(object):
         return raw
 
     def get_key_section_header(self, key, spaces):
-        """
+        """Get the key of the header section
 
-        :param key: 
-        :param spaces: 
+        :param key: the key name
+        :param spaces: spaces to set at the beginning of the header
 
         """
         if key == 'param':
@@ -350,18 +348,18 @@ class GoogledocTools(object):
                  optional_sections=['raise'],
                  excluded_sections=[]):
         '''
-        @param first_line: indicate if description should start
+        :param first_line: indicate if description should start
         on first or second line. By default it will follow global config.
-        @type first_line: boolean
-        @param optional_sections: list of sections that are not mandatory
+        :type first_line: boolean
+        :param optional_sections: list of sections that are not mandatory
         if empty. The accepted sections are:
         -param
         -return
         -raise
-        @type optional_sections: list
-        @param excluded_sections: list of sections that are excluded,
+        :type optional_sections: list
+        :param excluded_sections: list of sections that are excluded,
         even if mandatory. The list is the same than for optional sections.
-        @type excluded_sections: list
+        :type excluded_sections: list
 
         '''
         self.first_line = first_line
@@ -402,7 +400,7 @@ class GoogledocTools(object):
         The ending line number is the line after the end of the section or -1 if
         the section is at the end.
 
-        :param data: 
+        :param data: the data to proceed
 
         """
         end = -1
@@ -414,8 +412,8 @@ class GoogledocTools(object):
     def get_section_key_line(self, data, key):
         """Get the next section line for a given key.
 
-        :param data: 
-        :param key: 
+        :param data: the data to proceed
+        :param key: the key
 
         """
         start = 0
@@ -436,8 +434,8 @@ class GoogledocTools(object):
         Each element is a tuple (key=None, description, type=None).
         Note that the tuple's element can differ depending on the key.
 
-        :param data: 
-        :param key: 
+        :param data: the data to proceed
+        :param key: the key
 
         """
         #TODO: see how to factorize this with groups and numpydoc
@@ -493,14 +491,14 @@ class GoogledocTools(object):
                 desc += line
         if parse_key or desc:
             key_list.append((key, desc, ptype))
-            
+
         return key_list
 
     def get_param_list(self, data):
         """Get the list of parameters.
         The list contains tuples (name, desc, type=None)
 
-        :param data: 
+        :param data: the data to proceed
 
         """
         return self.get_list_key(data, 'param')
@@ -509,7 +507,7 @@ class GoogledocTools(object):
         """Get the list of returned values.
         The list contains tuples (name=None, desc, type=None)
 
-        :param data: 
+        :param data: the data to proceed
 
         """
         return_list = []
@@ -521,14 +519,14 @@ class GoogledocTools(object):
                 name = None
                 desc = desc.strip()
             return_list.append((name, desc, rtype))
-        
+
         return return_list
 
     def get_raise_list(self, data):
         """Get the list of exceptions.
         The list contains tuples (name, desc)
 
-        :param data: 
+        :param data: the data to proceed
 
         """
         return_list = []
@@ -537,7 +535,7 @@ class GoogledocTools(object):
         # assume raises are only a name and a description
             name, desc, _ = l
             return_list.append((name, desc))
-    
+
         return return_list
 
     def get_mandatory_sections(self):
@@ -564,10 +562,10 @@ class GoogledocTools(object):
         return start
 
     def get_key_section_header(self, key, spaces):
-        """
+        """Get the key of the section header
 
-        :param key: 
-        :param spaces: 
+        :param key: the key name
+        :param spaces: spaces to set at the beginning of the header
 
         """
         if key in self.section_headers:
@@ -587,7 +585,6 @@ class DocsTools(object):
     - 'google': the numpy format for docstrings (using an external module)
     - 'numpydoc': the numpy format for docstrings (using an external module)
 
-
     """
     #TODO: enhance style dependent separation
     #TODO: add set methods to generate style specific outputs
@@ -595,12 +592,12 @@ class DocsTools(object):
     def __init__(self, style_in='javadoc', style_out='reST', params=None):
         '''Choose the kind of docstring type.
 
-        @param style_in: docstring input style ('javadoc', 'reST', 'groups', 'numpydoc', 'google')
-        @type style_in: string
-        @param style_out: docstring output style ('javadoc', 'reST', 'groups', 'numpydoc', 'google')
-        @type style_out: string
-        @param params: if known the parameters names that should be found in the docstring.
-        @type params: list
+        :param style_in: docstring input style ('javadoc', 'reST', 'groups', 'numpydoc', 'google')
+        :type style_in: string
+        :param style_out: docstring output style ('javadoc', 'reST', 'groups', 'numpydoc', 'google')
+        :type style_out: string
+        :param params: if known the parameters names that should be found in the docstring.
+        :type params: list
 
         '''
         self.style = {'in': style_in,
@@ -614,7 +611,7 @@ class DocsTools(object):
 
     def _set_available_styles(self):
         """Set the internal styles list and available options in a structure as following:
-        
+
             param: javadoc: name = '@param'
                             sep  = ':'
                    reST:    name = ':param'
@@ -624,12 +621,11 @@ class DocsTools(object):
                             sep  = ':'
                    ...
             ...
-        
+
         And sets the internal groups style:
             param:  'params', 'args', 'parameters', 'arguments'
             return: 'returns', 'return'
             raise:  'raises', 'raise', 'exceptions', 'exception'
-
 
         """
         options_tagstyle = {'keys': ['param', 'type', 'returns', 'return', 'rtype', 'raise'],
@@ -740,7 +736,7 @@ class DocsTools(object):
 
     def get_sep(self, key='param', target='in'):
         """Get the separator of current style.
-        e.g.: in javadoc style, it is ":"
+        e.g.: in reST and javadoc style, it is ":"
 
         :param key: the key which separator is wanted (param, type, return, rtype,..) (Default value = 'param')
         :param target: the target docstring is 'in' for the input or
@@ -798,7 +794,8 @@ class DocsTools(object):
     def get_group_line(self, data):
         """Get the next group-style key's line.
 
-        :param data: 
+        :param data: the data to proceed
+        :returns: the line number
 
         """
         idx = -1
@@ -879,15 +876,10 @@ class DocsTools(object):
         return idx
 
     def get_elem_desc(self, data, key):
-        """
-
-        :param data: 
-        :param key: 
-
-        """
+        """TODO """
 
     def get_elem_param(self):
-        """ """
+        """TODO """
 
     def get_raise_indexes(self, data):
         """Get from a docstring the next raise name indexes.
@@ -1155,17 +1147,17 @@ class DocString(object):
 
     def __init__(self, elem_raw, spaces='', docs_raw=None, quotes="'''", input_style=None, output_style=None, first_line=False, **kwargs):
         '''
-        @param elem_raw: raw data of the element (def or class).
-        @param spaces: the leading whitespaces before the element
-        @param docs_raw: the raw data of the docstring part if any.
-        @param quotes: the type of quotes to use for output: ' ' ' or " " "
-        @param style_in: docstring input style ('javadoc', 'reST', 'groups', 'numpydoc', None). If None will be autodetected
-        @type style_in: string
-        @param style_out: docstring output style ('javadoc', 'reST', 'groups', 'numpydoc')
-        @type style_out: string
-        @param first_line: indicate if description should start
+        :param elem_raw: raw data of the element (def or class).
+        :param spaces: the leading whitespaces before the element
+        :param docs_raw: the raw data of the docstring part if any.
+        :param quotes: the type of quotes to use for output: ' ' ' or " " "
+        :param style_in: docstring input style ('javadoc', 'reST', 'groups', 'numpydoc', None). If None will be autodetected
+        :type style_in: string
+        :param style_out: docstring output style ('javadoc', 'reST', 'groups', 'numpydoc')
+        :type style_out: string
+        :param first_line: indicate if description should start
         on first or second line
-        @type first_line: boolean
+        :type first_line: boolean
 
         '''
         self.dst = DocsTools()
@@ -1237,9 +1229,7 @@ class DocString(object):
     def get_input_docstring(self):
         """Get the input raw docstring.
 
-
         :returns: the input docstring if any.
-
         :rtype: str or None
 
         """
@@ -1248,9 +1238,7 @@ class DocString(object):
     def get_input_style(self):
         """Get the input docstring style
 
-
         :returns: the style for input docstring
-
         :rtype: style: str
 
         """
@@ -1270,9 +1258,7 @@ class DocString(object):
     def get_output_style(self):
         """Sets the output docstring style
 
-
         :returns: the style for output docstring
-
         :rtype: style: str
 
         """
@@ -1291,7 +1277,6 @@ class DocString(object):
 
     def get_spaces(self):
         """Get the output docstring initial spaces.
-
 
         :returns: the spaces
 
@@ -1438,7 +1423,6 @@ class DocString(object):
         """Extract parameters description and type from docstring. The internal computed parameters list is
         composed by tuples (parameter, description, type).
 
-
         """
         if self.dst.style['in'] == 'numpydoc':
             data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
@@ -1505,7 +1489,6 @@ class DocString(object):
     def _extract_docs_raises(self):
         """Extract raises description from docstring. The internal computed raises list is
         composed by tuples (raise, description).
-
 
         """
         if self.dst.style['in'] == 'numpydoc':
@@ -1662,7 +1645,6 @@ class DocString(object):
             self.docs['out']['return'] = self.docs['in']['return']
             self.docs['out']['rtype'] = self.docs['in']['rtype']
 
-
     def _set_other(self):
         """Sets other specific sections"""
             #manage not setting if not mandatory for numpy
@@ -1672,7 +1654,7 @@ class DocString(object):
     def _set_raw_params(self, sep):
         """Set the output raw parameters section
 
-        :param sep: 
+        :param sep: the separator of current style
 
         """
         raw = os.linesep
@@ -1732,7 +1714,7 @@ class DocString(object):
     def _set_raw_raise(self, sep):
         """Set the output raw exception section
 
-        :param sep: 
+        :param sep: the separator of current style
 
         """
         raw = ''
@@ -1778,7 +1760,7 @@ class DocString(object):
     def _set_raw_return(self, sep):
         """Set the output raw return section
 
-        :param sep: 
+        :param sep: the separator of current style
 
         """
         raw = ''
@@ -1912,7 +1894,6 @@ class DocString(object):
 
     def get_raw_docs(self):
         """Generates raw docstring
-
 
         :returns: the raw docstring
 
