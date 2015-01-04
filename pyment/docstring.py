@@ -1904,44 +1904,4 @@ class DocString(object):
 
 
 if __name__ == "__main__":
-    data1 = '''This is test
-
-    @param par1: the first param1
-
-    '''
-    data2 = '''This is test
-
-    @param par1: the first param1
-    @param prm2: the second param2
-
-    '''
-    data3 = '''This is test
-
-    @param par1: the first param1
-    @param prm2: the second param2
-    @return: the return value
-
-    '''
-    data = data3
-    print("data:'''" + data + "'''")
-    print("")
-    dst = DocsTools('javadoc')
-    loop = True
-    i, maxi = 0, 10
-    while loop:
-        i += 1
-        if i > maxi:
-            loop = False
-        start, end = dst.get_param_indexes(data)
-        if start >= 0:
-            new_start = end
-            print("param='" + data[start:end] + "'")
-            start, end = dst.get_param_description_indexes(data)
-            if start >= 0:
-                print("desc='" + data[start:end] + "'")
-            else:
-                print('NO desc')
-            data = data[new_start:]
-        else:
-            print("NO param")
-            loop = False
+    help(DocString)
