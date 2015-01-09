@@ -1,9 +1,9 @@
 # -*- coding: utf8 -*-
 
 __author__ = "A. Daouzli"
-__copyright__ = "Copyright 2013/12"
+__copyright__ = "Copyright 2012-2015"
 __licence__ = "GPL3"
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 __maintainer__ = "A. Daouzli"
 
 #TODO:
@@ -30,23 +30,22 @@ class PyComment(object):
     It is used to parse and rewrite in a Pythonic way all the functions', methods' and classes' docstrings.
     The changes are then provided in a patch file.
 
-
     """
     def __init__(self, input_file, input_style=None, output_style='reST', quotes="'''", first_line=True,
                  convert_only=False, config_file=None, ignore_private=False, **kwargs):
         '''Sets the configuration including the source to proceed and options.
 
-        @param input_file: path name (file or folder)
-        @param input_style: the type of doctrings format of the output. By default, it will
+        :param input_file: path name (file or folder)
+        :param input_style: the type of doctrings format of the output. By default, it will
         autodetect the format for each docstring.
-        @param output_style: the docstring docstyle to generate.
-        @param quotes: the type of quotes to use for output: ' ' ' or " " "
-        @param first_line: indicate if description should start
+        :param output_style: the docstring docstyle to generate.
+        :param quotes: the type of quotes to use for output: ' ' ' or " " "
+        :param first_line: indicate if description should start
         on first or second line. By default it is True
-        @type first_line: boolean
-        @param convert_only: if set only existing docstring will be converted. No missing docstring will be created.
-        @param config_file: if given configuration file for Pyment
-        @param ignore_private: don't proceed the private methods/functions starting with __ (two underscores)
+        :type first_line: boolean
+        :param convert_only: if set only existing docstring will be converted. No missing docstring will be created.
+        :param config_file: if given configuration file for Pyment
+        :param ignore_private: don't proceed the private methods/functions starting with __ (two underscores)
 
         '''
         self.file_type = '.py'
@@ -66,7 +65,11 @@ class PyComment(object):
         self.kwargs = kwargs
 
     def _parse(self):
-        """Parses the input file's content and generates a list of its elements/docstrings."""
+        """Parses the input file's content and generates a list of its elements/docstrings.
+
+        :returns: the list of elements
+
+        """
         #TODO manage decorators
         #TODO manage default params with strings escaping chars as (, ), ', ', #, ...
         #TODO manage elements ending with comments like: def func(param): # blabla
@@ -177,9 +180,7 @@ class PyComment(object):
         without any docstring, so set the class docstring with __init__one,
         and let __init__ without docstring.
 
-
         :returns: True if done
-
         :rtype: boolean
 
         """
@@ -211,9 +212,7 @@ class PyComment(object):
     def get_output_docs(self):
         """Return the output docstrings once formated
 
-
         :returns: the formated docstrings
-
         :rtype: list
 
         """
@@ -276,11 +275,11 @@ class PyComment(object):
         return [d for d in diff_list]
 
     def diff_to_file(self, patch_file, source_path='', target_path=''):
-        """
+        """Do a diff and save it to file as a patch
 
-        :param patch_file: 
-        :param source_path:  (Default value = '')
-        :param target_path:  (Default value = '')
+        :param patch_file: file name of the patch to generate
+        :param source_path: name of the original file (Default value = '')
+        :param target_path: name of the final file (Default value = '')
 
         """
         diff = self.diff(source_path, target_path)
@@ -289,7 +288,12 @@ class PyComment(object):
             f.writelines(diff)
 
     def proceed(self):
-        """ """
+        """Parses the input file and generates/converts the docstrings.
+
+        :return: the list of docstrings
+        :rtype: list of dictionaries
+
+        """
         self._parse()
         for e in self.docs_list:
             e['docs'].generate_docs()
