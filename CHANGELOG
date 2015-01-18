@@ -1,3 +1,9 @@
+0.3.1:
+        - fix help message (google)
+        - convert Pyment's docstrings to reST format using Pyment itself!
+        - complete docstrings
+        - add 'returns' in managed tags
+
 0.3.0 - 2014/10/12:
         - add google docstring management
 
