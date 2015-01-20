@@ -47,7 +47,7 @@ def get_config(config_file):
 
     '''
     config = {}
-    tobool = lambda s: True if s in ['True', 'true'] else False
+    tobool = lambda s: True if s.lower() == 'true' else False
     if config_file:
         try:
             f = open(config_file, 'r')
@@ -135,7 +135,7 @@ def main():
     else:
         config_file = args.config_file
 
-    tobool = lambda s: True if s in ['True', 'true'] else False
+    tobool = lambda s: True if s.lower() == 'true' else False
     run(source, files, args.input, args.output,
         tobool(args.first_line), args.quotes,
         args.init2class, args.convert, config_file,
