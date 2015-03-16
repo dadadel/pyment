@@ -6,7 +6,8 @@ import argparse
 import os
 
 from pyment import PyComment
-from pyment.pyment import __version__, __copyright__, __author__, __licence__
+from pyment import __version__, __copyright__, __author__, __licence__
+
 
 MAX_DEPTH_RECUR = 50
 ''' The maximum depth to reach while recursively exploring sub folders'''
