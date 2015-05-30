@@ -52,7 +52,7 @@ def get_config(config_file):
         try:
             f = open(config_file, 'r')
         except:
-            print "Unable to open configuration file '%s'" % config_file
+            print ("Unable to open configuration file '{0}'".format(config_file))
         else:
             for line in f.readlines():
                 if len(line.strip()):

@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='Pyment',
-      version='0.3.0',
+      version='0.3.1-dev',
       description='',
       author='A. Daouzli',
       author_email='',

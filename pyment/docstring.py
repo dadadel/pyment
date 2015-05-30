@@ -1371,7 +1371,7 @@ class DocString(object):
             data = data.split(os.linesep)[idx+1:]
             end = self.dst.get_group_line(os.linesep.join(data))
             end = end if end != -1 else len(data)
-            for i in xrange(end):
+            for i in range(end):
                 #FIXME: see how retrieve multiline param description and how get type
                 line = data[i]
                 param = None
@@ -1443,7 +1443,7 @@ class DocString(object):
             data = data.split(os.linesep)[idx+1:]
             end = self.dst.get_group_line(os.linesep.join(data))
             end = end if end != -1 else len(data)
-            for i in xrange(end):
+            for i in range(end):
                 #FIXME: see how retrieve multiline raise description
                 line = data[i]
                 param = None
