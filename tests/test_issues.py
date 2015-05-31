@@ -4,6 +4,7 @@ import unittest
 import shutil
 import os
 import pyment.pyment as pym
+import pyment.docstring as ds
 
 current_dir = os.path.dirname(__file__)
 absdir = lambda f: os.path.join(current_dir, f)
@@ -20,6 +21,25 @@ class IssuesTests(unittest.TestCase):
         self.assertTrue(res[8].strip() != "-    :return: smthg")
         self.assertTrue(res[9].strip() != "-    :rtype: ret type")
         self.assertTrue(res[10].strip() != "+:return: smthg")
+
+    def testIssue11(self):
+        deftxt = "def meaning(subject, answer=False):"
+        txt = '''"""
+    >>> meaning('life', answer=True)
+    42
+    """'''
+        expected = '''    """
+    
+
+    :param subject: 
+    :param answer:  (Default value = False)
+
+    >>> meaning('life', answer=True)
+    42
+    """'''
+        d = ds.DocString(deftxt, quotes='"""')
+        d.parse_docs(txt)
+        self.assertTrue(d.get_raw_docs() == expected)
 
 
 def main():
