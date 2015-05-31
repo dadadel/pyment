@@ -3,17 +3,16 @@
 from setuptools import setup
 
 setup(name='Pyment',
-      version='0.3.1-dev',
+      version='0.3.1',
       description='',
       author='A. Daouzli',
       author_email='',
       url='https://github.com/dadadel/pyment',
       packages=['pyment'],
       test_suite='tests.test_all',
-      entry_points ={
+      entry_points={
         'console_scripts': [
             'pyment = pyment.pymentapp:main'
-        ]
-    },
-
+            ]
+        },
       )

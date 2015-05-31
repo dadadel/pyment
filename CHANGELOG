@@ -1,4 +1,6 @@
-0.3.1:
+0.3.1 - 2015/05/31:
+        - add tests for issues (issue #9 and #11)
+        - use entry_points to get a *.exe on windows
         - fix Python3 compatibility (print, xrange)
         - fix help message (google)
         - convert Pyment's docstrings to reST format using Pyment itself!
