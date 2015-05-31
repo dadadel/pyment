@@ -3,7 +3,7 @@
 __author__ = "A. Daouzli"
 __copyright__ = "Copyright 2012-2015"
 __licence__ = "GPL3"
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 __maintainer__ = "A. Daouzli"
 
 #TODO:
@@ -171,7 +171,7 @@ class PyComment(object):
                 else:
                     i += 1
         self.docs_list = elem_list
-        
+
         self.parsed = True
         return elem_list
 

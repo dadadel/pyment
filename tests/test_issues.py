@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import unittest
-import shutil
 import os
 import pyment.pyment as pym
 import pyment.docstring as ds

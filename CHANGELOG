@@ -1,3 +1,6 @@
+0.3.2:
+        - fix issue #11
+
 0.3.1 - 2015/05/31:
         - add tests for issues (issue #9 and #11)
         - use entry_points to get a *.exe on windows

@@ -1,9 +1,9 @@
 # -*- coding: utf8 -*-
 
 __author__ = "A. Daouzli"
-__copyright__ = "Copyright dec. 2013, A. Daouzli"
+__copyright__ = "Copyright 2012-2015, A. Daouzli"
 __licence__ = "GPL3"
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 __maintainer__ = "A. Daouzli"
 
 """
@@ -196,7 +196,7 @@ class NumpydocTools(object):
         end = -1
         start = self.get_next_section_start_line(data)
         if start != -1:
-            end = self.get_next_section_start_line(data[start+1:])
+            end = self.get_next_section_start_line(data[start + 1:])
         return start, end
 
     def get_list_key(self, data, key):
@@ -316,7 +316,7 @@ class NumpydocTools(object):
                         not isin_alone([self.opt[e] for e in self.excluded_sections], data[init]):
                     spaces = get_leading_spaces(data[init])
                     if end != -1:
-                        section = [d.replace(spaces, '', 1).rstrip() for d in data[init:init+end]]
+                        section = [d.replace(spaces, '', 1).rstrip() for d in data[init:init + end]]
                     else:
                         section = [d.replace(spaces, '', 1).rstrip() for d in data[init:]]
                     raw += os.linesep.join(section) + os.linesep
@@ -406,7 +406,7 @@ class GoogledocTools(object):
         end = -1
         start = self.get_next_section_start_line(data)
         if start != -1:
-            end = self.get_next_section_start_line(data[start+1:])
+            end = self.get_next_section_start_line(data[start + 1:])
         return start, end
 
     def get_section_key_line(self, data, key):
@@ -756,6 +756,26 @@ class DocsTools(object):
 
         """
         self.params = params
+
+    def get_doctests_indexes(self, data):
+        """Extract Doctests if found and return it
+
+        :param data: string to parse
+        :return: index of start and index of end of the doctest, else (-1, -1)
+        :rtype: tuple
+
+        """
+        start, end = -1, -1
+        datalst = data.split(os.linesep)
+        for i, line in enumerate(datalst):
+            if start > -1:
+                if line.strip() == "":
+                    break
+                end = i
+            elif line.strip().startswith(">>>"):
+                start = i
+                end = i
+        return start, end
 
     def get_group_key_line(self, data, key):
         """Get the next group-style key's line number.
@@ -1184,6 +1204,7 @@ class DocString(object):
         self.docs = {
             'in': {
                 'raw': docs_raw,
+                'doctests': "",
                 'desc': None,
                 'params': [],
                 'types': [],
@@ -1332,6 +1353,31 @@ class DocString(object):
                         self.element['params'].append(e)
         self.parsed_elem = True
 
+    def _extract_docs_doctest(self):
+        """Extract the doctests if found.
+        If there are doctests, they are removed from the input data and set on
+        a specific buffer as they won't be altered.
+
+        :return: True if found and proceeded else False
+        """
+        result = False
+        data = self.docs['in']['raw']
+        start, end = self.dst.get_doctests_indexes(data)
+        while start != -1:
+            print (start, end)
+            result = True
+            datalst = data.split(os.linesep)
+            if self.docs['in']['doctests'] != "":
+                self.docs['in']['doctests'] += os.linesep
+            self.docs['in']['doctests'] += os.linesep.join(datalst[start:end + 1]) + os.linesep
+            self.docs['in']['raw'] = os.linesep.join(datalst[:start] + datalst[end + 1:])
+            data = self.docs['in']['raw']
+            start, end = self.dst.get_doctests_indexes(data)
+        if self.docs['in']['doctests'] != "":
+            data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['doctests'].split(os.linesep)])
+            self.docs['out']['doctests'] = data
+        return result
+
     def _extract_docs_description(self):
         """Extract main description from docstring"""
         #FIXME: the indentation of descriptions is lost
@@ -1368,7 +1414,7 @@ class DocString(object):
         data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
         idx = self.dst.get_group_key_line(data, 'param')
         if idx >= 0:
-            data = data.split(os.linesep)[idx+1:]
+            data = data.split(os.linesep)[idx + 1:]
             end = self.dst.get_group_line(os.linesep.join(data))
             end = end if end != -1 else len(data)
             for i in range(end):
@@ -1440,7 +1486,7 @@ class DocString(object):
         data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
         idx = self.dst.get_group_key_line(data, 'raise')
         if idx >= 0:
-            data = data.split(os.linesep)[idx+1:]
+            data = data.split(os.linesep)[idx + 1:]
             end = self.dst.get_group_line(os.linesep.join(data))
             end = end if end != -1 else len(data)
             for i in range(end):
@@ -1508,7 +1554,7 @@ class DocString(object):
         data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
         idx = self.dst.get_group_key_line(data, 'return')
         if idx >= 0:
-            data = data.split(os.linesep)[idx+1:]
+            data = data.split(os.linesep)[idx + 1:]
             end = self.dst.get_group_line(os.linesep.join(data))
             end = end if end != -1 else len(data)
             data = os.linesep.join(data[:end]).strip()
@@ -1574,6 +1620,7 @@ class DocString(object):
         if self.docs['in']['raw'] is None:
             return
         self.dst.set_known_parameters(self.element['params'])
+        self._extract_docs_doctest()
         self._extract_docs_params()
         self._extract_docs_return()
         self._extract_docs_raises()
@@ -1875,6 +1922,10 @@ class DocString(object):
         # sets post specific if any
         if 'post' in self.docs['out']:
             raw += self.docs['out']['spaces'] + with_space(self.docs['out']['post']).strip() + os.linesep
+
+        # sets the doctests if any
+        if 'doctests' in self.docs['out']:
+            raw += self.docs['out']['spaces'] + with_space(self.docs['out']['doctests']).strip() + os.linesep
 
         if raw.count(self.quotes) == 1:
             raw += self.docs['out']['spaces'] + self.quotes
