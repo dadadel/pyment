@@ -9,6 +9,7 @@
         - convert Pyment's docstrings to reST format using Pyment itself!
         - complete docstrings
         - add 'returns' in managed tags
+        - fix issue #12
 
 0.3.0 - 2014/10/12:
         - add google docstring management
