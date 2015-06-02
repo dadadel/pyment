@@ -474,7 +474,7 @@ class GoogledocTools(object):
                         if ',' in key:
                             tend = key.index(',')
                         ptype = key[tstart:tend].strip()
-                        key = key[:tstart - 1]
+                        key = key[:tstart - 1].strip()
                     desc = elems[1].strip()
                     parse_key = True
                 else:
@@ -1828,7 +1828,6 @@ class DocString(object):
                         rtype = ret_elem[2]
                         if rtype is None:
                             rtype = ''
-                            print("Warning: the return type should be provided")
                         raw += self.docs['out']['spaces']
                         if ret_elem[0]:
                             raw += ret_elem[0] + ' : '
@@ -1860,7 +1859,6 @@ class DocString(object):
                         rtype = ret_elem[2]
                         if rtype is None:
                             rtype = ''
-                            print("Warning: the return type should be provided")
                         raw += self.docs['out']['spaces'] + spaces
                         raw += rtype + ': ' + with_space(ret_elem[1]).strip() + os.linesep
                     else:
