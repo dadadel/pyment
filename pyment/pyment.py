@@ -224,6 +224,10 @@ class PyComment(object):
         return lst
 
     def compute_before_after(self):
+        """Compute the list of lines before and after the proposed docstring changes.
+
+        :return: tuple of before,after where each is a list of lines of python code.
+        """
         if not self.parsed:
             self._parse()
         list_from = []
