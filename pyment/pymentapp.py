@@ -128,8 +128,9 @@ def main():
                         dest='ignore_private', help='Don\'t proceed the private methods/functions starting with __ (two underscores) (default "True")')
     parser.add_argument('-v', '--version', action='version',
                         version=desc)
-    parser.add_argument('-w', '--write', action='store_true', dest='overwrite', default=False, help="Don't write patches. Overwrite files instead.")
-    #parser.add_argument('-c', '--config', metavar='config_file',
+    parser.add_argument('-w', '--write', action='store_true', dest='overwrite',
+                        default=False, help="Don't write patches. Overwrite files instead.")
+    # parser.add_argument('-c', '--config', metavar='config_file',
     #                   dest='config', help='Configuration file')
 
     args = parser.parse_args()
