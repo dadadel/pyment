@@ -21,6 +21,8 @@ import os
 import re
 from collections import defaultdict
 
+RAISES_NAME_REGEX = r'^([\w.]+)'
+
 
 def isin_alone(elems, line):
     """Check if an element from a list is the only element of a string.
@@ -918,7 +920,7 @@ class DocsTools(object):
             idx_p = self.get_key_index(data, 'raise')
             if idx_p >= 0:
                 idx_p += len(stl_param)
-                m = re.match(r'^([\w]+)', data[idx_p:].strip())
+                m = re.match(RAISES_NAME_REGEX, data[idx_p:].strip())
                 if m:
                     param = m.group(1)
                     start = idx_p + data[idx_p:].find(param)
