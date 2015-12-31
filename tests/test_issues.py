@@ -40,6 +40,24 @@ class IssuesTests(unittest.TestCase):
         d.parse_docs(txt)
         self.assertTrue(d.get_raw_docs() == expected)
 
+    def testIssue19(self):
+        txt = '''"""
+
+    :raises ValueError: on incorrect JSON
+    :raises requests.exceptions.HTTPError: on response error from server
+    """'''
+        expected = '''    """
+    
+
+
+    :raises ValueError: on incorrect JSON
+    :raises requests.exceptions.HTTPError: on response error from server
+
+    """'''
+        docs = ds.DocString('def test():', quotes='"""')
+        docs.parse_docs(txt)
+        self.assertTrue(docs.get_raw_docs() == expected)
+
 
 def main():
     unittest.main()
