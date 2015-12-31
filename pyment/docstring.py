@@ -1496,7 +1496,7 @@ class DocString(object):
                 line = data[i]
                 param = None
                 desc = ''
-                m = re.match(r'^\W*(\w+)[\W\s]+(\w[\s\w]+)', line.strip())
+                m = re.match(r'^\W*([\w.]+)[\W\s]+(\w[\s\w]+)', line.strip())
                 if m:
                     param = m.group(1).strip()
                     desc = m.group(2).strip()
