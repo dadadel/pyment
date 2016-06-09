@@ -1,6 +1,7 @@
 0.3.2:
         - fix issue #11
         - fix issue #16
+        - add option to overwrite a file instead of patching (issue #20)
 
 0.3.1 - 2015/05/31:
         - add tests for issues (issue #9 and #11)

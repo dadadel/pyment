@@ -14,6 +14,7 @@ It will parse one or several python scripts and retrieve existing docstrings.
 Then, for all found functions/methods/classes, it will generate formated docstrings with parameters, default values,...
 
 At the end, patches are generated for each file. Then, man can apply the patches to the initial scripts.
+An option allow to update the files directly without generating patches.
 It is also possible to generate the python file with the new docstrings, or to retrieve only the docstrings...
 
 Currently, the managed styles in input/output are javadoc, one variant of reST (re-Structured Text, used by Sphinx), numpydoc, google docstrings, groups (other grouped style).
@@ -41,7 +42,8 @@ Start quickly
 
 .. code-block:: sh
 
-        $ pyment  myfile.py
+        $ pyment  myfile.py    # will generate a patch
+        $ pyment -w myfile.py  # will overwrite the file
 
 or
 
@@ -82,7 +84,7 @@ Let's consider a file *test.py* with following content:
         def func(param1=True, param2='default val'):
             '''Description of func with docstring groups style.
 
-            Params: 
+            Params:
                 param1 - descr of param1 that has True for default value.
                 param2 - descr of param2
 

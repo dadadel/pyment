@@ -79,42 +79,43 @@ Will provide the output:
 
 .. code-block:: sh
 
-usage: pyment [-h] [-i style] [-o style] [-q quotes] [-f status] [-t]
-              [-c config] [-d] [-p status] [-v]
-              path
+    usage: pyment [-h] [-i style] [-o style] [-q quotes] [-f status] [-t]
+                  [-c config] [-d] [-p status] [-v] [-w]
+                  path
 
-Generates patches after (re)writing docstrings.
+    Generates patches after (re)writing docstrings.
 
-positional arguments:
-  path                  python file or folder containing python files to
-                        proceed (explore also sub-folders)
+    positional arguments:
+      path                  python file or folder containing python files to
+                            proceed (explore also sub-folders)
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -i style, --input style
-                        Input docstring style in ["javadoc", "reST",
-                        "numpydoc", "auto"] (default autodetected)
-  -o style, --output style
-                        Output docstring style in ["javadoc", "reST",
-                        "numpydoc"] (default "reST")
-  -q quotes, --quotes quotes
-                        Type of docstring delimiter quotes: ''' or """
-                        (default """). Note that you may escape the characters
-                        using \ like \'\'\', or surround it with the opposite
-                        quotes like "'''"
-  -f status, --first-line status
-                        Does the comment starts on the first line after the
-                        quotes (default "True")
-  -t, --convert         Existing docstrings will be converted but won't create
-                        missing ones
-  -c config, --config-file config
-                        Get a Pyment configuration from a file. Note that the
-                        config values will overload the command line ones.
-  -d, --init2class      If no docstring to class, then move the __init__ one
-  -p status, --ignore-private status
-                        Don't proceed the private methods/functions starting
-                        with __ (two underscores) (default "True")
-  -v, --version         show program's version number and exit
+    optional arguments:
+      -h, --help            show this help message and exit
+      -i style, --input style
+                            Input docstring style in ["javadoc", "reST",
+                            "numpydoc", "google", "auto"] (default autodetected)
+      -o style, --output style
+                            Output docstring style in ["javadoc", "reST",
+                            "numpydoc", "google"] (default "reST")
+      -q quotes, --quotes quotes
+                            Type of docstring delimiter quotes: ''' or """
+                            (default """). Note that you may escape the characters
+                            using \ like \'\'\', or surround it with the opposite
+                            quotes like "'''"
+      -f status, --first-line status
+                            Does the comment starts on the first line after the
+                            quotes (default "True")
+      -t, --convert         Existing docstrings will be converted but won't create
+                            missing ones
+      -c config, --config-file config
+                            Get a Pyment configuration from a file. Note that the
+                            config values will overload the command line ones.
+      -d, --init2class      If no docstring to class, then move the __init__ one
+      -p status, --ignore-private status
+                            Don't proceed the private methods/functions starting
+                            with __ (two underscores) (default "True")
+      -v, --version         show program's version number and exit
+      -w, --write           Don't write patches. Overwrite files instead.
 
 - To run the unit-tests:
 
@@ -152,7 +153,7 @@ The configuration parameters that you can set are:
 
 - **first_line**
 
-*True or False*
+    *True or False*
 
 Set to **True** then for each docstring, the description should start on the first
 line, just after the quotes. In the other case the description will start on the
@@ -160,26 +161,26 @@ second line.
 
 - **quotes**
 
-*''' or """*
+    *''' or """*
 
 The quotes used for the docstring limits.
 
 - **output_style**
 
-*javadoc, reST, numpydoc, groups*
+    *javadoc, reST, numpydoc, groups*
 
 The output format for the docstring.
 
 - **input_style**
 
-*auto, javadoc, reST, numpydoc, groups*
+    *auto, javadoc, reST, numpydoc, groups*
 
 The input format for the docstring interpretation. Set to **auto** if you want
 Pyment to autodetect for each docstring its format.
 
 - **init2class**
 
-*True or False*
+    *True or False*
 
 Set to **True** to move the generated docstring for __init__ to the class docstring.
 If there was already a docstring for the class, then the __init__ will conserve
@@ -187,14 +188,15 @@ its docstring and the class its own.
 
 - **convert_only**
 
-*True or False*
+    *True or False*
 
 Set to **True** if you want only to convert existing docstring.
 So Pyment won't create missing docstrings.
 
 
-**Coming soon...**
+**Todo...**
 
+- Add other command line options
 - *optional/excluded sections*
 
 Pyment will ignore some sections (like *raises*) or will generate some sections only if there was an existing corresponding section in input docstring.
