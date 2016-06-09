@@ -65,7 +65,7 @@ def get_config(config_file):
     return config
 
 
-def run(source, files=[], input_style='auto', output_style='reST', first_line=True, quotes='"""', init2class=False, convert=False, config_file=None, ignore_private=False):
+def run(source, files=[], input_style='auto', output_style='reST', first_line=True, quotes='"""', init2class=False, convert=False, config_file=None, ignore_private=False, overwrite=False):
     if input_style == 'auto':
         input_style = None
 
@@ -98,7 +98,11 @@ def run(source, files=[], input_style='auto', output_style='reST', first_line=Tr
         c.proceed()
         if init2class:
             c.docs_init_to_class()
-        c.diff_to_file(os.path.basename(f) + ".patch", path, path)
+
+        if overwrite:
+            c.write_to_file()
+        else:
+            c.diff_to_file(os.path.basename(f) + ".patch", path, path)
 
 
 def main():
@@ -124,7 +128,9 @@ def main():
                         dest='ignore_private', help='Don\'t proceed the private methods/functions starting with __ (two underscores) (default "True")')
     parser.add_argument('-v', '--version', action='version',
                         version=desc)
-    #parser.add_argument('-c', '--config', metavar='config_file',
+    parser.add_argument('-w', '--write', action='store_true', dest='overwrite',
+                        default=False, help="Don't write patches. Overwrite files instead.")
+    # parser.add_argument('-c', '--config', metavar='config_file',
     #                   dest='config', help='Configuration file')
 
     args = parser.parse_args()
@@ -140,7 +146,7 @@ def main():
     run(source, files, args.input, args.output,
         tobool(args.first_line), args.quotes,
         args.init2class, args.convert, config_file,
-        tobool(args.ignore_private))
+        tobool(args.ignore_private), overwrite=args.overwrite)
 
 if __name__ == "__main__":
     main()
