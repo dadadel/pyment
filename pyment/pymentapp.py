@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: utf8 -*-
+# -*- coding: utf-8 -*-
 
 import glob
 import argparse
@@ -41,7 +41,7 @@ def get_files_from_dir(path, recursive=True, depth=0, file_ext='.py'):
 
 def get_config(config_file):
     '''Get the configuration from a file.
-    
+
     @param config_file: the configuration file
     @return: the configuration
     @rtype: dict
