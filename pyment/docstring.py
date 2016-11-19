@@ -854,6 +854,8 @@ class DocsTools(object):
 
         """
         key = self.opt[key][self.style['in']]['name']
+        if key.startswith(':returns'):
+            data = data.replace(':return:', ':returns:')  # see issue 9
         idx = len(data)
         ini = 0
         loop = True

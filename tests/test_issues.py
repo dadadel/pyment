@@ -17,9 +17,9 @@ class IssuesTests(unittest.TestCase):
         p._parse()
         self.assertTrue(p.parsed)
         res = p.diff(issue9, "{0}.patch".format(issue9))
-        self.assertTrue(res[8].strip() != "-    :return: smthg")
-        self.assertTrue(res[9].strip() != "-    :rtype: ret type")
-        self.assertTrue(res[10].strip() != "+:return: smthg")
+        self.assertNotEqual(res[10].strip(), "+:return: smthg")
+        self.assertNotEqual(res[9].strip(), "-    :rtype: ret type")
+        self.assertEqual(res[10].rstrip(), "     :rtype: ret type")
 
     def testIssue11(self):
         deftxt = "def meaning(subject, answer=False):"
