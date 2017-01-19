@@ -1,4 +1,5 @@
 0.3.2:
+        - fix issue #32
         - fix issue #11
         - fix issue #16
         - add option to overwrite a file instead of patching (issue #20)
