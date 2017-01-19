@@ -58,6 +58,17 @@ class IssuesTests(unittest.TestCase):
         docs.parse_docs(txt)
         self.assertTrue(docs.get_raw_docs() == expected)
 
+    def testIssue30(self):
+        # if file starting with a function/class definition, patching the file
+        # will remove the first line!
+        p = pym.PyComment(absdir('issue30.py'), input_style="numpydoc", output_style="numpydoc")
+        p._parse()
+        self.assertTrue(p.parsed)
+        try:
+            p.diff()
+        except Exception as e:
+            self.fail('Raised expection: "{0}"'.format(e))
+
     def testIssue32(self):
         # if file starting with a function/class definition, patching the file
         # will remove the first line!
