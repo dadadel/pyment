@@ -1698,7 +1698,10 @@ class DocString(object):
         """Sets other specific sections"""
             #manage not setting if not mandatory for numpy
         if self.dst.style['in'] == 'numpydoc':
-            self.docs['out']['post'] = self.dst.numpydoc.get_raw_not_managed(self.docs['in']['raw'])
+            if self.docs['in']['raw'] is not None:
+                self.docs['out']['post'] = self.dst.numpydoc.get_raw_not_managed(self.docs['in']['raw'])
+            elif 'post' not in self.docs['out'] or self.docs['out']['post'] is None:
+                self.docs['out']['post'] = ''
 
     def _set_raw_params(self, sep):
         """Set the output raw parameters section
