@@ -241,7 +241,7 @@ class PyComment(object):
         last = 0
         for e in self.docs_list:
             start, end = e['location']
-            if start < 0:
+            if start <= 0:
                 start, end = -start, -end
                 list_to.extend(list_from[last:start + 1])
             else:
