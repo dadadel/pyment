@@ -58,6 +58,26 @@ class IssuesTests(unittest.TestCase):
         docs.parse_docs(txt)
         self.assertTrue(docs.get_raw_docs() == expected)
 
+    def testIssue32(self):
+        # if file starting with a function/class definition, patching the file
+        # will remove the first line!
+        expected = """--- a/issue32.py
++++ b/issue32.py
+@@ -1,2 +1,8 @@
+ def hello_world(a=22, b='hello'):
++    '''
++
++    :param a:  (Default value = 22)
++    :param b:  (Default value = 'hello')
++
++    '''
+   return 42"""
+        p = pym.PyComment(absdir('issue32.py'))
+        p._parse()
+        self.assertTrue(p.parsed)
+        result = ''.join(p.diff())
+        self.assertTrue(result == expected)
+
 
 def main():
     unittest.main()
