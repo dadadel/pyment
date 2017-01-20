@@ -19,7 +19,8 @@ class IssuesTests(unittest.TestCase):
         res = p.diff(issue9, "{0}.patch".format(issue9))
         self.assertTrue(res[8].strip() == "-    :return: smthg")
         self.assertTrue(res[9].strip() == "+    :returns: smthg")
-        self.assertTrue(res[10][1:].rstrip() == "    :rtype: ret type")
+        self.assertTrue((res[10][1:].rstrip() == "    :rtype: ret type")
+                        and (res[10][0] == ' '))
 
     def testIssue11(self):
         deftxt = "def meaning(subject, answer=False):"
