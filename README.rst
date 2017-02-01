@@ -3,6 +3,8 @@ pyment
 
 Create, update or convert docstrings in existing Python files, managing several styles.
 
+.. contents:: :local:
+
 Description
 -----------
 
@@ -187,3 +189,13 @@ Now the original *test.py* was updated and its content is now:
                 pass
 
 Also refer to the files `example.py.patch <https://github.com/dadadel/pyment/blob/master/example.py.patch>`_ or `example_numpy.py.patch <https://github.com/dadadel/pyment/blob/master/example_numpy.py.patch>`_ to see some other results that can be obtained processing the file `example.py <https://github.com/dadadel/pyment/blob/master/example.py>`_ 
+
+
+Offer a coffee or a beer
+------------------------
+
+If you enjoyed this free software, and want to thank me, you can offer me some
+bitcoins for a coffee, a beer, or more, I would be happy :)
+
+Here's my address for bitcoins : 1Kz5bu4HuRtwbjzopN6xWSVsmtTDK6Kb89
+
