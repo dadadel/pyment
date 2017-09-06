@@ -30,6 +30,7 @@ absdir = lambda f: os.path.join(current_dir, f)
 inifile = absdir('origin_test.py')
 jvdfile = absdir('javadoc_test.py')
 rstfile = absdir('rest_test.py')
+foo = absdir("foo")
 
 
 class DocStringTests(unittest.TestCase):
@@ -46,12 +47,15 @@ class DocStringTests(unittest.TestCase):
         txt = txt.replace("@", ":")
         with open(rstfile, 'w') as ft:
             ft.write(txt)
+        with open(foo, "w") as fooo:
+            fooo.write("foo")
         print("setup")
 
     @classmethod
     def tearDownClass(cls):
         os.remove(jvdfile)
         os.remove(rstfile)
+        os.remove(foo)
         print("end")
 
     def testParsedJavadoc(self):
@@ -84,8 +88,22 @@ class DocStringTests(unittest.TestCase):
         self.failUnless('third' in p.get_output_docs()[13])
         self.failUnless('multiline' in p.get_output_docs()[13])
 
+    def testWindowsRename(self):
+        bar = absdir("bar")
+        with open(bar, "w") as fbar:
+            fbar.write("bar")
+        p = pym.PyComment(foo)
+        p.windows_rename(bar)
+        self.assertFalse(os.path.isfile(bar))
+        self.assertTrue(os.path.isfile(foo))
+        with open(foo, "r") as fooo:
+            foo_txt = fooo.read()
+        self.assertTrue(foo_txt == "bar")
+
+
 def main():
     unittest.main()
+
 
 if __name__ == '__main__':
     main()
