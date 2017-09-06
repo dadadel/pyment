@@ -21,6 +21,7 @@ __maintainer__ = "A. Daouzli"
 import os
 import re
 import difflib
+import platform
 
 from .docstring import DocString
 
@@ -317,9 +318,16 @@ class PyComment(object):
             finally:
                 fh.close()
                 if ok:
-                    os.rename(tmp_filename, self.input_file)
+                    if platform.system() == 'Windows':
+                        self.windows_rename(tmp_filename)
+                    else:
+                        os.rename(tmp_filename, self.input_file)
                 else:
                     os.unlink(tmp_filename)
+
+    def windows_rename(self, tmp_filename):
+        os.remove(self.input_file) if os.path.isfile(self.input_file) else None
+        os.rename(tmp_filename, self.input_file)
 
     def proceed(self):
         """Parses the input file and generates/converts the docstrings.
