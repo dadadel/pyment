@@ -326,6 +326,12 @@ class PyComment(object):
                     os.unlink(tmp_filename)
 
     def windows_rename(self, tmp_filename):
+        """ Workaround the fact that os.rename raises an OSError on Windows
+        
+        :param tmp_filename: The file to rename
+    
+        """
+
         os.remove(self.input_file) if os.path.isfile(self.input_file) else None
         os.rename(tmp_filename, self.input_file)
 
