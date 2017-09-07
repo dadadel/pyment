@@ -93,7 +93,7 @@ class DocStringTests(unittest.TestCase):
         with open(bar, "w") as fbar:
             fbar.write("bar")
         p = pym.PyComment(foo)
-        p.windows_rename(bar)
+        p._windows_rename(bar)
         self.assertFalse(os.path.isfile(bar))
         self.assertTrue(os.path.isfile(foo))
         with open(foo, "r") as fooo:

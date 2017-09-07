@@ -319,13 +319,13 @@ class PyComment(object):
                 fh.close()
                 if ok:
                     if platform.system() == 'Windows':
-                        self.windows_rename(tmp_filename)
+                        self._windows_rename(tmp_filename)
                     else:
                         os.rename(tmp_filename, self.input_file)
                 else:
                     os.unlink(tmp_filename)
 
-    def windows_rename(self, tmp_filename):
+    def _windows_rename(self, tmp_filename):
         """ Workaround the fact that os.rename raises an OSError on Windows
         
         :param tmp_filename: The file to rename
