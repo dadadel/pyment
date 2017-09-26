@@ -14,7 +14,7 @@ MAX_DEPTH_RECUR = 50
 
 
 def get_files_from_dir(path, recursive=True, depth=0, file_ext='.py'):
-    '''Retrieve the list of files from a folder.
+    """Retrieve the list of files from a folder.
 
     @param path: file or directory where to search files
     @param recursive: if True will search also sub-directories
@@ -22,7 +22,7 @@ def get_files_from_dir(path, recursive=True, depth=0, file_ext='.py'):
     @param file_ext: the files extension to get. Default is '.py'
     @return: the file list retrieved. if the input is a file then a one element list.
 
-    '''
+    """
     file_list = []
     if os.path.isfile(path):
         return [path]
@@ -40,13 +40,13 @@ def get_files_from_dir(path, recursive=True, depth=0, file_ext='.py'):
 
 
 def get_config(config_file):
-    '''Get the configuration from a file.
+    """Get the configuration from a file.
 
     @param config_file: the configuration file
     @return: the configuration
     @rtype: dict
 
-    '''
+    """
     config = {}
     tobool = lambda s: True if s.lower() == 'true' else False
     if config_file:
@@ -106,7 +106,7 @@ def run(source, files=[], input_style='auto', output_style='reST', first_line=Tr
 
 
 def main():
-    desc = 'Pyment v%s - %s - %s - %s' % (__version__, __copyright__, __author__, __licence__)
+    desc = 'Pyment v{0} - {1} - {2} - {3}'.format(__version__, __copyright__, __author__, __licence__)
     parser = argparse.ArgumentParser(description='Generates patches after (re)writing docstrings.')
     parser.add_argument('path', type=str,
                         help='python file or folder containing python files to proceed (explore also sub-folders)')
@@ -147,6 +147,7 @@ def main():
         tobool(args.first_line), args.quotes,
         args.init2class, args.convert, config_file,
         tobool(args.ignore_private), overwrite=args.overwrite)
+
 
 if __name__ == "__main__":
     main()
