@@ -19,6 +19,7 @@ setup(name='Pyment',
       author_email='dadel@hadoly.fr',
       license='GPLv3',
       keywords="pyment docstring numpydoc googledoc restructuredtext epydoc epytext javadoc development generate auto",
+      plateformes = 'ALL',
       classifiers=[
           'Intended Audience :: Developers',
           'Topic :: Documentation',
