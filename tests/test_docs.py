@@ -150,7 +150,7 @@ class DocStringTests(unittest.TestCase):
         d = docs.DocString(myelem, '    ', doc)
         self.assertTrue(d.get_input_style() == 'google')
 
-    def testAutoInputSyleNumpydoc(self):
+    def testAutoInputStyleNumpydoc(self):
         doc = mynumpydocs
         d = docs.DocString(myelem, '    ', doc)
         self.assertTrue(d.get_input_style() == 'numpydoc')
