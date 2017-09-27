@@ -4,7 +4,7 @@ import os
 import re
 import difflib
 
-from .docstring import DocString
+from docstring import DocString
 
 __author__ = "A. Daouzli"
 __copyright__ = "Copyright 2012-2015"
@@ -31,23 +31,22 @@ class PyComment(object):
     The changes are then provided in a patch file.
 
     """
-    def __init__(self, input_file, input_style=None, output_style='reST', quotes="'''", first_line=True,
+    def __init__(self, input_file, input_style=None, output_style='reST', quotes='"""', first_line=True,
                  convert_only=False, config_file=None, ignore_private=False, **kwargs):
-        '''Sets the configuration including the source to proceed and options.
+        """Sets the configuration including the source to proceed and options.
 
         :param input_file: path name (file or folder)
         :param input_style: the type of doctrings format of the output. By default, it will
-        autodetect the format for each docstring.
+          autodetect the format for each docstring.
         :param output_style: the docstring docstyle to generate.
-        :param quotes: the type of quotes to use for output: ' ' ' or " " "
-        :param first_line: indicate if description should start
-        on first or second line. By default it is True
+        :param quotes: the type of quotes to use for output: ' ' ' or " " " (default " " ")
+        :param first_line: indicate if description should start on first or second line. By default it is True
         :type first_line: boolean
         :param convert_only: if set only existing docstring will be converted. No missing docstring will be created.
         :param config_file: if given configuration file for Pyment
         :param ignore_private: don't proceed the private methods/functions starting with __ (two underscores)
 
-        '''
+        """
         self.file_type = '.py'
         self.first_line = first_line
         self.filename_list = []

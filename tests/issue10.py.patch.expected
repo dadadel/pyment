@@ -1,0 +1,20 @@
+--- a/issue10.py
++++ b/issue10.py
+@@ -12,12 +12,12 @@
+ 
+ 
+ def init_test():
+-    '''
+-    Only working when in WinPython root directory.
++    """Only working when in WinPython root directory.
+ 
+-    Returns:
+-    maske, data0, data1, no_motion, motion
+-    '''
++
++    :returns: maske, data0, data1, no_motion, motion
++
++    """
+     maske = read_mask('./MRR/Testdaten/55_mask.bmp')
+     display(maske)
+     data0 = read_dicom_set('./MRR/Testdaten/188_13-12-10_56_1',
