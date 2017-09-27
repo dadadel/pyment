@@ -90,23 +90,23 @@ class NumpydocTools(object):
                  excluded_sections=[]):
         '''
         :param first_line: indicate if description should start
-        on first or second line. By default it will follow global config.
+          on first or second line. By default it will follow global config.
         :type first_line: boolean
         :param optional_sections: list of sections that are not mandatory
-        if empty. The accepted sections are:
-        -param
-        -return
-        -raise
-        -also
-        -ref
-        -note
-        -other
-        -example
-        -method
-        -attr
+          if empty. The accepted sections are:
+          -param
+          -return
+          -raise
+          -also
+          -ref
+          -note
+          -other
+          -example
+          -method
+          -attr
         :type optional_sections: list
         :param excluded_sections: list of sections that are excluded,
-        even if mandatory. The list is the same than for optional sections.
+          even if mandatory. The list is the same than for optional sections.
         :type excluded_sections: list
 
         '''
@@ -352,21 +352,21 @@ class GoogledocTools(object):
     def __init__(self, first_line=None,
                  optional_sections=['raise'],
                  excluded_sections=[]):
-        '''
+        """
         :param first_line: indicate if description should start
-        on first or second line. By default it will follow global config.
+          on first or second line. By default it will follow global config.
         :type first_line: boolean
         :param optional_sections: list of sections that are not mandatory
-        if empty. The accepted sections are:
-        -param
-        -return
-        -raise
+          if empty. The accepted sections are:
+          -param
+          -return
+          -raise
         :type optional_sections: list
         :param excluded_sections: list of sections that are excluded,
-        even if mandatory. The list is the same than for optional sections.
+          even if mandatory. The list is the same than for optional sections.
         :type excluded_sections: list
 
-        '''
+        """
         self.first_line = first_line
         # TODO: if in the two lists see which is more important
         self.optional_sections = list(optional_sections)
@@ -733,7 +733,7 @@ class DocsTools(object):
 
         :param key: the key wanted (param, type, return, rtype,..)
         :param target: the target docstring is 'in' for the input or
-        'out' for the output to generate. (Default value = 'in')
+          'out' for the output to generate. (Default value = 'in')
 
         """
         target = 'out' if target == 'out' else 'in'
@@ -745,7 +745,7 @@ class DocsTools(object):
 
         :param key: the key which separator is wanted (param, type, return, rtype,..) (Default value = 'param')
         :param target: the target docstring is 'in' for the input or
-        'out' for the output to generate. (Default value = 'in')
+          'out' for the output to generate. (Default value = 'in')
 
         """
         target = 'out' if target == 'out' else 'in'
@@ -914,8 +914,8 @@ class DocsTools(object):
 
         :param data: string to parse
         :returns: start and end indexes of found element else (-1, -1)
-        or else (-2, -2) if try to use params style but no parameters were provided.
-        Note: the end index is the index after the last name character
+          or else (-2, -2) if try to use params style but no parameters were provided.
+          Note: the end index is the index after the last name character
         :rtype: tuple
 
         """
@@ -980,8 +980,8 @@ class DocsTools(object):
 
         :param data: string to parse
         :returns: start and end indexes of found element else (-1, -1)
-        or else (-2, -2) if try to use params style but no parameters were provided.
-        Note: the end index is the index after the last name character
+          or else (-2, -2) if try to use params style but no parameters were provided.
+          Note: the end index is the index after the last name character
         :rtype: tuple
 
         """
@@ -1322,9 +1322,9 @@ class DocString(object):
     def parse_element(self, raw=None):
         """Parses the element's elements (type, name and parameters) :)
         e.g.: def methode(param1, param2='default')
-            def                      -> type
-            methode                  -> name
-            param1, param2='default' -> parameters
+        def                      -> type
+        methode                  -> name
+        param1, param2='default' -> parameters
 
         :param raw: raw data of the element (def or class). (Default value = None)
 
