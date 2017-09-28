@@ -3,6 +3,7 @@
 import os
 import re
 import difflib
+import platform
 
 from docstring import DocString
 
@@ -314,9 +315,22 @@ class PyComment(object):
             finally:
                 fh.close()
                 if ok:
-                    os.rename(tmp_filename, self.input_file)
+                    if platform.system() == 'Windows':
+                        self._windows_rename(tmp_filename)
+                    else:
+                        os.rename(tmp_filename, self.input_file)
                 else:
                     os.unlink(tmp_filename)
+
+    def _windows_rename(self, tmp_filename):
+        """ Workaround the fact that os.rename raises an OSError on Windows
+        
+        :param tmp_filename: The file to rename
+    
+        """
+
+        os.remove(self.input_file) if os.path.isfile(self.input_file) else None
+        os.rename(tmp_filename, self.input_file)
 
     def proceed(self):
         """Parses the input file and generates/converts the docstrings.
