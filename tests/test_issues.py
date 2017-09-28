@@ -12,6 +12,7 @@ absdir = lambda f: os.path.join(current_dir, f)
 class IssuesTests(unittest.TestCase):
 
     def testIssue9(self):
+        # Title: :rtype: is removed from doc comments; :return: loses indentation
         issue9 = absdir('issue9.py')
         p = pym.PyComment(issue9)
         p._parse()
@@ -22,7 +23,22 @@ class IssuesTests(unittest.TestCase):
         self.assertTrue((res[10][1:].rstrip() == "    :rtype: ret type")
                         and (res[10][0] == ' '))
 
+    def testIssue10(self):
+        # Title: created patch-file not correct
+        try:
+            f = open(absdir("issue10.py.patch.expected"))
+            expected = f.read()
+            f.close()
+        except Exception as e:
+            self.fail('Raised exception: "{0}"'.format(e))
+        p = pym.PyComment(absdir('issue10.py'))
+        p._parse()
+        self.assertTrue(p.parsed)
+        result = ''.join(p.diff())
+        self.assertTrue(result == expected)
+
     def testIssue11(self):
+        # Title: doctests incorrectly formatted with reST option
         deftxt = "def meaning(subject, answer=False):"
         txt = '''"""
     >>> meaning('life', answer=True)
@@ -41,7 +57,22 @@ class IssuesTests(unittest.TestCase):
         d.parse_docs(txt)
         self.assertTrue(d.get_raw_docs() == expected)
 
+    def testIssue15(self):
+        # Title: Does not convert existing docstrings
+        try:
+            f = open(absdir("issue15.py.patch.expected"))
+            expected = f.read()
+            f.close()
+        except Exception as e:
+            self.fail('Raised exception: "{0}"'.format(e))
+        p = pym.PyComment(absdir('issue15.py'))
+        p._parse()
+        self.assertTrue(p.parsed)
+        result = ''.join(p.diff())
+        self.assertTrue(result == expected)
+
     def testIssue19(self):
+        # Title: :raises in reST is incorrectly parsed
         txt = '''"""
 
     :raises ValueError: on incorrect JSON
@@ -68,31 +99,43 @@ class IssuesTests(unittest.TestCase):
         try:
             p.diff()
         except Exception as e:
-            self.fail('Raised expection: "{0}"'.format(e))
+            self.fail('Raised exception: "{0}"'.format(e))
 
     def testIssue32(self):
+        # Title: def statement gets deleted
         # if file starting with a function/class definition, patching the file
         # will remove the first line!
-        expected = """--- a/issue32.py
+        expected = '''--- a/issue32.py
 +++ b/issue32.py
 @@ -1,2 +1,8 @@
  def hello_world(a=22, b='hello'):
-+    '''
++    """
 +
 +    :param a:  (Default value = 22)
 +    :param b:  (Default value = 'hello')
 +
-+    '''
-   return 42"""
++    """
+   return 42'''
         p = pym.PyComment(absdir('issue32.py'))
         p._parse()
         self.assertTrue(p.parsed)
         result = ''.join(p.diff())
         self.assertTrue(result == expected)
 
+    def testIssue34(self):
+        # Title: Problem with regenerating empty param docstring
+        # if two consecutive params have empty descriptions, the first will
+        # be filled with the full second param line
+        p = pym.PyComment(absdir('issue34.py'))
+        p._parse()
+        self.assertTrue(p.parsed)
+        result = ''.join(p.diff())
+        self.assertTrue(result == '')
+
 
 def main():
     unittest.main()
+
 
 if __name__ == '__main__':
     main()

@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import os
+import re
+from collections import defaultdict
+
 __author__ = "A. Daouzli"
 __copyright__ = "Copyright 2012-2015, A. Daouzli"
 __licence__ = "GPL3"
-__version__ = "0.3.2"
+__version__ = "0.3.2-dev4"
 __maintainer__ = "A. Daouzli"
 
 """
@@ -16,10 +20,6 @@ Formats supported at the time:
  managed  -> description, parameters, return (first of list only), raises
 
 """
-
-import os
-import re
-from collections import defaultdict
 
 RAISES_NAME_REGEX = r'^([\w.]+)'
 
@@ -38,6 +38,7 @@ def isin_alone(elems, line):
             break
     return found
 
+
 def isin_start(elems, line):
     """Check if an element from a list starts a string.
 
@@ -53,6 +54,7 @@ def isin_start(elems, line):
             break
     return found
 
+
 def isin(elems, line):
     """Check if an element from a list is in a string.
 
@@ -66,6 +68,7 @@ def isin(elems, line):
             found = True
             break
     return found
+
 
 def get_leading_spaces(data):
     """Get the leading space of a string if it is not empty
@@ -87,30 +90,30 @@ class NumpydocTools(object):
                  excluded_sections=[]):
         '''
         :param first_line: indicate if description should start
-        on first or second line. By default it will follow global config.
+          on first or second line. By default it will follow global config.
         :type first_line: boolean
         :param optional_sections: list of sections that are not mandatory
-        if empty. The accepted sections are:
-        -param
-        -return
-        -raise
-        -also
-        -ref
-        -note
-        -other
-        -example
-        -method
-        -attr
+          if empty. The accepted sections are:
+          -param
+          -return
+          -raise
+          -also
+          -ref
+          -note
+          -other
+          -example
+          -method
+          -attr
         :type optional_sections: list
         :param excluded_sections: list of sections that are excluded,
-        even if mandatory. The list is the same than for optional sections.
+          even if mandatory. The list is the same than for optional sections.
         :type excluded_sections: list
 
         '''
         self.first_line = first_line
-        #TODO: if in the two lists see which is more important
-        self.optional_sections = optional_sections
-        self.excluded_sections = excluded_sections
+        # TODO: if in the two lists see which is more important
+        self.optional_sections = list(optional_sections)
+        self.excluded_sections = list(excluded_sections)
         self.opt = {
                 'param': 'parameters',
                 'return': 'returns',
@@ -276,7 +279,7 @@ class NumpydocTools(object):
         lst = self.get_list_key(data, 'return')
         for l in lst:
             name, desc, rtype = l
-            if l[2] == None:
+            if l[2] is None:
                 rtype = l[0]
                 name = None
             return_list.append((name, desc, rtype))
@@ -349,25 +352,25 @@ class GoogledocTools(object):
     def __init__(self, first_line=None,
                  optional_sections=['raise'],
                  excluded_sections=[]):
-        '''
+        """
         :param first_line: indicate if description should start
-        on first or second line. By default it will follow global config.
+          on first or second line. By default it will follow global config.
         :type first_line: boolean
         :param optional_sections: list of sections that are not mandatory
-        if empty. The accepted sections are:
-        -param
-        -return
-        -raise
+          if empty. The accepted sections are:
+          -param
+          -return
+          -raise
         :type optional_sections: list
         :param excluded_sections: list of sections that are excluded,
-        even if mandatory. The list is the same than for optional sections.
+          even if mandatory. The list is the same than for optional sections.
         :type excluded_sections: list
 
-        '''
+        """
         self.first_line = first_line
-        #TODO: if in the two lists see which is more important
-        self.optional_sections = optional_sections
-        self.excluded_sections = excluded_sections
+        # TODO: if in the two lists see which is more important
+        self.optional_sections = list(optional_sections)
+        self.excluded_sections = list(excluded_sections)
         self.opt = {
                 'param': 'args',
                 'return': 'returns',
@@ -388,11 +391,11 @@ class GoogledocTools(object):
         return self.opt[key]
 
     def get_optional_sections(self):
-        """ """
+        """Get optional sections"""
         return self.optional_sections
 
     def get_excluded_sections(self):
-        """ """
+        """Get excluded sections"""
         return self.excluded_sections
 
     def get_next_section_lines(self, data):
@@ -440,7 +443,7 @@ class GoogledocTools(object):
         :param key: the key
 
         """
-        #TODO: see how to factorize this with groups and numpydoc
+        # TODO: see how to factorize this with groups and numpydoc
         key_list = []
         data = data.split(os.linesep)
         init = self.get_section_key_line(data, key)
@@ -516,7 +519,7 @@ class GoogledocTools(object):
         lst = self.get_list_key(data, 'return')
         for l in lst:
             name, desc, rtype = l
-            if l[2] == None:
+            if l[2] is None:
                 rtype = l[0]
                 name = None
                 desc = desc.strip()
@@ -534,14 +537,14 @@ class GoogledocTools(object):
         return_list = []
         lst = self.get_list_key(data, 'raise')
         for l in lst:
-        # assume raises are only a name and a description
+            # assume raises are only a name and a description
             name, desc, _ = l
             return_list.append((name, desc))
 
         return return_list
 
     def get_mandatory_sections(self):
-        """ """
+        """Get mandatory sections"""
         return [s for s in self.opt
                 if s not in self.optional_sections and
                    s not in self.excluded_sections]
@@ -588,11 +591,11 @@ class DocsTools(object):
     - 'numpydoc': the numpy format for docstrings (using an external module)
 
     """
-    #TODO: enhance style dependent separation
-    #TODO: add set methods to generate style specific outputs
-    #TODO: manage C style (\param)
+    # TODO: enhance style dependent separation
+    # TODO: add set methods to generate style specific outputs
+    # TODO: manage C style (\param)
     def __init__(self, style_in='javadoc', style_out='reST', params=None):
-        '''Choose the kind of docstring type.
+        """Choose the kind of docstring type.
 
         :param style_in: docstring input style ('javadoc', 'reST', 'groups', 'numpydoc', 'google')
         :type style_in: string
@@ -601,7 +604,7 @@ class DocsTools(object):
         :param params: if known the parameters names that should be found in the docstring.
         :type params: list
 
-        '''
+        """
         self.style = {'in': style_in,
                       'out': style_out}
         self.opt = {}
@@ -687,7 +690,7 @@ class DocsTools(object):
                     found_numpydocsep += 1
                 elif isin(self.numpydoc.keywords, line):
                     found_numpydoc += 1
-            #TODO: check if not necessary to have > 1??
+            # TODO: check if not necessary to have > 1??
             if found_numpydoc and found_numpydocsep:
                 detected_style = 'numpydoc'
             elif found_googledoc >= found_groups:
@@ -730,7 +733,7 @@ class DocsTools(object):
 
         :param key: the key wanted (param, type, return, rtype,..)
         :param target: the target docstring is 'in' for the input or
-        'out' for the output to generate. (Default value = 'in')
+          'out' for the output to generate. (Default value = 'in')
 
         """
         target = 'out' if target == 'out' else 'in'
@@ -742,7 +745,7 @@ class DocsTools(object):
 
         :param key: the key which separator is wanted (param, type, return, rtype,..) (Default value = 'param')
         :param target: the target docstring is 'in' for the input or
-        'out' for the output to generate. (Default value = 'in')
+          'out' for the output to generate. (Default value = 'in')
 
         """
         target = 'out' if target == 'out' else 'in'
@@ -911,8 +914,8 @@ class DocsTools(object):
 
         :param data: string to parse
         :returns: start and end indexes of found element else (-1, -1)
-        or else (-2, -2) if try to use params style but no parameters were provided.
-        Note: the end index is the index after the last name character
+          or else (-2, -2) if try to use params style but no parameters were provided.
+          Note: the end index is the index after the last name character
         :rtype: tuple
 
         """
@@ -929,13 +932,13 @@ class DocsTools(object):
                     end = start + len(param)
 
         if self.style['in'] in ['groups', 'unknown'] and (start, end) == (-1, -1):
-            #search = '\s*(%s)' % '|'.join(self.groups['param'])
-            #m = re.match(search, data.lower())
-            #if m:
+            # search = '\s*(%s)' % '|'.join(self.groups['param'])
+            # m = re.match(search, data.lower())
+            # if m:
             #    key_param = m.group(1)
             pass
 
-        return (start, end)
+        return start, end
 
     def get_raise_description_indexes(self, data, prev=None):
         """Get from a docstring the next raise's description.
@@ -951,7 +954,7 @@ class DocsTools(object):
         if not prev:
             _, prev = self.get_raise_indexes(data)
         if prev < 0:
-            return (-1, -1)
+            return -1, -1
         m = re.match(r'\W*(\w+)', data[prev:])
         if m:
             first = m.group(1)
@@ -969,7 +972,7 @@ class DocsTools(object):
                     else:
                         end = len(data)
 
-        return (start, end)
+        return start, end
 
     def get_param_indexes(self, data):
         """Get from a docstring the next parameter name indexes.
@@ -977,12 +980,12 @@ class DocsTools(object):
 
         :param data: string to parse
         :returns: start and end indexes of found element else (-1, -1)
-        or else (-2, -2) if try to use params style but no parameters were provided.
-        Note: the end index is the index after the last name character
+          or else (-2, -2) if try to use params style but no parameters were provided.
+          Note: the end index is the index after the last name character
         :rtype: tuple
 
         """
-        #TODO: new method to extract an element's name so will be available for @param and @types and other styles (:param, \param)
+        # TODO: new method to extract an element's name so will be available for @param and @types and other styles (:param, \param)
         start, end = -1, -1
         stl_param = self.opt['param'][self.style['in']]['name']
         if self.style['in'] in self.tagstyles + ['unknown']:
@@ -996,15 +999,15 @@ class DocsTools(object):
                     end = start + len(param)
 
         if self.style['in'] in ['groups', 'unknown'] and (start, end) == (-1, -1):
-            #search = '\s*(%s)' % '|'.join(self.groups['param'])
-            #m = re.match(search, data.lower())
-            #if m:
+            # search = '\s*(%s)' % '|'.join(self.groups['param'])
+            # m = re.match(search, data.lower())
+            # if m:
             #    key_param = m.group(1)
             pass
 
         if self.style['in'] in ['params', 'groups', 'unknown'] and (start, end) == (-1, -1):
-            if self.params == None:
-                return (-2, -2)
+            if self.params is None:
+                return -2, -2
             idx = -1
             param = None
             for p in self.params:
@@ -1017,7 +1020,7 @@ class DocsTools(object):
                         param = p
             if idx != -1:
                 start, end = idx, idx + len(param)
-        return (start, end)
+        return start, end
 
     def get_param_description_indexes(self, data, prev=None):
         """Get from a docstring the next parameter's description.
@@ -1033,7 +1036,7 @@ class DocsTools(object):
         if not prev:
             _, prev = self.get_param_indexes(data)
         if prev < 0:
-            return (-1, -1)
+            return -1, -1
         m = re.match(r'\W*(\w+)', data[prev:])
         if m:
             first = m.group(1)
@@ -1051,7 +1054,7 @@ class DocsTools(object):
                     else:
                         end = len(data)
 
-        return (start, end)
+        return start, end
 
     def get_param_type_indexes(self, data, name=None, prev=None):
         """Get from a docstring a parameter type indexes.
@@ -1061,8 +1064,8 @@ class DocsTools(object):
         :param name: the name of the parameter (Default value = None)
         :param prev: index after the previous element (param or param's description) (Default value = None)
         :returns: start and end indexes of found element else (-1, -1)
-        Note: the end index is the index after the last included character or -1 if
-        reached the end
+          Note: the end index is the index after the last included character or -1 if
+          reached the end
         :rtype: tuple
 
         """
@@ -1086,7 +1089,7 @@ class DocsTools(object):
                                 end += start
 
             if self.style['in'] in ['params', 'unknown'] and (start, end) == (-1, -1):
-                #TODO: manage this
+                # TODO: manage this
                 pass
 
         return (start, end)
@@ -1097,8 +1100,8 @@ class DocsTools(object):
 
         :param data: string to parse
         :returns: start and end indexes of found element else (-1, -1)
-        Note: the end index is the index after the last included character or -1 if
-        reached the end
+          Note: the end index is the index after the last included character or -1 if
+          reached the end
         :rtype: tuple
 
         """
@@ -1109,7 +1112,7 @@ class DocsTools(object):
             idx_abs = idx
             # search starting description
             if idx >= 0:
-                #FIXME: take care if a return description starts with <, >, =,...
+                # FIXME: take care if a return description starts with <, >, =,...
                 m = re.match(r'\W*(\w+)', data[idx_abs + len(stl_return):])
                 if m:
                     first = m.group(1)
@@ -1125,10 +1128,10 @@ class DocsTools(object):
                 end = idx_abs
 
         if self.style['in'] in ['params', 'unknown'] and (start, end) == (-1, -1):
-            #TODO: manage this
+            # TODO: manage this
             pass
 
-        return (start, end)
+        return start, end
 
     def get_return_type_indexes(self, data):
         """Get from a docstring the return parameter type indexes.
@@ -1136,8 +1139,8 @@ class DocsTools(object):
 
         :param data: string to parse
         :returns: start and end indexes of found element else (-1, -1)
-        Note: the end index is the index after the last included character or -1 if
-        reached the end
+          Note: the end index is the index after the last included character or -1 if
+          reached the end
         :rtype: tuple
 
         """
@@ -1160,10 +1163,10 @@ class DocsTools(object):
                 end = idx + start
 
         if self.style['in'] in ['params', 'unknown'] and (start, end) == (-1, -1):
-            #TODO: manage this
+            # TODO: manage this
             pass
 
-        return (start, end)
+        return start, end
 
 
 class DocString(object):
@@ -1180,7 +1183,7 @@ class DocString(object):
         :param style_out: docstring output style ('javadoc', 'reST', 'groups', 'numpydoc')
         :type style_out: string
         :param first_line: indicate if description should start
-        on first or second line
+          on first or second line
         :type first_line: boolean
 
         '''
@@ -1230,7 +1233,7 @@ class DocString(object):
         if '\t' in spaces:
             self.docs['out']['spaces'] = spaces + '\t'
         elif (len(spaces) % 4) == 0 or spaces == '':
-            #FIXME: should bug if tabs for class or function (as spaces=='')
+            # FIXME: should bug if tabs for class or function (as spaces=='')
             self.docs['out']['spaces'] = spaces + ' ' * 4
         self.parsed_elem = False
         self.parsed_docs = False
@@ -1240,7 +1243,7 @@ class DocString(object):
         self.quotes = quotes
 
     def __str__(self):
-        # !!! for debuging
+        # for debuging
         txt = "\n\n** " + str(self.element['name'])
         txt += ' of type ' + str(self.element['type']) + ':'
         txt += str(self.docs['in']['desc']) + os.linesep
@@ -1267,7 +1270,7 @@ class DocString(object):
         :rtype: style: str
 
         """
-        #TODO: use a getter
+        # TODO: use a getter
         return self.dst.style['in']
 
     def set_input_style(self, style):
@@ -1277,7 +1280,7 @@ class DocString(object):
         :type style: str
 
         """
-        #TODO: use a setter
+        # TODO: use a setter
         self.dst.style['in'] = style
 
     def get_output_style(self):
@@ -1287,7 +1290,7 @@ class DocString(object):
         :rtype: style: str
 
         """
-        #TODO: use a getter
+        # TODO: use a getter
         return self.dst.style['out']
 
     def set_output_style(self, style):
@@ -1297,7 +1300,7 @@ class DocString(object):
         :type style: str
 
         """
-        #TODO: use a setter
+        # TODO: use a setter
         self.dst.style['out'] = style
 
     def get_spaces(self):
@@ -1319,14 +1322,14 @@ class DocString(object):
     def parse_element(self, raw=None):
         """Parses the element's elements (type, name and parameters) :)
         e.g.: def methode(param1, param2='default')
-            def                      -> type
-            methode                  -> name
-            param1, param2='default' -> parameters
+        def                      -> type
+        methode                  -> name
+        param1, param2='default' -> parameters
 
         :param raw: raw data of the element (def or class). (Default value = None)
 
         """
-        #TODO: retrieve return from element external code (in parameter)
+        # TODO: retrieve return from element external code (in parameter)
         if raw is None:
             l = self.element['raw'].strip()
         else:
@@ -1384,7 +1387,7 @@ class DocString(object):
 
     def _extract_docs_description(self):
         """Extract main description from docstring"""
-        #FIXME: the indentation of descriptions is lost
+        # FIXME: the indentation of descriptions is lost
         data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
         if self.dst.style['in'] == 'groups':
             idx = self.dst.get_group_index(data)
@@ -1414,7 +1417,7 @@ class DocString(object):
             self.docs['in']['desc'] = data[:idx]
 
     def _extract_groupstyle_docs_params(self):
-        """ """
+        """Extract group style parameters"""
         data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
         idx = self.dst.get_group_key_line(data, 'param')
         if idx >= 0:
@@ -1422,7 +1425,7 @@ class DocString(object):
             end = self.dst.get_group_line(os.linesep.join(data))
             end = end if end != -1 else len(data)
             for i in range(end):
-                #FIXME: see how retrieve multiline param description and how get type
+                # FIXME: see how retrieve multiline param description and how get type
                 line = data[i]
                 param = None
                 desc = ''
@@ -1494,7 +1497,7 @@ class DocString(object):
             end = self.dst.get_group_line(os.linesep.join(data))
             end = end if end != -1 else len(data)
             for i in range(end):
-                #FIXME: see how retrieve multiline raise description
+                # FIXME: see how retrieve multiline raise description
                 line = data[i]
                 param = None
                 desc = ''
@@ -1554,7 +1557,7 @@ class DocString(object):
 
     def _extract_groupstyle_docs_return(self):
         """ """
-        #TODO: manage rtype
+        # TODO: manage rtype
         data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
         idx = self.dst.get_group_key_line(data, 'return')
         if idx >= 0:
@@ -1586,7 +1589,7 @@ class DocString(object):
             data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
             self.docs['in']['return'] = self.dst.numpydoc.get_return_list(data)
             self.docs['in']['rtype'] = None
-#TODO: fix this
+# TODO: fix this
         elif self.dst.style['in'] == 'google':
             data = os.linesep.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].split(os.linesep)])
             self.docs['in']['return'] = self.dst.googledoc.get_return_list(data)
@@ -1606,6 +1609,7 @@ class DocString(object):
             lst = self.dst.numpydoc.get_list_key(data, 'other')
             lst = self.dst.numpydoc.get_list_key(data, 'example')
             lst = self.dst.numpydoc.get_list_key(data, 'attr')
+            # TODO do something with this?
 
     def parse_docs(self, raw=None):
         """Parses the docstring
@@ -1634,7 +1638,7 @@ class DocString(object):
 
     def _set_desc(self):
         """Sets the global description if any"""
-        #TODO: manage different in/out styles
+        # TODO: manage different in/out styles
         if self.docs['in']['desc']:
             self.docs['out']['desc'] = self.docs['in']['desc']
         else:
@@ -1642,7 +1646,7 @@ class DocString(object):
 
     def _set_params(self):
         """Sets the parameters with types, descriptions and default value if any"""
-        #TODO: manage different in/out styles
+        # TODO: manage different in/out styles
         if self.docs['in']['params']:
             # list of parameters is like: (name, description, type)
             self.docs['out']['params'] = list(self.docs['in']['params'])
@@ -1669,22 +1673,22 @@ class DocString(object):
 
     def _set_raises(self):
         """Sets the raises and descriptions"""
-        #TODO: manage different in/out styles
-        #manage setting if not mandatory for numpy but optional
+        # TODO: manage different in/out styles
+        # manage setting if not mandatory for numpy but optional
         if self.docs['in']['raises']:
             if self.dst.style['out'] != 'numpydoc' or self.dst.style['in'] == 'numpydoc' or \
-                     (self.dst.style['out'] == 'numpydoc' and \
+                     (self.dst.style['out'] == 'numpydoc' and\
                     'raise' not in self.dst.numpydoc.get_excluded_sections()):
                 # list of parameters is like: (name, description)
                 self.docs['out']['raises'] = list(self.docs['in']['raises'])
 
     def _set_return(self):
         """Sets the return parameter with description and rtype if any"""
-        #TODO: manage return retrieved from element code (external)
-        #TODO: manage different in/out styles
+        # TODO: manage return retrieved from element code (external)
+        # TODO: manage different in/out styles
         if type(self.docs['in']['return']) is list and self.dst.style['out'] not in ['groups', 'numpydoc', 'google']:
-            #TODO: manage return names
-            #manage not setting return if not mandatory for numpy
+            # TODO: manage return names
+            # manage not setting return if not mandatory for numpy
             lst = self.docs['in']['return']
             if lst:
                 if lst[0][0] is not None:
@@ -1698,7 +1702,7 @@ class DocString(object):
 
     def _set_other(self):
         """Sets other specific sections"""
-            #manage not setting if not mandatory for numpy
+        # manage not setting if not mandatory for numpy
         if self.dst.style['in'] == 'numpydoc':
             if self.docs['in']['raw'] is not None:
                 self.docs['out']['post'] = self.dst.numpydoc.get_raw_not_managed(self.docs['in']['raw'])
@@ -1714,8 +1718,8 @@ class DocString(object):
         raw = os.linesep
         if self.dst.style['out'] == 'numpydoc':
             spaces = ' ' * 4
-            with_space = lambda s: os.linesep.join([self.docs['out']['spaces'] + spaces + \
-                                                    l.lstrip() if i > 0 else \
+            with_space = lambda s: os.linesep.join([self.docs['out']['spaces'] + spaces +\
+                                                    l.lstrip() if i > 0 else\
                                                     l for i, l in enumerate(s.split(os.linesep))])
             raw += self.dst.numpydoc.get_key_section_header('param', self.docs['out']['spaces'])
             for p in self.docs['out']['params']:
@@ -1730,8 +1734,8 @@ class DocString(object):
                 raw += os.linesep
         elif self.dst.style['out'] == 'google':
             spaces = ' ' * 2
-            with_space = lambda s: os.linesep.join([self.docs['out']['spaces'] + \
-                                                    l.lstrip() if i > 0 else \
+            with_space = lambda s: os.linesep.join([self.docs['out']['spaces'] +\
+                                                    l.lstrip() if i > 0 else\
                                                     l for i, l in enumerate(s.split(os.linesep))])
             raw += self.dst.googledoc.get_key_section_header('param', self.docs['out']['spaces'])
             for p in self.docs['out']['params']:
@@ -1749,7 +1753,7 @@ class DocString(object):
         elif self.dst.style['out'] == 'groups':
             pass
         else:
-            with_space = lambda s: os.linesep.join([self.docs['out']['spaces'] + l \
+            with_space = lambda s: os.linesep.join([self.docs['out']['spaces'] + l\
                                                     if i > 0 else l for i, l in enumerate(s.split(os.linesep))])
             if len(self.docs['out']['params']):
                 for p in self.docs['out']['params']:
@@ -1850,8 +1854,8 @@ class DocString(object):
         elif self.dst.style['out'] == 'google':
             raw += os.linesep
             spaces = ' ' * 2
-            with_space = lambda s: os.linesep.join([self.docs['out']['spaces'] + spaces + \
-                                                    l.lstrip() if i > 0 else \
+            with_space = lambda s: os.linesep.join([self.docs['out']['spaces'] + spaces +\
+                                                    l.lstrip() if i > 0 else\
                                                     l for i, l in enumerate(s.split(os.linesep))])
             raw += self.dst.googledoc.get_key_section_header('return', self.docs['out']['spaces'])
             if self.docs['out']['rtype']:

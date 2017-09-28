@@ -1,0 +1,1369 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Source code documentation &#8212; Pyment 0.3.2 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Reference documentation" href="pyment.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pyment.html" title="Reference documentation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Pyment 0.3.2 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="source-code-documentation">
+<h1><a class="toc-backref" href="#id1">Source code documentation</a><a class="headerlink" href="#source-code-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="contents topic" id="table-of-content">
+<p class="topic-title first">Table of content</p>
+<ul class="simple">
+<li><a class="reference internal" href="#source-code-documentation" id="id1">Source code documentation</a><ul>
+<li><a class="reference internal" href="#module-pyment" id="id2">Module pyment</a><ul>
+<li><a class="reference internal" href="#pycomment-class" id="id3">PyComment class</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-docstring" id="id4">Module docstring</a><ul>
+<li><a class="reference internal" href="#numpydoctools-class" id="id5">NumpydocTools class</a></li>
+<li><a class="reference internal" href="#googledoctools-class" id="id6">GoogledocTools class</a></li>
+<li><a class="reference internal" href="#docstools-class" id="id7">DocsTools class</a></li>
+<li><a class="reference internal" href="#docstring-class" id="id8">Docstring class</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="module-pyment">
+<h2><a class="toc-backref" href="#id2">Module pyment</a><a class="headerlink" href="#module-pyment" title="Permalink to this headline">¶</a></h2>
+<p>This is the module that can be imported in a Python program in order to use Pyment with the class <cite>PyComment</cite>.</p>
+<span class="target" id="module-pyment"></span><div class="section" id="pycomment-class">
+<h3><a class="toc-backref" href="#id3">PyComment class</a><a class="headerlink" href="#pycomment-class" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="pyment.PyComment">
+<em class="property">class </em><code class="descclassname">pyment.</code><code class="descname">PyComment</code><span class="sig-paren">(</span><em>input_file</em>, <em>input_style=None</em>, <em>output_style='reST'</em>, <em>quotes='&quot;&quot;&quot;'</em>, <em>first_line=True</em>, <em>convert_only=False</em>, <em>config_file=None</em>, <em>ignore_private=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyment.PyComment" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class allow to manage several python scripts docstrings.
+It is used to parse and rewrite in a Pythonic way all the functions’, methods’ and classes’ docstrings.
+The changes are then provided in a patch file.</p>
+<dl class="method">
+<dt id="pyment.PyComment.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_file</em>, <em>input_style=None</em>, <em>output_style='reST'</em>, <em>quotes='&quot;&quot;&quot;'</em>, <em>first_line=True</em>, <em>convert_only=False</em>, <em>config_file=None</em>, <em>ignore_private=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyment.PyComment.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the configuration including the source to proceed and options.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>input_file</strong> – path name (file or folder)</li>
+<li><strong>input_style</strong> – the type of doctrings format of the output. By default, it will
+autodetect the format for each docstring.</li>
+<li><strong>output_style</strong> – the docstring docstyle to generate.</li>
+<li><strong>quotes</strong> – the type of quotes to use for output: ‘ ‘ ‘ or ” ” ” (default ” ” “)</li>
+<li><strong>first_line</strong> (<em>boolean</em>) – indicate if description should start on first or second line. By default it is True</li>
+<li><strong>convert_only</strong> – if set only existing docstring will be converted. No missing docstring will be created.</li>
+<li><strong>config_file</strong> – if given configuration file for Pyment</li>
+<li><strong>ignore_private</strong> – don’t proceed the private methods/functions starting with __ (two underscores)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyment.PyComment.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#pyment.PyComment.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyment.PyComment.compute_before_after">
+<code class="descname">compute_before_after</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyment.PyComment.compute_before_after" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the list of lines before and after the proposed docstring changes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">tuple of before,after where each is a list of lines of python code.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyment.PyComment.diff">
+<code class="descname">diff</code><span class="sig-paren">(</span><em>source_path=''</em>, <em>target_path=''</em>, <em>which=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#pyment.PyComment.diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the diff between original docstring and proposed docstring.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>source_path</strong> – (Default value = ‘’)</li>
+<li><strong>target_path</strong> – (Default value = ‘’)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the resulted diff</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">string</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyment.PyComment.diff_to_file">
+<code class="descname">diff_to_file</code><span class="sig-paren">(</span><em>patch_file</em>, <em>source_path=''</em>, <em>target_path=''</em><span class="sig-paren">)</span><a class="headerlink" href="#pyment.PyComment.diff_to_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do a diff and save it to file as a patch</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>patch_file</strong> – file name of the patch to generate</li>
+<li><strong>source_path</strong> – name of the original file (Default value = ‘’)</li>
+<li><strong>target_path</strong> – name of the final file (Default value = ‘’)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyment.PyComment.docs_init_to_class">
+<code class="descname">docs_init_to_class</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyment.PyComment.docs_init_to_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>If found a __init__ method’s docstring and the class
+without any docstring, so set the class docstring with __init__one,
+and let __init__ without docstring.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if done</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">boolean</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyment.PyComment.get_output_docs">
+<code class="descname">get_output_docs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyment.PyComment.get_output_docs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the output docstrings once formatted</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the formatted docstrings</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyment.PyComment.proceed">
+<code class="descname">proceed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyment.PyComment.proceed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses the input file and generates/converts the docstrings.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the list of docstrings</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list of dictionaries</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyment.PyComment.write_to_file">
+<code class="descname">write_to_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyment.PyComment.write_to_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do the changes and write back to the file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-docstring">
+<h2><a class="toc-backref" href="#id4">Module docstring</a><a class="headerlink" href="#module-docstring" title="Permalink to this headline">¶</a></h2>
+<p>This module is used by <cite>pyment</cite> module and is not intended to be used out of <em>Pyment</em>. To use <em>Pyment</em> in your project,
+you may want to use <cite>pyment.PyComment</cite> (see above).</p>
+<span class="target" id="module-docstring"></span><div class="section" id="numpydoctools-class">
+<h3><a class="toc-backref" href="#id5">NumpydocTools class</a><a class="headerlink" href="#numpydoctools-class" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="docstring.NumpydocTools">
+<em class="property">class </em><code class="descclassname">docstring.</code><code class="descname">NumpydocTools</code><span class="sig-paren">(</span><em>first_line=None, optional_sections=['raise', 'also', 'ref', 'note', 'other', 'example', 'method', 'attr'], excluded_sections=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.NumpydocTools" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="docstring.NumpydocTools.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>first_line=None, optional_sections=['raise', 'also', 'ref', 'note', 'other', 'example', 'method', 'attr'], excluded_sections=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.NumpydocTools.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>first_line</strong> (<em>boolean</em>) – indicate if description should start
+on first or second line. By default it will follow global config.</li>
+<li><strong>optional_sections</strong> (<em>list</em>) – list of sections that are not mandatory
+if empty. The accepted sections are:
+-param
+-return
+-raise
+-also
+-ref
+-note
+-other
+-example
+-method
+-attr</li>
+<li><strong>excluded_sections</strong> (<em>list</em>) – list of sections that are excluded,
+even if mandatory. The list is the same than for optional sections.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="docstring.NumpydocTools.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#docstring.NumpydocTools.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.NumpydocTools.get_attr_list">
+<code class="descname">get_attr_list</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.NumpydocTools.get_attr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the list of attributes.
+The list contains tuples (name, desc, type=None)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – the data to proceed</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.NumpydocTools.get_key_section_header">
+<code class="descname">get_key_section_header</code><span class="sig-paren">(</span><em>key</em>, <em>spaces</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.NumpydocTools.get_key_section_header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the key of the header section</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>key</strong> – the key name</li>
+<li><strong>spaces</strong> – spaces to set at the beginning of the header</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.NumpydocTools.get_list_key">
+<code class="descname">get_list_key</code><span class="sig-paren">(</span><em>data</em>, <em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.NumpydocTools.get_list_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the list of a key elements.
+Each element is a tuple (key=None, description, type=None).
+Note that the tuple’s element can differ depending on the key.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data</strong> – the data to proceed</li>
+<li><strong>key</strong> – the key</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.NumpydocTools.get_next_section_lines">
+<code class="descname">get_next_section_lines</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.NumpydocTools.get_next_section_lines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the starting line number and the ending line number of next section.
+It will return (-1, -1) if no section was found.
+The section is a section key (e.g. ‘Parameters’) followed by underline
+(made by -), then the content
+The ending line number is the line after the end of the section or -1 if
+the section is at the end.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – the data to proceed</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.NumpydocTools.get_next_section_start_line">
+<code class="descname">get_next_section_start_line</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.NumpydocTools.get_next_section_start_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the starting line number of next section.
+It will return -1 if no section was found.
+The section is a section key (e.g. ‘Parameters’) followed by underline
+(made by -), then the content</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>str</em>) – the data to proceed</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.NumpydocTools.get_param_list">
+<code class="descname">get_param_list</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.NumpydocTools.get_param_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the list of parameters.
+The list contains tuples (name, desc, type=None)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – the data to proceed</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.NumpydocTools.get_raise_list">
+<code class="descname">get_raise_list</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.NumpydocTools.get_raise_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the list of exceptions.
+The list contains tuples (name, desc)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – the data to proceed</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.NumpydocTools.get_raw_not_managed">
+<code class="descname">get_raw_not_managed</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.NumpydocTools.get_raw_not_managed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get elements not managed. They can be used as is.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – the data to proceed</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.NumpydocTools.get_return_list">
+<code class="descname">get_return_list</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.NumpydocTools.get_return_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the list of return elements/values.
+The list contains tuples (name=None, desc, type)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – the data to proceed</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.NumpydocTools.get_section_key_line">
+<code class="descname">get_section_key_line</code><span class="sig-paren">(</span><em>data</em>, <em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.NumpydocTools.get_section_key_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the next section line for a given key.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data</strong> – the data to proceed</li>
+<li><strong>key</strong> – the key</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="googledoctools-class">
+<h3><a class="toc-backref" href="#id6">GoogledocTools class</a><a class="headerlink" href="#googledoctools-class" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="docstring.GoogledocTools">
+<em class="property">class </em><code class="descclassname">docstring.</code><code class="descname">GoogledocTools</code><span class="sig-paren">(</span><em>first_line=None, optional_sections=['raise'], excluded_sections=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.GoogledocTools" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="docstring.GoogledocTools.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>first_line=None, optional_sections=['raise'], excluded_sections=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.GoogledocTools.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>first_line</strong> (<em>boolean</em>) – indicate if description should start
+on first or second line. By default it will follow global config.</li>
+<li><strong>optional_sections</strong> (<em>list</em>) – list of sections that are not mandatory
+if empty. The accepted sections are:
+-param
+-return
+-raise</li>
+<li><strong>excluded_sections</strong> (<em>list</em>) – list of sections that are excluded,
+even if mandatory. The list is the same than for optional sections.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="docstring.GoogledocTools.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#docstring.GoogledocTools.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.GoogledocTools.get_excluded_sections">
+<code class="descname">get_excluded_sections</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#docstring.GoogledocTools.get_excluded_sections" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get excluded sections</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.GoogledocTools.get_key_section_header">
+<code class="descname">get_key_section_header</code><span class="sig-paren">(</span><em>key</em>, <em>spaces</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.GoogledocTools.get_key_section_header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the key of the section header</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>key</strong> – the key name</li>
+<li><strong>spaces</strong> – spaces to set at the beginning of the header</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.GoogledocTools.get_list_key">
+<code class="descname">get_list_key</code><span class="sig-paren">(</span><em>data</em>, <em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.GoogledocTools.get_list_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the list of a key elements.
+Each element is a tuple (key=None, description, type=None).
+Note that the tuple’s element can differ depending on the key.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data</strong> – the data to proceed</li>
+<li><strong>key</strong> – the key</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.GoogledocTools.get_mandatory_sections">
+<code class="descname">get_mandatory_sections</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#docstring.GoogledocTools.get_mandatory_sections" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get mandatory sections</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.GoogledocTools.get_next_section_lines">
+<code class="descname">get_next_section_lines</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.GoogledocTools.get_next_section_lines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the starting line number and the ending line number of next section.
+It will return (-1, -1) if no section was found.
+The section is a section key (e.g. ‘Parameters’) then the content
+The ending line number is the line after the end of the section or -1 if
+the section is at the end.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – the data to proceed</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.GoogledocTools.get_next_section_start_line">
+<code class="descname">get_next_section_start_line</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.GoogledocTools.get_next_section_start_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the starting line number of next section.
+It will return -1 if no section was found.
+The section is a section key (e.g. ‘Parameters:’)
+then the content</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – a list of strings containing the docstring’s lines</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the index of next section else -1</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.GoogledocTools.get_optional_sections">
+<code class="descname">get_optional_sections</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#docstring.GoogledocTools.get_optional_sections" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get optional sections</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.GoogledocTools.get_param_list">
+<code class="descname">get_param_list</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.GoogledocTools.get_param_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the list of parameters.
+The list contains tuples (name, desc, type=None)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – the data to proceed</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.GoogledocTools.get_raise_list">
+<code class="descname">get_raise_list</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.GoogledocTools.get_raise_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the list of exceptions.
+The list contains tuples (name, desc)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – the data to proceed</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.GoogledocTools.get_return_list">
+<code class="descname">get_return_list</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.GoogledocTools.get_return_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the list of returned values.
+The list contains tuples (name=None, desc, type=None)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – the data to proceed</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.GoogledocTools.get_section_key_line">
+<code class="descname">get_section_key_line</code><span class="sig-paren">(</span><em>data</em>, <em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.GoogledocTools.get_section_key_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the next section line for a given key.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data</strong> – the data to proceed</li>
+<li><strong>key</strong> – the key</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="docstools-class">
+<h3><a class="toc-backref" href="#id7">DocsTools class</a><a class="headerlink" href="#docstools-class" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="docstring.DocsTools">
+<em class="property">class </em><code class="descclassname">docstring.</code><code class="descname">DocsTools</code><span class="sig-paren">(</span><em>style_in='javadoc'</em>, <em>style_out='reST'</em>, <em>params=None</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class provides the tools to manage several types of docstring.
+Currently the following are managed:
+- ‘javadoc’: javadoc style
+- ‘reST’: restructured text style compatible with Sphinx
+- ‘groups’: parameters on beginning of lines (like Google Docs)
+- ‘google’: the numpy format for docstrings (using an external module)
+- ‘numpydoc’: the numpy format for docstrings (using an external module)</p>
+<dl class="method">
+<dt id="docstring.DocsTools.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>style_in='javadoc'</em>, <em>style_out='reST'</em>, <em>params=None</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Choose the kind of docstring type.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>style_in</strong> (<em>string</em>) – docstring input style (‘javadoc’, ‘reST’, ‘groups’, ‘numpydoc’, ‘google’)</li>
+<li><strong>style_out</strong> (<em>string</em>) – docstring output style (‘javadoc’, ‘reST’, ‘groups’, ‘numpydoc’, ‘google’)</li>
+<li><strong>params</strong> (<em>list</em>) – if known the parameters names that should be found in the docstring.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="docstring.DocsTools.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#docstring.DocsTools.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.autodetect_style">
+<code class="descname">autodetect_style</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.autodetect_style" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the style of a docstring,
+and sets it as the default input one for the instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>str</em>) – the docstring’s data to recognize.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the style detected else ‘unknown’</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.get_doctests_indexes">
+<code class="descname">get_doctests_indexes</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.get_doctests_indexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract Doctests if found and return it</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – string to parse</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">index of start and index of end of the doctest, else (-1, -1)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.get_elem_desc">
+<code class="descname">get_elem_desc</code><span class="sig-paren">(</span><em>data</em>, <em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.get_elem_desc" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.get_elem_index">
+<code class="descname">get_elem_index</code><span class="sig-paren">(</span><em>data</em>, <em>starting=True</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.get_elem_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get from a docstring the next option.
+In javadoc style it could be &#64;param, &#64;return, &#64;type,…</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> – string to parse</li>
+<li><strong>starting</strong> (<em>boolean</em>) – does the key element must start the line (Default value = True)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">index of found element else -1</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">integer</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.get_elem_param">
+<code class="descname">get_elem_param</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.get_elem_param" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.get_group_index">
+<code class="descname">get_group_index</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.get_group_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the next groups style’s starting line index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – string to parse</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the index if found else -1</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.get_group_key_index">
+<code class="descname">get_group_key_index</code><span class="sig-paren">(</span><em>data</em>, <em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.get_group_key_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the next groups style’s starting line index for a key</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> – string to parse</li>
+<li><strong>key</strong> – the key category</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the index if found else -1</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.get_group_key_line">
+<code class="descname">get_group_key_line</code><span class="sig-paren">(</span><em>data</em>, <em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.get_group_key_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the next group-style key’s line number.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> – string to parse</li>
+<li><strong>key</strong> – the key category</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the found line number else -1</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.get_group_line">
+<code class="descname">get_group_line</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.get_group_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the next group-style key’s line.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – the data to proceed</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the line number</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.get_key">
+<code class="descname">get_key</code><span class="sig-paren">(</span><em>key</em>, <em>target='in'</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.get_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the name of a key in current style.
+e.g.: in javadoc style, the returned key for ‘param’ is <a class="reference external" href="mailto:'&#37;&#52;&#48;param">‘<span>&#64;</span>param</a>’</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>key</strong> – the key wanted (param, type, return, rtype,..)</li>
+<li><strong>target</strong> – the target docstring is ‘in’ for the input or
+‘out’ for the output to generate. (Default value = ‘in’)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.get_key_index">
+<code class="descname">get_key_index</code><span class="sig-paren">(</span><em>data</em>, <em>key</em>, <em>starting=True</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.get_key_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get from a docstring the next option with a given key.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> – string to parse</li>
+<li><strong>starting</strong> (<em>boolean</em>) – does the key element must start the line (Default value = True)</li>
+<li><strong>key</strong> – the key category. Can be ‘param’, ‘type’, ‘return’, …</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">index of found element else -1</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">integer</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.get_param_description_indexes">
+<code class="descname">get_param_description_indexes</code><span class="sig-paren">(</span><em>data</em>, <em>prev=None</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.get_param_description_indexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get from a docstring the next parameter’s description.
+In javadoc style it is after &#64;param.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> – string to parse</li>
+<li><strong>prev</strong> – index after the param element name (Default value = None)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">start and end indexes of found element else (-1, -1)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.get_param_indexes">
+<code class="descname">get_param_indexes</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.get_param_indexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get from a docstring the next parameter name indexes.
+In javadoc style it is after &#64;param.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – string to parse</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">start and end indexes of found element else (-1, -1)
+or else (-2, -2) if try to use params style but no parameters were provided.
+Note: the end index is the index after the last name character</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.get_param_type_indexes">
+<code class="descname">get_param_type_indexes</code><span class="sig-paren">(</span><em>data</em>, <em>name=None</em>, <em>prev=None</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.get_param_type_indexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get from a docstring a parameter type indexes.
+In javadoc style it is after &#64;type.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> – string to parse</li>
+<li><strong>name</strong> – the name of the parameter (Default value = None)</li>
+<li><strong>prev</strong> – index after the previous element (param or param’s description) (Default value = None)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">start and end indexes of found element else (-1, -1)
+Note: the end index is the index after the last included character or -1 if
+reached the end</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.get_raise_description_indexes">
+<code class="descname">get_raise_description_indexes</code><span class="sig-paren">(</span><em>data</em>, <em>prev=None</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.get_raise_description_indexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get from a docstring the next raise’s description.
+In javadoc style it is after &#64;param.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> – string to parse</li>
+<li><strong>prev</strong> – index after the param element name (Default value = None)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">start and end indexes of found element else (-1, -1)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.get_raise_indexes">
+<code class="descname">get_raise_indexes</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.get_raise_indexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get from a docstring the next raise name indexes.
+In javadoc style it is after &#64;raise.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – string to parse</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">start and end indexes of found element else (-1, -1)
+or else (-2, -2) if try to use params style but no parameters were provided.
+Note: the end index is the index after the last name character</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.get_return_description_indexes">
+<code class="descname">get_return_description_indexes</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.get_return_description_indexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get from a docstring the return parameter description indexes.
+In javadoc style it is after &#64;return.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – string to parse</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">start and end indexes of found element else (-1, -1)
+Note: the end index is the index after the last included character or -1 if
+reached the end</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.get_return_type_indexes">
+<code class="descname">get_return_type_indexes</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.get_return_type_indexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get from a docstring the return parameter type indexes.
+In javadoc style it is after &#64;rtype.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – string to parse</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">start and end indexes of found element else (-1, -1)
+Note: the end index is the index after the last included character or -1 if
+reached the end</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.get_sep">
+<code class="descname">get_sep</code><span class="sig-paren">(</span><em>key='param'</em>, <em>target='in'</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.get_sep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the separator of current style.
+e.g.: in reST and javadoc style, it is “:”</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>key</strong> – the key which separator is wanted (param, type, return, rtype,..) (Default value = ‘param’)</li>
+<li><strong>target</strong> – the target docstring is ‘in’ for the input or
+‘out’ for the output to generate. (Default value = ‘in’)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.set_input_style">
+<code class="descname">set_input_style</code><span class="sig-paren">(</span><em>style</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.set_input_style" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the input docstring style</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>style</strong> (<em>str</em>) – style to set for input docstring</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.set_known_parameters">
+<code class="descname">set_known_parameters</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.set_known_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set known parameters names.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> (<em>list</em>) – the docstring parameters names</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocsTools.set_output_style">
+<code class="descname">set_output_style</code><span class="sig-paren">(</span><em>style</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocsTools.set_output_style" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the output docstring style</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>style</strong> (<em>str</em>) – style to set for output docstring</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="docstring-class">
+<h3><a class="toc-backref" href="#id8">Docstring class</a><a class="headerlink" href="#docstring-class" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="docstring.DocString">
+<em class="property">class </em><code class="descclassname">docstring.</code><code class="descname">DocString</code><span class="sig-paren">(</span><em>elem_raw</em>, <em>spaces=''</em>, <em>docs_raw=None</em>, <em>quotes=&quot;'''&quot;</em>, <em>input_style=None</em>, <em>output_style=None</em>, <em>first_line=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocString" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents the docstring</p>
+<dl class="method">
+<dt id="docstring.DocString.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>elem_raw</em>, <em>spaces=''</em>, <em>docs_raw=None</em>, <em>quotes=&quot;'''&quot;</em>, <em>input_style=None</em>, <em>output_style=None</em>, <em>first_line=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocString.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>elem_raw</strong> – raw data of the element (def or class).</li>
+<li><strong>spaces</strong> – the leading whitespaces before the element</li>
+<li><strong>docs_raw</strong> – the raw data of the docstring part if any.</li>
+<li><strong>quotes</strong> – the type of quotes to use for output: ‘ ‘ ‘ or ” ” “</li>
+<li><strong>style_in</strong> (<em>string</em>) – docstring input style (‘javadoc’, ‘reST’, ‘groups’, ‘numpydoc’, None). If None will be autodetected</li>
+<li><strong>style_out</strong> (<em>string</em>) – docstring output style (‘javadoc’, ‘reST’, ‘groups’, ‘numpydoc’)</li>
+<li><strong>first_line</strong> (<em>boolean</em>) – indicate if description should start
+on first or second line</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="docstring.DocString.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#docstring.DocString.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocString.generate_docs">
+<code class="descname">generate_docs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocString.generate_docs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the output docstring</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocString.get_input_docstring">
+<code class="descname">get_input_docstring</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocString.get_input_docstring" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the input raw docstring.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the input docstring if any.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str or None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocString.get_input_style">
+<code class="descname">get_input_style</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocString.get_input_style" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the input docstring style</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the style for input docstring</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">style: str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocString.get_output_style">
+<code class="descname">get_output_style</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocString.get_output_style" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the output docstring style</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the style for output docstring</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">style: str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocString.get_raw_docs">
+<code class="descname">get_raw_docs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocString.get_raw_docs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates raw docstring</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the raw docstring</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocString.get_spaces">
+<code class="descname">get_spaces</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocString.get_spaces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the output docstring initial spaces.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the spaces</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocString.parse_docs">
+<code class="descname">parse_docs</code><span class="sig-paren">(</span><em>raw=None</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocString.parse_docs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses the docstring</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>raw</strong> – the data to parse if not internally provided (Default value = None)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocString.parse_element">
+<code class="descname">parse_element</code><span class="sig-paren">(</span><em>raw=None</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocString.parse_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses the element’s elements (type, name and parameters) :)
+e.g.: def methode(param1, param2=’default’)
+def                      -&gt; type
+methode                  -&gt; name
+param1, param2=’default’ -&gt; parameters</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>raw</strong> – raw data of the element (def or class). (Default value = None)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocString.set_input_style">
+<code class="descname">set_input_style</code><span class="sig-paren">(</span><em>style</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocString.set_input_style" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the input docstring style</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>style</strong> (<em>str</em>) – style to set for input docstring</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocString.set_output_style">
+<code class="descname">set_output_style</code><span class="sig-paren">(</span><em>style</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocString.set_output_style" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the output docstring style</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>style</strong> (<em>str</em>) – style to set for output docstring</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="docstring.DocString.set_spaces">
+<code class="descname">set_spaces</code><span class="sig-paren">(</span><em>spaces</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocString.set_spaces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set for output docstring the initial spaces.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>spaces</strong> – the spaces to set</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Source code documentation</a><ul>
+<li><a class="reference internal" href="#module-pyment">Module pyment</a><ul>
+<li><a class="reference internal" href="#pycomment-class">PyComment class</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-docstring">Module docstring</a><ul>
+<li><a class="reference internal" href="#numpydoctools-class">NumpydocTools class</a></li>
+<li><a class="reference internal" href="#googledoctools-class">GoogledocTools class</a></li>
+<li><a class="reference internal" href="#docstools-class">DocsTools class</a></li>
+<li><a class="reference internal" href="#docstring-class">Docstring class</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pyment.html"
+                        title="previous chapter">Reference documentation</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pyment_doc.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pyment.html" title="Reference documentation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Pyment 0.3.2 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Daouzli Adel.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.4.
+    </div>
+  </body>
+</html>
