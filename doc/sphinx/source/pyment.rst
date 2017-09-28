@@ -20,9 +20,10 @@ How does it work
 ----------------
 
 Pyment will parse one python file or several (automatically exploring a folder and its sub-folder) and retrieve existing docstrings.
-Then, for each found function/method/class, it will generate a formated docstrings with parameters, default values,...
+Then, for each found function/method/class, it will generate a formatted docstrings with parameters, default values,...
 
-At the end, patches are generated for each file. Then, you just have to apply the patches.
+At the end, depending on options, original files will be overwritten or patches will be generated for each file, in which
+case you just have to apply the patches.
 
 What are the supported formats
 ------------------------------

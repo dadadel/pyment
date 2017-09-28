@@ -304,7 +304,7 @@ class PyComment(object):
         list_from, list_to = self.compute_before_after()
 
         if list_from != list_to:
-            tmp_filename = '{0}.writing'.fromat(self.input_file)
+            tmp_filename = '{0}.writing'.format(self.input_file)
             fh = open(tmp_filename, 'w')
             ok = False
             try:
