@@ -91,7 +91,7 @@ The changes are then provided in a patch file.</p>
 <li><strong>input_file</strong> – path name (file or folder)</li>
 <li><strong>input_style</strong> – the type of doctrings format of the output. By default, it will
 autodetect the format for each docstring.</li>
-<li><strong>output_style</strong> – the docstring docstyle to generate.</li>
+<li><strong>output_style</strong> – the docstring docstyle to generate (‘javadoc’, ‘reST’, ‘groups’, ‘numpydoc’, ‘google’).</li>
 <li><strong>quotes</strong> – the type of quotes to use for output: ‘ ‘ ‘ or ” ” ” (default ” ” “)</li>
 <li><strong>first_line</strong> (<em>boolean</em>) – indicate if description should start on first or second line. By default it is True</li>
 <li><strong>convert_only</strong> – if set only existing docstring will be converted. No missing docstring will be created.</li>
@@ -1105,11 +1105,11 @@ e.g.: in reST and javadoc style, it is “:”</p>
 <h3><a class="toc-backref" href="#id8">Docstring class</a><a class="headerlink" href="#docstring-class" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="docstring.DocString">
-<em class="property">class </em><code class="descclassname">docstring.</code><code class="descname">DocString</code><span class="sig-paren">(</span><em>elem_raw</em>, <em>spaces=''</em>, <em>docs_raw=None</em>, <em>quotes=&quot;'''&quot;</em>, <em>input_style=None</em>, <em>output_style=None</em>, <em>first_line=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocString" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">docstring.</code><code class="descname">DocString</code><span class="sig-paren">(</span><em>elem_raw</em>, <em>spaces=''</em>, <em>docs_raw=None</em>, <em>quotes=&quot;'''&quot;</em>, <em>input_style=None</em>, <em>output_style=None</em>, <em>first_line=False</em>, <em>trailing_space=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocString" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class represents the docstring</p>
 <dl class="method">
 <dt id="docstring.DocString.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>elem_raw</em>, <em>spaces=''</em>, <em>docs_raw=None</em>, <em>quotes=&quot;'''&quot;</em>, <em>input_style=None</em>, <em>output_style=None</em>, <em>first_line=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocString.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>elem_raw</em>, <em>spaces=''</em>, <em>docs_raw=None</em>, <em>quotes=&quot;'''&quot;</em>, <em>input_style=None</em>, <em>output_style=None</em>, <em>first_line=False</em>, <em>trailing_space=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#docstring.DocString.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1119,10 +1119,13 @@ e.g.: in reST and javadoc style, it is “:”</p>
 <li><strong>spaces</strong> – the leading whitespaces before the element</li>
 <li><strong>docs_raw</strong> – the raw data of the docstring part if any.</li>
 <li><strong>quotes</strong> – the type of quotes to use for output: ‘ ‘ ‘ or ” ” “</li>
-<li><strong>style_in</strong> (<em>string</em>) – docstring input style (‘javadoc’, ‘reST’, ‘groups’, ‘numpydoc’, None). If None will be autodetected</li>
-<li><strong>style_out</strong> (<em>string</em>) – docstring output style (‘javadoc’, ‘reST’, ‘groups’, ‘numpydoc’)</li>
+<li><strong>style_in</strong> (<em>string</em>) – docstring input style (‘javadoc’, ‘reST’, ‘groups’, ‘numpydoc’, ‘google’, None).
+If None will be autodetected</li>
+<li><strong>style_out</strong> (<em>string</em>) – docstring output style (‘javadoc’, ‘reST’, ‘groups’, ‘numpydoc’, ‘google’)</li>
 <li><strong>first_line</strong> (<em>boolean</em>) – indicate if description should start
 on first or second line</li>
+<li><strong>trailing_space</strong> (<em>boolean</em>) – if set, a trailing space will be inserted in places where the user
+should write a description</li>
 </ul>
 </td>
 </tr>
