@@ -132,6 +132,35 @@ class IssuesTests(unittest.TestCase):
         result = ''.join(p.diff())
         self.assertTrue(result == '')
 
+    def testIssue46(self):
+        # Title: list, tuple, dict default param values are not parsed correctly
+        # if a list/tuple/dict is given as default value for a parameter, the
+        # commas will be considered as separators for parameters
+        try:
+            f = open(absdir("issue46.py.patch.expected"))
+            expected = f.readlines()
+            if expected[0].startswith("# Patch"):
+                expected = expected[2:]
+            expected = "".join(expected)
+            f.close()
+        except Exception as e:
+            self.fail('Raised exception: "{0}"'.format(e))
+        p = pym.PyComment(absdir('issue46.py'))
+        p._parse()
+        self.assertTrue(p.parsed)
+        result = ''.join(p.diff())
+        self.assertTrue(result == expected)
+
+    def testIssue47(self):
+        # Title:  Extra blank line for docstring with a muli-line description #47
+        # If a function has no argument and a multi-line description, Pyment will insert two blank lines
+        # between the description and the end of the docstring.
+        p = pym.PyComment(absdir('issue47.py'))
+        p._parse()
+        self.assertTrue(p.parsed)
+        result = ''.join(p.diff())
+        self.assertTrue(result == '')
+
 
 def main():
     unittest.main()

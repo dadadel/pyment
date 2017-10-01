@@ -1,8 +1,41 @@
 def func(a, b):
     """desc
 
-    :param a:
-    :param b:
+    :param a: 
+    :param b: 
+
+    """
+    pass
+
+def func(a, b):
+    """desc
+
+    :param a: 
+    :type a: 
+    :param b: 
+    :type b: 
+
+    """
+    pass
+
+def func(a, b):
+    """desc
+
+    :param a: 
+    :type a: str
+    :param b: 
+    :type b: str
+
+    """
+    pass
+
+def func(a, b):
+    """desc
+
+    :param a: 
+    :type a: str
+    :param b: 
+    :type b: 
 
     """
     pass
@@ -28,18 +61,8 @@ def func(a, b):
 def func(a, b):
     """desc
 
-    :param a:
+    :param a: 
     :param b: desc b
-
-    """
-    pass
-
-def func(a, b):
-    """desc
-
-    :param a:
-    :param b:
-    :param c:
 
     """
     pass
@@ -47,9 +70,19 @@ def func(a, b):
 def func(a, b, c):
     """desc
 
-    :param a:
+    :param a: 
+    :param b: 
+    :param c: 
+
+    """
+    pass
+
+def func(a, b, c):
+    """desc
+
+    :param a: 
     :param b: desc b
-    :param c:
+    :param c: 
 
     """
     pass
@@ -58,8 +91,18 @@ def func(a, b, c):
     """desc
 
     :param a: desc a
-    :param b:
-    :param c:
+    :param b: 
+    :param c: 
+
+    """
+    pass
+
+def func(a, b, c):
+    """desc
+
+    :param a: desc a
+    :param b: 
+    :param c: desc c
 
     """
     pass
