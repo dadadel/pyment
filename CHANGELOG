@@ -1,6 +1,7 @@
 0.3.2:
+        - add new tests
         - update docstrings, add sphinx conf and generated html doc
-        - add tests for issues (#10, #15, #19, #30, #32, #34)
+        - add tests for issues (#10, #15, #19, #30, #32, #34, #46, #47)
         - update setup for Pypi
         - fix issues #11, #16, #26, #32
         - add option to overwrite a file instead of patching (issue #20)
