@@ -65,7 +65,8 @@ def get_config(config_file):
     return config
 
 
-def run(source, files=[], input_style='auto', output_style='reST', first_line=True, quotes='"""', init2class=False, convert=False, config_file=None, ignore_private=False, overwrite=False):
+def run(source, files=[], input_style='auto', output_style='reST', first_line=True, quotes='"""',
+        init2class=False, convert=False, config_file=None, ignore_private=False, overwrite=False):
     if input_style == 'auto':
         input_style = None
 

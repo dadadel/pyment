@@ -1172,23 +1172,31 @@ class DocsTools(object):
 class DocString(object):
     """This class represents the docstring"""
 
-    def __init__(self, elem_raw, spaces='', docs_raw=None, quotes="'''", input_style=None, output_style=None, first_line=False, **kwargs):
-        '''
+    def __init__(self, elem_raw, spaces='', docs_raw=None, quotes="'''", input_style=None, output_style=None,
+                 first_line=False, trailing_space=True, **kwargs):
+        """
         :param elem_raw: raw data of the element (def or class).
         :param spaces: the leading whitespaces before the element
         :param docs_raw: the raw data of the docstring part if any.
         :param quotes: the type of quotes to use for output: ' ' ' or " " "
-        :param style_in: docstring input style ('javadoc', 'reST', 'groups', 'numpydoc', None). If None will be autodetected
+        :param style_in: docstring input style ('javadoc', 'reST', 'groups', 'numpydoc', 'google', None).
+          If None will be autodetected
         :type style_in: string
-        :param style_out: docstring output style ('javadoc', 'reST', 'groups', 'numpydoc')
+        :param style_out: docstring output style ('javadoc', 'reST', 'groups', 'numpydoc', 'google')
         :type style_out: string
         :param first_line: indicate if description should start
           on first or second line
         :type first_line: boolean
+        :param trailing_space: if set, a trailing space will be inserted in places where the user
+          should write a description
+        :type trailing_space: boolean
 
-        '''
+        """
         self.dst = DocsTools()
         self.first_line = first_line
+        self.trailing_space = ''
+        if trailing_space:
+            self.trailing_space = ' '
         if docs_raw and not input_style:
             self.dst.autodetect_style(docs_raw)
         elif input_style:
@@ -1911,7 +1919,7 @@ class DocString(object):
         desc = self.docs['out']['desc'].strip()
         if not desc or not desc.count(os.linesep):
             if not self.docs['out']['params'] and not self.docs['out']['return'] and not self.docs['out']['rtype'] and not self.docs['out']['raises']:
-                raw += desc if desc else ' '
+                raw += desc if desc else self.trailing_space
                 raw += self.quotes
                 self.docs['out']['raw'] = raw.rstrip()
                 return

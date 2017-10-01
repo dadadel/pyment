@@ -39,7 +39,7 @@ class PyComment(object):
         :param input_file: path name (file or folder)
         :param input_style: the type of doctrings format of the output. By default, it will
           autodetect the format for each docstring.
-        :param output_style: the docstring docstyle to generate.
+        :param output_style: the docstring docstyle to generate ('javadoc', 'reST', 'groups', 'numpydoc', 'google').
         :param quotes: the type of quotes to use for output: ' ' ' or " " " (default " " ")
         :param first_line: indicate if description should start on first or second line. By default it is True
         :type first_line: boolean
