@@ -5,7 +5,7 @@ import re
 import difflib
 import platform
 
-from docstring import DocString
+from .docstring import DocString
 
 __author__ = "A. Daouzli"
 __copyright__ = "Copyright 2012-2015"
