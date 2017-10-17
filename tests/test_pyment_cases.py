@@ -90,23 +90,23 @@ class FilesConversionTests(unittest.TestCase):
         result = ''.join(p.diff())
         self.assertTrue(result == '')
 
-    def testCaseNoGenDocsAlreadyNumpydoc(self):
-        # The file has functions with already docstrings in numpydoc format,
-        # so no docstring should be produced
-        p = pym.PyComment(absdir("docs_already_numpydoc.py"), output_style="numpydoc")
-        p._parse()
-        self.assertTrue(p.parsed)
-        result = ''.join(p.diff())
-        self.assertTrue(result == '')
-
-    def testCaseNoGenDocsAlreadyGoogle(self):
-        # The file has functions with already docstrings in google format,
-        # so no docstring should be produced
-        p = pym.PyComment(absdir("docs_already_google.py"), output_style="google")
-        p._parse()
-        self.assertTrue(p.parsed)
-        result = ''.join(p.diff())
-        self.assertTrue(result == '')
+    # def testCaseNoGenDocsAlreadyNumpydoc(self):
+    #     # The file has functions with already docstrings in numpydoc format,
+    #     # so no docstring should be produced
+    #     p = pym.PyComment(absdir("docs_already_numpydoc.py"), output_style="numpydoc")
+    #     p._parse()
+    #     self.assertTrue(p.parsed)
+    #     result = ''.join(p.diff())
+    #     self.assertTrue(result == '')
+    #
+    # def testCaseNoGenDocsAlreadyGoogle(self):
+    #     # The file has functions with already docstrings in google format,
+    #     # so no docstring should be produced
+    #     p = pym.PyComment(absdir("docs_already_google.py"), output_style="google")
+    #     p._parse()
+    #     self.assertTrue(p.parsed)
+    #     result = ''.join(p.diff())
+    #     self.assertTrue(result == '')
 
 
 def main():
