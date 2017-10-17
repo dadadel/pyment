@@ -8,9 +8,9 @@ import platform
 from .docstring import DocString
 
 __author__ = "A. Daouzli"
-__copyright__ = "Copyright 2012-2015"
+__copyright__ = "Copyright 2012-2017"
 __licence__ = "GPL3"
-__version__ = "0.3.2-dev4"
+__version__ = "0.3.2"
 __maintainer__ = "A. Daouzli"
 
 #TODO:

@@ -1,4 +1,4 @@
-0.3.2:
+0.3.2 - 2017/10/17:
         - add new tests
         - update docstrings, add sphinx conf and generated html doc
         - add tests for issues (#10, #15, #19, #30, #32)

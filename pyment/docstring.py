@@ -5,9 +5,9 @@ import re
 from collections import defaultdict
 
 __author__ = "A. Daouzli"
-__copyright__ = "Copyright 2012-2015, A. Daouzli"
+__copyright__ = "Copyright 2012-2017, A. Daouzli"
 __licence__ = "GPL3"
-__version__ = "0.3.2-dev4"
+__version__ = "0.3.2"
 __maintainer__ = "A. Daouzli"
 
 """
