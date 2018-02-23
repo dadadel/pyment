@@ -36,9 +36,7 @@ Start quickly
 
 .. code-block:: sh
 
-        $ git clone https://github.com/dadadel/pyment.git  # or git@github.com:dadadel/pyment.git
-        $ cd pyment
-        $ python setup.py install
+        $ pip install git+https://github.com/dadadel/pyment.git
 
 - run from the command line:
 
