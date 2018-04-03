@@ -34,3 +34,7 @@ def func8(param1=123, param2=+456, param3="!:@"):
     pass
 
 
+def func9(param1=func1(), param2="stuff"):
+    pass
+
+
