@@ -111,7 +111,7 @@ class PyComment(object):
                 # if currently reading an element content
                 waiting_docs = True
                 # *** Creates the DocString object ***
-                e = DocString(elem.replace(os.linesep, ' '), spaces, quotes=self.quotes,
+                e = DocString(elem.replace('\n', ' '), spaces, quotes=self.quotes,
                               input_style=self.input_style,
                               output_style=self.output_style,
                               first_line=self.first_line,
@@ -247,7 +247,7 @@ class PyComment(object):
             else:
                 list_to.extend(list_from[last:start])
             docs = e['docs'].get_raw_docs()
-            list_docs = [l + os.linesep for l in docs.split(os.linesep)]
+            list_docs = [l + '\n' for l in docs.splitlines()]
             list_to.extend(list_docs)
             last = end + 1
         if last < len(list_from):
