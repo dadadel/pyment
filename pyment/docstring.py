@@ -1360,7 +1360,7 @@ class DocString(object):
                 if l[-1] == ':':
                     l = l[:-1].strip()
                 # retrieves the parameters
-                l = l[l.find('(') + 1:l.find(')')].strip()
+                l = l[l.find('(') + 1:l.rfind(')')].strip()
                 lst = [c.strip() for c in l.split(',')]
                 for e in lst:
                     if '=' in e:

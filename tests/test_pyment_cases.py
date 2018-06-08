@@ -3,6 +3,7 @@
 import unittest
 import os
 import pyment.pyment as pym
+import re
 
 current_dir = os.path.dirname(__file__)
 absdir = lambda f: os.path.join(current_dir, f)
@@ -20,6 +21,10 @@ def get_expected_patch(self, name):
     except Exception as e:
         self.fail('Raised exception: "{0}"'.format(e))
     return expected
+
+
+def remove_diff_header(diff):
+    return re.sub('@@.+@@', '', diff)
 
 
 class FilesConversionTests(unittest.TestCase):
@@ -40,7 +45,7 @@ class FilesConversionTests(unittest.TestCase):
         p._parse()
         self.assertTrue(p.parsed)
         result = ''.join(p.diff())
-        self.assertTrue(result == expected)
+        self.assertTrue(remove_diff_header(result) == remove_diff_header(expected))
 
     def testCaseGenAllParamsGoogle(self):
         # The file has several functions with no or several parameters,
@@ -50,7 +55,7 @@ class FilesConversionTests(unittest.TestCase):
         p._parse()
         self.assertTrue(p.parsed)
         result = ''.join(p.diff())
-        self.assertTrue(result == expected)
+        self.assertTrue(remove_diff_header(result) == remove_diff_header(expected))
 
     def testCaseGenAllParamsNumpydoc(self):
         # The file has several functions with no or several parameters,
@@ -60,7 +65,7 @@ class FilesConversionTests(unittest.TestCase):
         p._parse()
         self.assertTrue(p.parsed)
         result = ''.join(p.diff())
-        self.assertTrue(result == expected)
+        self.assertTrue(remove_diff_header(result) == remove_diff_header(expected))
 
     def testCaseGenAllParamsJavadoc(self):
         # The file has several functions with no or several parameters,
@@ -70,7 +75,7 @@ class FilesConversionTests(unittest.TestCase):
         p._parse()
         self.assertTrue(p.parsed)
         result = ''.join(p.diff())
-        self.assertTrue(result == expected)
+        self.assertTrue(remove_diff_header(result) == remove_diff_header(expected))
 
     def testCaseNoGenDocsAlreadyReST(self):
         # The file has functions with already docstrings in reST format,

@@ -90,3 +90,13 @@
      pass
  
  
+ def func9(param1=func1(), param2="stuff"):
++    """
++
++    :param param1:  (Default value = func1())
++    :param param2:  (Default value = "stuff")
++
++    """
+     pass
+ 
+ 

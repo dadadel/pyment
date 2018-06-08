@@ -114,3 +114,16 @@
      pass
  
  
+ def func9(param1=func1(), param2="stuff"):
++    """
++
++    Args:
++      param1:  (Default value = func1())
++      param2:  (Default value = "stuff")
++
++    Returns:
++
++    """
+     pass
+ 
+ 
