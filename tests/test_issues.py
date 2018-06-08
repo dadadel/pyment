@@ -161,6 +161,29 @@ class IssuesTests(unittest.TestCase):
     #     result = ''.join(p.diff())
     #     self.assertTrue(result == '')
 
+    def testIssue58(self):
+        # Title: Comments after def statement not supported
+        # If a function's def statement is followed by a comment it won't be proceeded.
+        p = pym.PyComment(absdir('issue58.py'))
+        expected = '''--- a/issue58.py
++++ b/issue58.py
+@@ -1,5 +1,9 @@
+ def func(param): # some comment
+-    """some docstring"""
++    """some docstring
++
++    :param param: 
++
++    """
+     pass
+ 
+ 
+'''
+        p._parse()
+        self.assertTrue(p.parsed)
+        result = ''.join(p.diff())
+        self.assertTrue(result == expected)
+
 
 def main():
     unittest.main()
