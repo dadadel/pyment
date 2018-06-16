@@ -4,6 +4,7 @@
 import glob
 import argparse
 import os
+import sys
 
 from pyment import PyComment
 from pyment import __version__, __copyright__, __author__, __licence__
@@ -24,7 +25,7 @@ def get_files_from_dir(path, recursive=True, depth=0, file_ext='.py'):
 
     """
     file_list = []
-    if os.path.isfile(path):
+    if os.path.isfile(path) or path == '-':
         return [path]
     if path[-1] != os.sep:
         path = path + os.sep
@@ -101,16 +102,26 @@ def run(source, files=[], input_style='auto', output_style='reST', first_line=Tr
             c.docs_init_to_class()
 
         if overwrite:
-            c.write_to_file()
+            list_from, list_to = c.compute_before_after()
+            lines_to_write = list_to
         else:
-            c.diff_to_file(os.path.basename(f) + ".patch", path, path)
+            lines_to_write = c.get_patch_lines(path, path)
+
+        if f == '-':
+            sys.stdout.writelines(lines_to_write)
+        else:
+            if overwrite:
+                if list_from != list_to:
+                    c.overwrite_source_file(lines_to_write)
+            else:
+                c.write_patch_file(os.path.basename(f) + ".patch", lines_to_write)
 
 
 def main():
     desc = 'Pyment v{0} - {1} - {2} - {3}'.format(__version__, __copyright__, __author__, __licence__)
     parser = argparse.ArgumentParser(description='Generates patches after (re)writing docstrings.')
     parser.add_argument('path', type=str,
-                        help='python file or folder containing python files to proceed (explore also sub-folders)')
+                        help='python file or folder containing python files to proceed (explore also sub-folders). Use "-" to read from stdin and write to stdout')
     parser.add_argument('-i', '--input', metavar='style', default='auto',
                         dest='input', help='Input docstring style in ["javadoc", "reST", "numpydoc", "google", "auto"] (default autodetected)')
     parser.add_argument('-o', '--output', metavar='style', default="reST",
@@ -138,6 +149,9 @@ def main():
     source = args.path
 
     files = get_files_from_dir(source)
+    if not files:
+        msg = BaseException("No files were found matching %s" % args.path)
+        raise msg
     if not args.config_file:
         config_file = ''
     else:
