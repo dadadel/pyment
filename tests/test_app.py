@@ -7,7 +7,6 @@ import unittest
 import re
 import pyment.pyment
 
-
 class AppTests(unittest.TestCase):
     """
     Test pyment as an app in a shell.
@@ -119,7 +118,17 @@ class AppTests(unittest.TestCase):
             cmd_to_run, shell=True, cwd=self.CWD,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
+        if write_to_stdin:
+            # Python3 compatibility - input has to be bytes
+            write_to_stdin = write_to_stdin.encode()
+
         stdout, stderr = p.communicate(write_to_stdin)
+
+        if isinstance(stdout, bytes):
+            # Python 3 compatibility - output will be bytes
+            stdout = stdout.decode()
+            stderr = stderr.decode()
+
         return stdout, stderr, p.returncode
 
     def runPymentAppAndAssertIsExpected(self,
@@ -164,7 +173,7 @@ class AppTests(unittest.TestCase):
                       (cmd_to_run, what, expected, got)
                 assert expected.search(got) is not None, msg
             else:
-                if isinstance(expected, basestring):
+                if isinstance(expected, str):
                     # Turn lines that only have whitespace into single newline lines to workaround textwrap.dedent
                     # behaviour
                     got = self.normalise_empty_lines(got)
