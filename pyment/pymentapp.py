@@ -150,7 +150,7 @@ def main():
 
     files = get_files_from_dir(source)
     if not files:
-        msg = BaseException("No files were found matching %s" % args.path)
+        msg = BaseException("No files were found matching {0}".format(args.path))
         raise msg
     if not args.config_file:
         config_file = ''
