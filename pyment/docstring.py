@@ -255,11 +255,13 @@ class NumpydocTools(DocToolsBase):
         if init == -1:
             return []
         start, end = self.get_next_section_lines(data[init:])
-
         # get the spacing of line with key
         spaces = get_leading_spaces(data[init + start])
         start += init + 2
-        end += init
+        if end != -1:
+            end += init
+        else:
+            end = len(data)
         parse_key = False
         key, desc, ptype = None, '', None
         for line in data[start:end]:
