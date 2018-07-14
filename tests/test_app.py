@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 import os
+import re
 import subprocess
+import sys
 import tempfile
 import textwrap
 import unittest
-import re
+
 import pyment.pyment
+
 
 class AppTests(unittest.TestCase):
     """
@@ -15,7 +18,7 @@ class AppTests(unittest.TestCase):
     """
 
     # You have to run this as a module when testing so the relative imports work.
-    CMD_PREFIX = 'python -m pyment.pymentapp {}'
+    CMD_PREFIX = sys.exec_prefix + os.path.sep + 'python -m pyment.pymentapp {}'
 
     RE_TYPE = type(re.compile('get the type to test if an argument is an re'))
 
@@ -47,6 +50,8 @@ class AppTests(unittest.TestCase):
             Returns:
               ret type: smthg
 
+            Raises:
+
             """
             pass
     ''')
@@ -59,7 +64,7 @@ class AppTests(unittest.TestCase):
     
         --- a/-
         +++ b/-
-        @@ -3,9 +3,10 @@
+        @@ -3,9 +3,12 @@
          def func():
              """First line
         
@@ -69,7 +74,10 @@ class AppTests(unittest.TestCase):
         -    :rtype: ret type
         +    Returns:
         +      ret type: smthg
+        +
+        +    Raises:
         
+             
              """
              pass
 
@@ -177,7 +185,7 @@ class AppTests(unittest.TestCase):
                 if isinstance(expected, str):
                     # Turn lines that only have whitespace into single newline lines to workaround textwrap.dedent
                     # behaviour
-                    got = self.normalise_empty_lines(got)
+                    got = self.normalise_empty_lines(got).replace('\r\n', '\n')
                     expected = self.normalise_empty_lines(expected)
 
                 #  repr is used instead of str to make it easier to see newlines and spaces if there's a difference
@@ -201,7 +209,10 @@ class AppTests(unittest.TestCase):
         self.runPymentAppAndAssertIsExpected(
             cmd_args="",
             write_to_stdin=None,
-            expected_stderr=re.compile('too few arguments'),
+            # expected_stderr=re.compile('too few arguments'),
+            expected_stderr=re.compile(
+                r'usage: pymentapp.py \[-h\] \[-i style\] \[-o style\] \[-q quotes\] \[-f status\] \[-t\].?.?\s{20}\[-c config\] \[-d\] \[-p status\] \[-v\] \[-w\].?.?\s{20}path.?.?pymentapp\.py: error: the following arguments are required: path',
+                re.DOTALL),
             expected_returncode=2
         )
 
@@ -225,8 +236,9 @@ class AppTests(unittest.TestCase):
         )
 
     def runPymentAppWithAFileAndAssertIsExpected(self,
-            file_contents, cmd_args="",  overwrite_mode=False,
-            expected_file_contents='', expected_stderr='', expected_returncode=0, output_format=None):
+                                                 file_contents, cmd_args="", overwrite_mode=False,
+                                                 expected_file_contents='', expected_stderr='', expected_returncode=0,
+                                                 output_format=None):
         """
         Run the pyment app with a file - not stdin.
 
@@ -277,7 +289,7 @@ class AppTests(unittest.TestCase):
                 with open(input_filename) as f:
                     output = f.read()
             else:
-                with open (patch_filename) as f:
+                with open(patch_filename) as f:
                     output = f.read()
                 # The expected output will have filenames of '-'  - replace them with the actual filename
                 output = re.sub(
@@ -343,6 +355,6 @@ class AppTests(unittest.TestCase):
 def main():
     unittest.main()
 
+
 if __name__ == '__main__':
     main()
-
