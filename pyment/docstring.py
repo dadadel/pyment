@@ -219,6 +219,8 @@ class NumpydocTools(object):
         if init == -1:
             return []
         start, end = self.get_next_section_lines(data[init:])
+        if end == -1 and start != end:
+            end = len(data[init:])
 
         # get the spacing of line with key
         spaces = get_leading_spaces(data[init + start])

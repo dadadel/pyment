@@ -131,7 +131,7 @@ class IssuesTests(unittest.TestCase):
     #     self.assertTrue(p.parsed)
     #     result = ''.join(p.diff())
     #     self.assertTrue(result == '')
-    #
+
     # def testIssue46(self):
     #     # Title: list, tuple, dict default param values are not parsed correctly
     #     # if a list/tuple/dict is given as default value for a parameter, the
@@ -160,6 +160,17 @@ class IssuesTests(unittest.TestCase):
     #     self.assertTrue(p.parsed)
     #     result = ''.join(p.diff())
     #     self.assertTrue(result == '')
+
+    def testIssue49(self):
+        # Title: If already numpydoc format, will remove the Raises section
+        # If the last section in a numpydoc docstring is a `Raises` section,
+        # it will be removed if the output format is also set to numpydoc
+        p = pym.PyComment(absdir('issue49.py'), output_style='numpydoc')
+        p._parse()
+        self.assertTrue(p.parsed)
+        result = ''.join(p.diff())
+        print(result)
+        self.assertTrue(result == '')
 
     def testIssue58(self):
         # Title: Comments after def statement not supported
