@@ -83,9 +83,40 @@ def get_leading_spaces(data):
     return spaces
 
 
-class NumpydocTools(object):
+class DocToolsBase(object):
+    """
+
+    """
+
+    def __init__(self,
+                 first_line=None,
+                 optional_sections=None,
+                 excluded_sections=None,
+                 opt=None,
+                 ):
+        """
+
+        :param first_line: indicate if description should start
+          on first or second line. By default it will follow global config.
+        :type first_line: boolean
+        :param optional_sections: list of sections that are not mandatory
+          if empty. See subclasses for further description.
+        :type optional_sections: list
+        :param excluded_sections: list of sections that are excluded,
+          even if mandatory. The list is the same as for optional sections.
+        :type excluded_sections: list
+        """
+        self.first_line = first_line
+        self.optional_sections = list(optional_sections)
+        self.excluded_sections = list(excluded_sections)
+        self.opt = opt
+
+
+class NumpydocTools(DocToolsBase):
     """ """
-    def __init__(self, first_line=None,
+
+    def __init__(self,
+                 first_line=None,
                  optional_sections=['raise', 'also', 'ref', 'note', 'other', 'example', 'method', 'attr'],
                  excluded_sections=[]):
         '''
@@ -110,23 +141,29 @@ class NumpydocTools(object):
         :type excluded_sections: list
 
         '''
-        self.first_line = first_line
-        # TODO: if in the two lists see which is more important
-        self.optional_sections = list(optional_sections)
-        self.excluded_sections = list(excluded_sections)
-        self.opt = {
-                'param': 'parameters',
-                'return': 'returns',
-                'raise': 'raises',
-                'also': 'see also',
-                'ref': 'references',
-                'note': 'notes',
-                'other': 'other parameters',
-                'example': 'examples',
-                'method': 'methods',
-                'attr': 'attributes'
-                }
-        self.keywords = [':math:', '.. math::', 'see also', '.. image::']
+        super(NumpydocTools, self).__init__(first_line=first_line,
+                                            optional_sections=optional_sections,
+                                            excluded_sections=excluded_sections,
+                                            opt={
+                                                'also': 'see also',
+                                                'attr': 'attributes',
+                                                'example': 'examples',
+                                                'method': 'methods',
+                                                'note': 'notes',
+                                                'other': 'other parameters',
+                                                'param': 'parameters',
+                                                'raise': 'raises',
+                                                'ref': 'references',
+                                                'return': 'returns',
+                                            },
+                                            )
+
+        self.keywords = [
+            ':math:',
+            '.. math::',
+            'see also',
+            '.. image::',
+        ]
 
     def __iter__(self):
         return self.opt.__iter__()
@@ -347,9 +384,10 @@ class NumpydocTools(object):
         return header
 
 
-class GoogledocTools(object):
+class GoogledocTools(DocToolsBase):
     """ """
-    def __init__(self, first_line=None,
+    def __init__(self,
+                 first_line=None,
                  optional_sections=['raise'],
                  excluded_sections=[]):
         """
@@ -367,22 +405,23 @@ class GoogledocTools(object):
         :type excluded_sections: list
 
         """
-        self.first_line = first_line
-        # TODO: if in the two lists see which is more important
-        self.optional_sections = list(optional_sections)
-        self.excluded_sections = list(excluded_sections)
-        self.opt = {
-                'param': 'args',
-                'return': 'returns',
-                'raise': 'raises',
-                'attr': 'attributes',
-                'yield': 'yields',
-                }
+        super(GoogledocTools, self).__init__(first_line=first_line,
+                                             optional_sections=optional_sections,
+                                             excluded_sections=excluded_sections,
+                                             opt={
+                                                 'attr': 'attributes',
+                                                 'param': 'args',
+                                                 'raise': 'raises',
+                                                 'return': 'returns',
+                                                 'yield': 'yields',
+                                             },
+                                             )
+
         self.section_headers = {
-                'param': 'Args',
-                'return': 'Returns',
-                'raise': 'Raises'
-                }
+            'param': 'Args',
+            'return': 'Returns',
+            'raise': 'Raises',
+        }
 
     def __iter__(self):
         return self.opt.__iter__()
