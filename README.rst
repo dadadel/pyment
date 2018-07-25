@@ -36,6 +36,8 @@ Start quickly
 
 .. code-block:: sh
 
+        $ git install pyment
+        or
         $ pip install git+https://github.com/dadadel/pyment.git
 
 - run from the command line:
