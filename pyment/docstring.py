@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import os
 import re
 from collections import defaultdict
 
@@ -117,8 +116,8 @@ class NumpydocTools(DocToolsBase):
 
     def __init__(self,
                  first_line=None,
-                 optional_sections=['raise', 'also', 'ref', 'note', 'other', 'example', 'method', 'attr'],
-                 excluded_sections=[]):
+                 optional_sections=('raise', 'also', 'ref', 'note', 'other', 'example', 'method', 'attr'),
+                 excluded_sections=()):
         '''
         :param first_line: indicate if description should start
           on first or second line. By default it will follow global config.
@@ -189,7 +188,7 @@ class NumpydocTools(DocToolsBase):
         (made by -), then the content
 
         :param data: the data to proceed
-        :type data: str
+        :type data: list(str)
 
         """
         start = -1
@@ -388,8 +387,8 @@ class GoogledocTools(DocToolsBase):
     """ """
     def __init__(self,
                  first_line=None,
-                 optional_sections=['raise'],
-                 excluded_sections=[]):
+                 optional_sections=('raise'),
+                 excluded_sections=()):
         """
         :param first_line: indicate if description should start
           on first or second line. By default it will follow global config.
@@ -1726,8 +1725,8 @@ class DocString(object):
         # manage setting if not mandatory for numpy but optional
         if self.docs['in']['raises']:
             if self.dst.style['out'] != 'numpydoc' or self.dst.style['in'] == 'numpydoc' or \
-                     (self.dst.style['out'] == 'numpydoc' and\
-                    'raise' not in self.dst.numpydoc.get_excluded_sections()):
+                    (self.dst.style['out'] == 'numpydoc' and
+                     'raise' not in self.dst.numpydoc.get_excluded_sections()):
                 # list of parameters is like: (name, description)
                 self.docs['out']['raises'] = list(self.docs['in']['raises'])
 
