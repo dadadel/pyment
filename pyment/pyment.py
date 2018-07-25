@@ -9,7 +9,7 @@ import sys
 from .docstring import DocString
 
 __author__ = "A. Daouzli"
-__copyright__ = "Copyright 2012-2017"
+__copyright__ = "Copyright 2012-2018"
 __licence__ = "GPL3"
 __version__ = "0.3.2"
 __maintainer__ = "A. Daouzli"
