@@ -38,3 +38,5 @@ def func9(param1=func1(), param2="stuff"):
     pass
 
 
+def func10(param1=func1(), param2="stuff"):  # comments with (parentheses):
+    pass
