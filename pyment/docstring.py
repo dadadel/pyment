@@ -136,7 +136,18 @@ class DocToolsBase(object):
                 if s not in self.optional_sections and
                    s not in self.excluded_sections]
 
-    def get_list_key(self, data, key):
+    def _get_list_key(self, spaces, lines):
+        """ Parse lines and extract the list of key elements.
+
+        :param spaces: leading spaces of starting line
+        :type spaces: str
+        :param lines: list of strings
+        :type lines: list(str)
+        :return: list of key elements
+        """
+        raise NotImplementedError
+
+    def get_list_key(self, data, key, header_lines=1):
         """Get the list of a key elements.
         Each element is a tuple (key=None, description, type=None).
         Note that the tuple's element can differ depending on the key.
@@ -145,7 +156,20 @@ class DocToolsBase(object):
         :param key: the key
 
         """
-        raise NotImplementedError
+        data = data.splitlines()
+        init = self.get_section_key_line(data, key)
+        if init == -1:
+            return []
+        start, end = self.get_next_section_lines(data[init:])
+        # get the spacing of line with key
+        spaces = get_leading_spaces(data[init + start])
+        start += init + header_lines
+        if end != -1:
+            end += init
+        else:
+            end = len(data)
+
+        return self._get_list_key(spaces, data[start:end])
 
     def get_raise_list(self, data):
         """Get the list of exceptions.
@@ -318,8 +342,9 @@ class NumpydocTools(DocToolsBase):
         The section is a section key (e.g. 'Parameters') followed by underline
         (made by -), then the content
 
-        :param data: the data to proceed
+        :param data: a list of strings containing the docstring's lines
         :type data: list(str)
+        :returns: the index of next section else -1
 
         """
         start = -1
@@ -334,7 +359,7 @@ class NumpydocTools(DocToolsBase):
                 start = i
         return start
 
-    def get_list_key(self, data, key):
+    def get_list_key(self, data, key, header_lines=2):
         """Get the list of a key elements.
         Each element is a tuple (key=None, description, type=None).
         Note that the tuple's element can differ depending on the key.
@@ -343,22 +368,14 @@ class NumpydocTools(DocToolsBase):
         :param key: the key
 
         """
+        return super(NumpydocTools, self).get_list_key(data, key, header_lines=header_lines)
+
+    def _get_list_key(self, spaces, lines):
         key_list = []
-        data = data.splitlines()
-        init = self.get_section_key_line(data, key)
-        if init == -1:
-            return []
-        start, end = self.get_next_section_lines(data[init:])
-        # get the spacing of line with key
-        spaces = get_leading_spaces(data[init + start])
-        start += init + 2
-        if end != -1:
-            end += init
-        else:
-            end = len(data)
         parse_key = False
         key, desc, ptype = None, '', None
-        for line in data[start:end]:
+
+        for line in lines:
             if len(line.strip()) == 0:
                 continue
             # on the same column of the key is the key
@@ -479,33 +496,13 @@ class GoogledocTools(DocToolsBase):
         """
         return super(GoogledocTools, self).get_section_key_line(data, key, opt_extension)
 
-    def get_list_key(self, data, key):
-        """Get the list of a key elements.
-        Each element is a tuple (key=None, description, type=None).
-        Note that the tuple's element can differ depending on the key.
-
-        :param data: the data to proceed
-        :param key: the key
-
-        """
-        # TODO: see how to factorize this with groups and numpydoc
+    def _get_list_key(self, spaces, lines):
         key_list = []
-        data = data.splitlines()
-        init = self.get_section_key_line(data, key)
-        if init == -1:
-            return []
-        start, end = self.get_next_section_lines(data[init:])
-        # get the spacing of line with key
-        spaces = get_leading_spaces(data[init + start])
-        start += init + 1
-        if end != -1:
-            end += init
-        else:
-            end = len(data)
         parse_key = False
         key, desc, ptype = None, '', None
         param_spaces = 0
-        for line in data[start:end]:
+
+        for line in lines:
             if len(line.strip()) == 0:
                 continue
             curr_spaces = get_leading_spaces(line)
