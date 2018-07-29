@@ -90,6 +90,27 @@ class IssuesTests(unittest.TestCase):
         docs.parse_docs(txt)
         self.assertTrue(docs.get_raw_docs() == expected)
 
+    def testIssue22(self):
+        # Title: Class __init__() docstrings are not generated
+        expected = '''--- a/issue22.py
++++ b/issue22.py
+@@ -2,4 +2,9 @@
+     """Test class for issue 22"""
+ 
+     def __init__(self, param1):
++        """
++
++        :param param1: 
++
++        """
+         pass
+'''
+        p = pym.PyComment(absdir('issue22.py'))
+        p._parse()
+        self.assertTrue(p.parsed)
+        result = ''.join(p.diff())
+        self.assertTrue(result == expected)
+
     def testIssue30(self):
         # if file starting with a function/class definition, patching the file
         # will remove the first line!
