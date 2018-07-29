@@ -1811,7 +1811,12 @@ class DocString(object):
                     raw += self.dst.googledoc.get_key_section_header('raise', self.docs['out']['spaces'])
                     if len(self.docs['out']['raises']):
                         for p in self.docs['out']['raises']:
-                            raw += self.docs['out']['spaces'] + spaces + p[0] + ': ' + p[1].strip() + '\n'
+                            raw += self.docs['out']['spaces'] + spaces
+                            if p[0] is not None:
+                                raw += p[0] + sep
+                            if p[1]:
+                                raw += p[1].strip()
+                            raw += '\n'
                     raw += '\n'
         elif self.dst.style['out'] == 'groups':
             pass
@@ -1821,7 +1826,12 @@ class DocString(object):
                 if not self.docs['out']['params'] and not self.docs['out']['return']:
                     raw += '\n'
                 for p in self.docs['out']['raises']:
-                    raw += self.docs['out']['spaces'] + self.dst.get_key('raise', 'out') + ' ' + p[0] + sep + with_space(p[1]).strip() + '\n'
+                    raw += self.docs['out']['spaces'] + self.dst.get_key('raise', 'out') + ' '
+                    if p[0] is not None:
+                        raw += p[0] + sep
+                    if p[1]:
+                        raw += with_space(p[1]).strip()
+                    raw += '\n'
             raw += '\n'
         return raw
 
