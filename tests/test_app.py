@@ -15,7 +15,7 @@ class AppTests(unittest.TestCase):
     """
 
     # You have to run this as a module when testing so the relative imports work.
-    CMD_PREFIX = 'python -m pyment.pymentapp {}'
+    CMD_PREFIX = sys.executable + ' -m pyment.pymentapp {}'
 
     RE_TYPE = type(re.compile('get the type to test if an argument is an re'))
 
@@ -177,7 +177,7 @@ class AppTests(unittest.TestCase):
                 if isinstance(expected, str):
                     # Turn lines that only have whitespace into single newline lines to workaround textwrap.dedent
                     # behaviour
-                    got = self.normalise_empty_lines(got)
+                    got = self.normalise_empty_lines(got).replace('\r\n', '\n')
                     expected = self.normalise_empty_lines(expected)
 
                 #  repr is used instead of str to make it easier to see newlines and spaces if there's a difference
@@ -277,7 +277,7 @@ class AppTests(unittest.TestCase):
                 with open(input_filename) as f:
                     output = f.read()
             else:
-                with open (patch_filename) as f:
+                with open(patch_filename) as f:
                     output = f.read()
                 # The expected output will have filenames of '-'  - replace them with the actual filename
                 output = re.sub(
