@@ -18,7 +18,7 @@ class AppTests(unittest.TestCase):
     """
 
     # You have to run this as a module when testing so the relative imports work.
-    CMD_PREFIX = sys.exec_prefix + os.path.sep + 'python -m pyment.pymentapp {}'
+    CMD_PREFIX = sys.executable + ' -m pyment.pymentapp {}'
 
     RE_TYPE = type(re.compile('get the type to test if an argument is an re'))
 
@@ -204,7 +204,20 @@ class AppTests(unittest.TestCase):
         assert_output(cmd_to_run, 'returncode', returncode, expected_returncode)
         assert_output(cmd_to_run, 'stdout', stdout, expected_stdout)
 
-    def testNoArgs(self):
+    @unittest.skipIf(sys.version_info[:2] >= (3, 3),
+                     'Python version >= 3.3')
+    def testNoArgs_lt_py33(self):
+        # Ensure the app outputs an error if there are no arguments.
+        self.runPymentAppAndAssertIsExpected(
+            cmd_args="",
+            write_to_stdin=None,
+            expected_stderr=re.compile('too few arguments'),
+            expected_returncode=2
+        )
+
+    @unittest.skipIf(sys.version_info[:2] < (3, 3),
+                     'Python version < 3.3')
+    def testNoArgs_ge_py33(self):
         # Ensure the app outputs an error if there are no arguments.
         self.runPymentAppAndAssertIsExpected(
             cmd_args="",
