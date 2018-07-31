@@ -5,6 +5,13 @@ Create, update or convert docstrings in existing Python files, managing several 
 
 .. contents:: :local:
 
+Project Status
+--------------
+.. image:: https://travis-ci.org/wagnerpeer/pyment.svg?branch=enhancement%2Ftravis_ci
+    :target: https://travis-ci.org/wagnerpeer/pyment.svg?branch=enhancement%2Ftravis_ci
+    :alt: Linux tests (TravisCI)
+
+
 Description
 -----------
 
