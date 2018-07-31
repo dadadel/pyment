@@ -5,6 +5,7 @@ import tempfile
 import textwrap
 import unittest
 import re
+import sys
 import pyment.pyment
 
 class AppTests(unittest.TestCase):
@@ -196,12 +197,28 @@ class AppTests(unittest.TestCase):
         assert_output(cmd_to_run, 'returncode', returncode, expected_returncode)
         assert_output(cmd_to_run, 'stdout', stdout, expected_stdout)
 
-    def testNoArgs(self):
+    @unittest.skipIf(sys.version_info[:2] >= (3, 3),
+                     'Python version >= 3.3')
+    def testNoArgs_lt_py33(self):
         # Ensure the app outputs an error if there are no arguments.
         self.runPymentAppAndAssertIsExpected(
             cmd_args="",
             write_to_stdin=None,
             expected_stderr=re.compile('too few arguments'),
+            expected_returncode=2
+        )
+
+    @unittest.skipIf(sys.version_info[:2] < (3, 3),
+                     'Python version < 3.3')
+    def testNoArgs_ge_py33(self):
+        # Ensure the app outputs an error if there are no arguments.
+        self.runPymentAppAndAssertIsExpected(
+            cmd_args="",
+            write_to_stdin=None,
+            # expected_stderr=re.compile('too few arguments'),
+            expected_stderr=re.compile(
+                r'usage: pymentapp.py \[-h\] \[-i style\] \[-o style\] \[-q quotes\] \[-f status\] \[-t\].?.?\s{20}\[-c config\] \[-d\] \[-p status\] \[-v\] \[-w\].?.?\s{20}path.?.?pymentapp\.py: error: the following arguments are required: path',
+                re.DOTALL),
             expected_returncode=2
         )
 
