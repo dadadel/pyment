@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import os
 import re
 from collections import defaultdict
 
@@ -83,11 +82,209 @@ def get_leading_spaces(data):
     return spaces
 
 
-class NumpydocTools(object):
+class DocToolsBase(object):
+    """
+
+    """
+
+    def __init__(self,
+                 first_line=None,
+                 optional_sections=None,
+                 excluded_sections=None,
+                 opt=None,
+                 section_headers=None,
+                 ):
+        """
+
+        :param first_line: indicate if description should start
+          on first or second line. By default it will follow global config.
+        :type first_line: boolean
+        :param optional_sections: list of sections that are not mandatory
+          if empty. See subclasses for further description.
+        :type optional_sections: list
+        :param excluded_sections: list of sections that are excluded,
+          even if mandatory. The list is the same as for optional sections.
+        :type excluded_sections: list
+        :param opt:
+        :type opt:
+        :param section_headers:
+        :type section_headers:
+        """
+        self.first_line = first_line
+        self.optional_sections = list(optional_sections)
+        self.excluded_sections = list(excluded_sections)
+        self.opt = opt
+        self.section_headers = section_headers
+
+    def __iter__(self):
+        return self.opt.__iter__()
+
+    def __getitem__(self, key):
+        return self.opt[key]
+
+    def get_optional_sections(self):
+        """Get optional sections"""
+        return self.optional_sections
+
+    def get_excluded_sections(self):
+        """Get excluded sections"""
+        return self.excluded_sections
+
+    def get_mandatory_sections(self):
+        """Get mandatory sections"""
+        return [s for s in self.opt
+                if s not in self.optional_sections and
+                   s not in self.excluded_sections]
+
+    def _get_list_key(self, spaces, lines):
+        """ Parse lines and extract the list of key elements.
+
+        :param spaces: leading spaces of starting line
+        :type spaces: str
+        :param lines: list of strings
+        :type lines: list(str)
+        :return: list of key elements
+        """
+        raise NotImplementedError
+
+    def get_list_key(self, data, key, header_lines=1):
+        """Get the list of a key elements.
+        Each element is a tuple (key=None, description, type=None).
+        Note that the tuple's element can differ depending on the key.
+
+        :param data: the data to proceed
+        :param key: the key
+
+        """
+        data = data.splitlines()
+        init = self.get_section_key_line(data, key)
+        if init == -1:
+            return []
+        start, end = self.get_next_section_lines(data[init:])
+        # get the spacing of line with key
+        spaces = get_leading_spaces(data[init + start])
+        start += init + header_lines
+        if end != -1:
+            end += init
+        else:
+            end = len(data)
+
+        return self._get_list_key(spaces, data[start:end])
+
+    def get_raise_list(self, data):
+        """Get the list of exceptions.
+        The list contains tuples (name, desc)
+
+        :param data: the data to proceed
+
+        """
+        return_list = []
+        lst = self.get_list_key(data, 'raise')
+        for l in lst:
+            # assume raises are only a name and a description
+            name, desc, _ = l
+            return_list.append((name, desc))
+
+        return return_list
+
+    def get_return_list(self, data):
+        """Get the list of returned values.
+        The list contains tuples (name=None, desc, type=None)
+
+        :param data: the data to proceed
+
+        """
+        return_list = []
+        lst = self.get_list_key(data, 'return')
+        for l in lst:
+            name, desc, rtype = l
+            if l[2] is None:
+                rtype = l[0]
+                name = None
+                desc = desc.strip()
+            return_list.append((name, desc, rtype))
+
+        return return_list
+
+    def get_param_list(self, data):
+        """Get the list of parameters.
+        The list contains tuples (name, desc, type=None)
+
+        :param data: the data to proceed
+
+        """
+        return self.get_list_key(data, 'param')
+
+    def get_next_section_start_line(self, data):
+        """Get the starting line number of next section.
+        It will return -1 if no section was found.
+        The section is a section key (e.g. 'Parameters:')
+        then the content
+
+        :param data: a list of strings containing the docstring's lines
+        :returns: the index of next section else -1
+        """
+        raise NotImplementedError
+
+    def get_next_section_lines(self, data):
+        """Get the starting line number and the ending line number of next section.
+        It will return (-1, -1) if no section was found.
+        The section is a section key (e.g. 'Parameters') then the content
+        The ending line number is the line after the end of the section or -1 if
+        the section is at the end.
+
+        :param data: the data to proceed
+
+        """
+        end = -1
+        start = self.get_next_section_start_line(data)
+        if start != -1:
+            end = self.get_next_section_start_line(data[start + 1:])
+        return start, end
+
+    def get_key_section_header(self, key, spaces):
+        """Get the key of the section header
+
+        :param key: the key name
+        :param spaces: spaces to set at the beginning of the header
+
+        """
+        if key in self.section_headers:
+            header = self.section_headers[key]
+        else:
+            return ''
+
+        return header
+
+    def get_section_key_line(self, data, key, opt_extension=''):
+        """Get the next section line for a given key.
+
+        :param data: the data to proceed
+        :param key: the key
+        :param opt_extension: an optional extension to delimit the opt value
+
+        """
+        start = 0
+        init = 0
+        while start != -1:
+            start = self.get_next_section_start_line(data[init:])
+            init += start
+            if start != -1:
+                if data[init].strip().lower() == self.opt[key] + opt_extension:
+                    break
+                init += 1
+        if start != -1:
+            start = init
+        return start
+
+
+class NumpydocTools(DocToolsBase):
     """ """
-    def __init__(self, first_line=None,
-                 optional_sections=['raise', 'also', 'ref', 'note', 'other', 'example', 'method', 'attr'],
-                 excluded_sections=[]):
+
+    def __init__(self,
+                 first_line=None,
+                 optional_sections=('raise', 'also', 'ref', 'note', 'other', 'example', 'method', 'attr'),
+                 excluded_sections=()):
         '''
         :param first_line: indicate if description should start
           on first or second line. By default it will follow global config.
@@ -110,40 +307,34 @@ class NumpydocTools(object):
         :type excluded_sections: list
 
         '''
-        self.first_line = first_line
-        # TODO: if in the two lists see which is more important
-        self.optional_sections = list(optional_sections)
-        self.excluded_sections = list(excluded_sections)
-        self.opt = {
-                'param': 'parameters',
-                'return': 'returns',
-                'raise': 'raises',
-                'also': 'see also',
-                'ref': 'references',
-                'note': 'notes',
-                'other': 'other parameters',
-                'example': 'examples',
-                'method': 'methods',
-                'attr': 'attributes'
-                }
-        self.keywords = [':math:', '.. math::', 'see also', '.. image::']
+        super(NumpydocTools, self).__init__(first_line=first_line,
+                                            optional_sections=optional_sections,
+                                            excluded_sections=excluded_sections,
+                                            opt={
+                                                'also': 'see also',
+                                                'attr': 'attributes',
+                                                'example': 'examples',
+                                                'method': 'methods',
+                                                'note': 'notes',
+                                                'other': 'other parameters',
+                                                'param': 'parameters',
+                                                'raise': 'raises',
+                                                'ref': 'references',
+                                                'return': 'returns',
+                                            },
+                                            section_headers={
+                                                'param': 'Parameters',
+                                                'return': 'Returns',
+                                                'raise': 'Raises',
+                                            },
+                                            )
 
-    def __iter__(self):
-        return self.opt.__iter__()
-
-    def __getitem__(self, key):
-        return self.opt[key]
-
-    def get_optional_sections(self):
-        return self.optional_sections
-
-    def get_excluded_sections(self):
-        return self.excluded_sections
-
-    def get_mandatory_sections(self):
-        return [s for s in self.opt
-                if s not in self.optional_sections and
-                   s not in self.excluded_sections]
+        self.keywords = [
+            ':math:',
+            '.. math::',
+            'see also',
+            '.. image::',
+        ]
 
     def get_next_section_start_line(self, data):
         """Get the starting line number of next section.
@@ -151,8 +342,9 @@ class NumpydocTools(object):
         The section is a section key (e.g. 'Parameters') followed by underline
         (made by -), then the content
 
-        :param data: the data to proceed
-        :type data: str
+        :param data: a list of strings containing the docstring's lines
+        :type data: list(str)
+        :returns: the index of next section else -1
 
         """
         start = -1
@@ -167,44 +359,7 @@ class NumpydocTools(object):
                 start = i
         return start
 
-    def get_section_key_line(self, data, key):
-        """Get the next section line for a given key.
-
-        :param data: the data to proceed
-        :param key: the key
-
-        """
-        start = 0
-        init = 0
-        while start != -1:
-            start = self.get_next_section_start_line(data[init:])
-            init += start
-            if start != -1:
-                if data[init].strip().lower() == self.opt[key]:
-                    break
-                init += 1
-        if start != -1:
-            start = init
-        return start
-
-    def get_next_section_lines(self, data):
-        """Get the starting line number and the ending line number of next section.
-        It will return (-1, -1) if no section was found.
-        The section is a section key (e.g. 'Parameters') followed by underline
-        (made by -), then the content
-        The ending line number is the line after the end of the section or -1 if
-        the section is at the end.
-
-        :param data: the data to proceed
-
-        """
-        end = -1
-        start = self.get_next_section_start_line(data)
-        if start != -1:
-            end = self.get_next_section_start_line(data[start + 1:])
-        return start, end
-
-    def get_list_key(self, data, key):
+    def get_list_key(self, data, key, header_lines=2):
         """Get the list of a key elements.
         Each element is a tuple (key=None, description, type=None).
         Note that the tuple's element can differ depending on the key.
@@ -213,20 +368,14 @@ class NumpydocTools(object):
         :param key: the key
 
         """
-        key_list = []
-        data = data.splitlines()
-        init = self.get_section_key_line(data, key)
-        if init == -1:
-            return []
-        start, end = self.get_next_section_lines(data[init:])
+        return super(NumpydocTools, self).get_list_key(data, key, header_lines=header_lines)
 
-        # get the spacing of line with key
-        spaces = get_leading_spaces(data[init + start])
-        start += init + 2
-        end += init
+    def _get_list_key(self, spaces, lines):
+        key_list = []
         parse_key = False
         key, desc, ptype = None, '', None
-        for line in data[start:end]:
+
+        for line in lines:
             if len(line.strip()) == 0:
                 continue
             # on the same column of the key is the key
@@ -258,47 +407,6 @@ class NumpydocTools(object):
 
         """
         return self.get_list_key(data, 'attr')
-
-    def get_param_list(self, data):
-        """Get the list of parameters.
-        The list contains tuples (name, desc, type=None)
-
-        :param data: the data to proceed
-
-        """
-        return self.get_list_key(data, 'param')
-
-    def get_return_list(self, data):
-        """Get the list of return elements/values.
-        The list contains tuples (name=None, desc, type)
-
-        :param data: the data to proceed
-
-        """
-        return_list = []
-        lst = self.get_list_key(data, 'return')
-        for l in lst:
-            name, desc, rtype = l
-            if l[2] is None:
-                rtype = l[0]
-                name = None
-            return_list.append((name, desc, rtype))
-        return return_list
-
-    def get_raise_list(self, data):
-        """Get the list of exceptions.
-        The list contains tuples (name, desc)
-
-        :param data: the data to proceed
-
-        """
-        return_list = []
-        lst = self.get_list_key(data, 'raise')
-        for l in lst:
-            # assume raises are only a name and a description
-            name, desc, _ = l
-            return_list.append((name, desc))
-        return return_list
 
     def get_raw_not_managed(self, data):
         """Get elements not managed. They can be used as is.
@@ -335,23 +443,17 @@ class NumpydocTools(object):
         :param spaces: spaces to set at the beginning of the header
 
         """
-        if key == 'param':
-            header = 'Parameters'
-        elif key == 'return':
-            header = 'Returns'
-        elif key == 'raise':
-            header = 'Raises'
-        else:
-            return ''
+        header = super(NumpydocTools, self).get_key_section_header(key, spaces)
         header = spaces + header + '\n' + spaces + '-' * len(header) + '\n'
         return header
 
 
-class GoogledocTools(object):
+class GoogledocTools(DocToolsBase):
     """ """
-    def __init__(self, first_line=None,
-                 optional_sections=['raise'],
-                 excluded_sections=[]):
+    def __init__(self,
+                 first_line=None,
+                 optional_sections=('raise'),
+                 excluded_sections=()):
         """
         :param first_line: indicate if description should start
           on first or second line. By default it will follow global config.
@@ -367,100 +469,40 @@ class GoogledocTools(object):
         :type excluded_sections: list
 
         """
-        self.first_line = first_line
-        # TODO: if in the two lists see which is more important
-        self.optional_sections = list(optional_sections)
-        self.excluded_sections = list(excluded_sections)
-        self.opt = {
-                'param': 'args',
-                'return': 'returns',
-                'raise': 'raises',
-                'attr': 'attributes',
-                'yield': 'yields',
-                }
-        self.section_headers = {
-                'param': 'Args',
-                'return': 'Returns',
-                'raise': 'Raises'
-                }
+        super(GoogledocTools, self).__init__(first_line=first_line,
+                                             optional_sections=optional_sections,
+                                             excluded_sections=excluded_sections,
+                                             opt={
+                                                 'attr': 'attributes',
+                                                 'param': 'args',
+                                                 'raise': 'raises',
+                                                 'return': 'returns',
+                                                 'yield': 'yields',
+                                             },
+                                             section_headers={
+                                                 'param': 'Args',
+                                                 'return': 'Returns',
+                                                 'raise': 'Raises',
+                                             },
+                                             )
 
-    def __iter__(self):
-        return self.opt.__iter__()
-
-    def __getitem__(self, key):
-        return self.opt[key]
-
-    def get_optional_sections(self):
-        """Get optional sections"""
-        return self.optional_sections
-
-    def get_excluded_sections(self):
-        """Get excluded sections"""
-        return self.excluded_sections
-
-    def get_next_section_lines(self, data):
-        """Get the starting line number and the ending line number of next section.
-        It will return (-1, -1) if no section was found.
-        The section is a section key (e.g. 'Parameters') then the content
-        The ending line number is the line after the end of the section or -1 if
-        the section is at the end.
-
-        :param data: the data to proceed
-
-        """
-        end = -1
-        start = self.get_next_section_start_line(data)
-        if start != -1:
-            end = self.get_next_section_start_line(data[start + 1:])
-        return start, end
-
-    def get_section_key_line(self, data, key):
+    def get_section_key_line(self, data, key, opt_extension=':'):
         """Get the next section line for a given key.
 
         :param data: the data to proceed
         :param key: the key
+        :param opt_extension: an optional extension to delimit the opt value
 
         """
-        start = 0
-        init = 0
-        while start != -1:
-            start = self.get_next_section_start_line(data[init:])
-            init += start
-            if start != -1:
-                if data[init].strip().lower() == self.opt[key] + ":":
-                    break
-                init += 1
-        if start != -1:
-            start = init
-        return start
+        return super(GoogledocTools, self).get_section_key_line(data, key, opt_extension)
 
-    def get_list_key(self, data, key):
-        """Get the list of a key elements.
-        Each element is a tuple (key=None, description, type=None).
-        Note that the tuple's element can differ depending on the key.
-
-        :param data: the data to proceed
-        :param key: the key
-
-        """
-        # TODO: see how to factorize this with groups and numpydoc
+    def _get_list_key(self, spaces, lines):
         key_list = []
-        data = data.splitlines()
-        init = self.get_section_key_line(data, key)
-        if init == -1:
-            return []
-        start, end = self.get_next_section_lines(data[init:])
-        # get the spacing of line with key
-        spaces = get_leading_spaces(data[init + start])
-        start += init + 1
-        if end != -1:
-            end += init
-        else:
-            end = len(data)
         parse_key = False
         key, desc, ptype = None, '', None
         param_spaces = 0
-        for line in data[start:end]:
+
+        for line in lines:
             if len(line.strip()) == 0:
                 continue
             curr_spaces = get_leading_spaces(line)
@@ -501,56 +543,6 @@ class GoogledocTools(object):
 
         return key_list
 
-    def get_param_list(self, data):
-        """Get the list of parameters.
-        The list contains tuples (name, desc, type=None)
-
-        :param data: the data to proceed
-
-        """
-        return self.get_list_key(data, 'param')
-
-    def get_return_list(self, data):
-        """Get the list of returned values.
-        The list contains tuples (name=None, desc, type=None)
-
-        :param data: the data to proceed
-
-        """
-        return_list = []
-        lst = self.get_list_key(data, 'return')
-        for l in lst:
-            name, desc, rtype = l
-            if l[2] is None:
-                rtype = l[0]
-                name = None
-                desc = desc.strip()
-            return_list.append((name, desc, rtype))
-
-        return return_list
-
-    def get_raise_list(self, data):
-        """Get the list of exceptions.
-        The list contains tuples (name, desc)
-
-        :param data: the data to proceed
-
-        """
-        return_list = []
-        lst = self.get_list_key(data, 'raise')
-        for l in lst:
-            # assume raises are only a name and a description
-            name, desc, _ = l
-            return_list.append((name, desc))
-
-        return return_list
-
-    def get_mandatory_sections(self):
-        """Get mandatory sections"""
-        return [s for s in self.opt
-                if s not in self.optional_sections and
-                   s not in self.excluded_sections]
-
     def get_next_section_start_line(self, data):
         """Get the starting line number of next section.
         It will return -1 if no section was found.
@@ -575,10 +567,7 @@ class GoogledocTools(object):
         :param spaces: spaces to set at the beginning of the header
 
         """
-        if key in self.section_headers:
-            header = self.section_headers[key]
-        else:
-            return ''
+        header = super(GoogledocTools, self).get_key_section_header(key, spaces)
         header = spaces + header + ':' + '\n'
         return header
 
@@ -1687,8 +1676,8 @@ class DocString(object):
         # manage setting if not mandatory for numpy but optional
         if self.docs['in']['raises']:
             if self.dst.style['out'] != 'numpydoc' or self.dst.style['in'] == 'numpydoc' or \
-                     (self.dst.style['out'] == 'numpydoc' and\
-                    'raise' not in self.dst.numpydoc.get_excluded_sections()):
+                    (self.dst.style['out'] == 'numpydoc' and
+                     'raise' not in self.dst.numpydoc.get_excluded_sections()):
                 # list of parameters is like: (name, description)
                 self.docs['out']['raises'] = list(self.docs['in']['raises'])
 
