@@ -7,8 +7,8 @@ Create, update or convert docstrings in existing Python files, managing several 
 
 Project Status
 --------------
-.. image:: https://travis-ci.org/wagnerpeer/pyment.svg?branch=master
-    :target: https://travis-ci.org/wagnerpeer/pyment.svg?branch=master
+.. image:: https://travis-ci.org/dadadel/pyment.svg?branch=master
+    :target: https://travis-ci.org/dadadel/pyment.svg?branch=master
     :alt: Linux tests (TravisCI)
 
 
