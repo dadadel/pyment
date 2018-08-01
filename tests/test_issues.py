@@ -196,6 +196,14 @@ class IssuesTests(unittest.TestCase):
         print(result)
         self.assertTrue(result == '')
 
+    def testIssue51(self):
+        # Title:  Raise block convertion
+        p = pym.PyComment(absdir('issue51.py'), output_style='google')
+        p._parse()
+        self.assertTrue(p.parsed)
+        result = ''.join(p.diff())
+        self.assertTrue(result == '')
+
     def testIssue58(self):
         # Title: Comments after def statement not supported
         # If a function's def statement is followed by a comment it won't be proceeded.
