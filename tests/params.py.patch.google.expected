@@ -127,3 +127,14 @@
      pass
  
  
+ def func10(param1=func1(), param2="stuff"):  # comments with (parentheses):
++    """
++
++    Args:
++      param1:  (Default value = func1())
++      param2:  (Default value = "stuff")
++
++    Returns:
++
++    """
+     pass

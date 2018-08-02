@@ -7,8 +7,8 @@ Create, update or convert docstrings in existing Python files, managing several 
 
 Project Status
 --------------
-.. image:: https://travis-ci.org/wagnerpeer/pyment.svg?branch=master
-    :target: https://travis-ci.org/wagnerpeer/pyment.svg?branch=master
+.. image:: https://travis-ci.org/dadadel/pyment.svg?branch=master
+    :target: https://travis-ci.org/dadadel/pyment.svg?branch=master
     :alt: Linux tests (TravisCI)
 
 
@@ -22,8 +22,8 @@ It can be helpful also to harmonize or change a project docstring style format.
 It will parse one or several python scripts and retrieve existing docstrings.
 Then, for all found functions/methods/classes, it will generate formatted docstrings with parameters, default values,...
 
-At the end, patches are generated for each file. Then, man can apply the patches to the initial scripts.
-An option allow to update the files directly without generating patches.
+At the end, patches can be generated for each file. Then, man can apply the patches to the initial scripts.
+It is also possible to update the files directly without generating patches, or to output on *stdout*. 
 It is also possible to generate the python file with the new docstrings, or to retrieve only the docstrings...
 
 Currently, the managed styles in input/output are javadoc, one variant of reST (re-Structured Text, used by Sphinx), numpydoc, google docstrings, groups (other grouped style).
@@ -35,17 +35,25 @@ To get further information please refer to the `documentation <https://github.co
 
 The tool, at the time, offer to generate patches or get a list of the new docstrings (created or converted).
 
-You can contact the developer *dadel* and speak about the project on **IRC** **Freenode**'s channel **#pyment**.
+You can contact the developer *dadel* and speak about the project on **IRC** **Freenode**'s channel **#pyment** when he is connected or open an issue.
 
 Start quickly
 -------------
-- get and install:
+- install from Pypi
 
 .. code-block:: sh
 
-        $ git install pyment
-        or
+        $ pip install pyment
+
+- install from sources:
+
+.. code-block:: sh
+
         $ pip install git+https://github.com/dadadel/pyment.git
+        or
+        $ git clone https://github.com/dadadel/pyment.git
+        $ cd pyment
+        $ python setup.py install
 
 - run from the command line:
 
