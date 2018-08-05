@@ -8,24 +8,28 @@ Create, update or convert docstrings in existing Python files, managing several 
 Project Status
 --------------
 
-**Build Status**
+**Test Status**
 
-.. image:: https://travis-ci.org/dadadel/pyment.svg?branch=master  
+Linux: |travis|
+
+Windows: |appveyor|
+
+
+.. |travis| image:: https://travis-ci.org/dadadel/pyment.svg?branch=master
     :target: https://travis-ci.org/dadadel/pyment.svg?branch=master
     :alt: Linux tests (TravisCI)                                   
 
+.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/f9d4jps5fkf4m42h?svg=true
+    :target: https://ci.appveyor.com/api/projects/status/f9d4jps5fkf4m42h?svg=true
+    :alt: Windows tests (Appveyor)
+
+|
 
 **Supported Versions**  
 
 .. image:: https://img.shields.io/badge/python-2.7-blue.svg    
     :target: https://img.shields.io/badge/python-2.7-blue.svg  
-    :alt: Supports Python27                                    
-.. image:: https://img.shields.io/badge/python-3.2-blue.svg    
-    :target: https://img.shields.io/badge/python-3.2-blue.svg  
-    :alt: Supports Python32                                    
-.. image:: https://img.shields.io/badge/python-3.3-blue.svg    
-    :target: https://img.shields.io/badge/python-3.3-blue.svg  
-    :alt: Supports Python33                                    
+    :alt: Supports Python27
 .. image:: https://img.shields.io/badge/python-3.4-blue.svg    
     :target: https://img.shields.io/badge/python-3.4-blue.svg  
     :alt: Supports Python34                                    
@@ -36,17 +40,13 @@ Project Status
     :target: https://img.shields.io/badge/python-3.6-blue.svg  
     :alt: Supports Python36
 
+|
 
 **Code Coverage**
 
 .. image:: https://coveralls.io/repos/github/wagnerpeer/pyment/badge.svg?branch=master
     :target: https://coveralls.io/github/wagnerpeer/pyment?branch=master
     :alt: Test coverage (Coveralls)
-
-
-.. image:: https://ci.appveyor.com/api/projects/status/f9d4jps5fkf4m42h?svg=true
-    :target: https://ci.appveyor.com/api/projects/status/f9d4jps5fkf4m42h?svg=true
-    :alt: Windows tests (Appveyor)
 
 
 Description
