@@ -44,6 +44,10 @@ Project Status
     :alt: Test coverage (Coveralls)
 
 
+.. image:: https://ci.appveyor.com/api/projects/status/f9d4jps5fkf4m42h?svg=true
+    :target: https://ci.appveyor.com/api/projects/status/f9d4jps5fkf4m42h?svg=true
+    :alt: Windows tests (Appveyor)
+
 
 Description
 -----------
