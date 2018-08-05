@@ -9,8 +9,12 @@ python:
 
 # command to install dependencies
 install:
-  - python setup.py -q install
+  - pip install coverage
+  - pip install coveralls
 
 # command to run tests
 script:
-  - python setup.py test
+  - coverage run setup.py test
+
+after_success:
+  - coveralls
