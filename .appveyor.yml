@@ -18,14 +18,16 @@ environment:
     - PYTHON: "C:\\Python36-x64"
     - PYTHON: "C:\\Miniconda36-x64"
 
-#install:
+install:
   # We need wheel installed to build wheels
+  - "pip install coverage"
+  - "pip install coveralls"
 
 build: off
 
 test_script:
   # Put your test command here.
-  - "%PYTHON%\\python.exe setup.py test"
+  - "coverage run setup.py test"
 
 #after_test:
   # This step builds your wheels.
