@@ -44,8 +44,8 @@ Windows: |appveyor|
 
 **Code Coverage**
 
-.. image:: https://coveralls.io/repos/github/wagnerpeer/pyment/badge.svg?branch=master
-    :target: https://coveralls.io/github/wagnerpeer/pyment?branch=master
+.. image:: https://coveralls.io/repos/github/wagnerpeer/pyment/badge.svg?branch=enhancement%2Fcoveralls
+    :target: https://coveralls.io/github/wagnerpeer/pyment?branch=enhancement%2Fcoveralls
     :alt: Test coverage (Coveralls)
 
 
