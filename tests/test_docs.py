@@ -45,7 +45,7 @@ googledocs = '''"""This is a Google style docs.
 
     Args:
       first(str): this is the first param
-      second(int): this is a second param
+      second: this is a second param
       third(str, optional): this is a third param
 
     Returns:
@@ -249,8 +249,11 @@ class DocStringTests(unittest.TestCase):
         d.parse_docs()
         self.assertTrue(len(d.docs['in']['params']) == 3)
         self.assertTrue(d.docs['in']['params'][0][0] == 'first')
+        self.assertTrue(d.docs['in']['params'][0][2] == 'str')
         self.assertTrue(d.docs['in']['params'][0][1].startswith('this is the first'))
+        self.assertFalse(d.docs['in']['params'][1][2])
         self.assertTrue(d.docs['in']['params'][2][1].startswith('this is a third'))
+        self.assertTrue(d.docs['in']['params'][2][2] == 'str')
 
     def testParsingGroupsDocsParams(self):
         doc = mygrpdocs
@@ -276,7 +279,9 @@ class DocStringTests(unittest.TestCase):
         d.parse_docs()
         self.assertTrue(len(d.docs['in']['params']) == 3)
         self.assertTrue(d.docs['in']['params'][0][0] == 'first')
+        self.assertTrue(d.docs['in']['params'][0][2] == 'array_like')
         self.assertTrue(d.docs['in']['params'][0][1].strip().startswith('the 1'))
+        self.assertFalse(d.docs['in']['params'][1][2])
         self.assertTrue(d.docs['in']['params'][2][1].strip().endswith("default 'value'"))
 
     def testParsingDocsRaises(self):
@@ -392,6 +397,46 @@ class DocStringTests(unittest.TestCase):
         self.assertTrue(d.docs['out']['params'][2] == ('third', '', None, '"value"'))
         # param's description
         self.assertTrue(d.docs['out']['params'][1][1].startswith("the 2"))
+
+    def testGeneratingDocsParamsTypeStubs(self):
+        doc = mydocs
+        d = docs.DocString(myelem, '    ', doc, type_stub=True)
+        d.parse_docs()
+        d.generate_docs()
+        self.assertTrue(':type second: ' in d.docs['out']['raw'])
+        self.assertTrue(':type third: ' in d.docs['out']['raw'])
+
+    def testGeneratingGoogleDocsParamsTypeStubs(self):
+        doc = googledocs
+        d = docs.DocString(myelem, '    ', doc, type_stub=True)
+        d.parse_docs()
+        d.generate_docs()
+        self.assertTrue(':type second: ' in d.docs['out']['raw'])
+
+    def testGeneratingGroupsDocsParamsTypeStubs(self):
+        doc = mygrpdocs
+        d = docs.DocString(myelem, '    ', doc, type_stub=True)
+        d.parse_docs()
+        d.generate_docs()
+        self.assertTrue(':type first: ' in d.docs['out']['raw'])
+        self.assertTrue(':type second: ' in d.docs['out']['raw'])
+        self.assertTrue(':type third: ' in d.docs['out']['raw'])
+
+    def testGeneratingGroups2DocsParamsTypeStubs(self):
+        doc = mygrpdocs2
+        d = docs.DocString(myelem, '    ', doc, type_stub=True)
+        d.parse_docs()
+        d.generate_docs()
+        self.assertTrue(':type first: ' in d.docs['out']['raw'])
+        self.assertTrue(':type second: ' in d.docs['out']['raw'])
+        self.assertTrue(':type third: ' in d.docs['out']['raw'])
+
+    def testGeneratingNumpyDocsParamsTypeStubs(self):
+        doc = mynumpydocs
+        d = docs.DocString(myelem, '    ', doc, type_stub=True)
+        d.parse_docs()
+        d.generate_docs()
+        self.assertTrue(':type second: ' in d.docs['out']['raw'])
 
     def testNoParam(self):
         elem = "    def noparam():"
