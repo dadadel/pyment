@@ -62,6 +62,8 @@ def get_config(config_file):
                     key, value = key.strip(), value.strip()
                     if key in ['init2class', 'first_line', 'convert_only']:
                         value = tobool(value)
+                    if key == 'indent':
+                        value = int(value)
                     config[key] = value
     return config
 

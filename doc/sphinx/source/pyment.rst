@@ -195,6 +195,11 @@ its docstring and the class its own.
 Set to **True** if you want only to convert existing docstring.
 So Pyment won't create missing docstrings.
 
+- **indent**
+
+    *Integer value (default is 2)*
+
+Change the amount of spaces used for indented elements.
 
 **Todo...**
 
