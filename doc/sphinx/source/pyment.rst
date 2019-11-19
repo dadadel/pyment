@@ -169,13 +169,13 @@ The quotes used for the docstring limits.
 
 - **output_style**
 
-    *javadoc, reST, numpydoc, groups*
+    *javadoc, reST, numpydoc, google, groups*
 
 The output format for the docstring.
 
 - **input_style**
 
-    *auto, javadoc, reST, numpydoc, groups*
+    *auto, javadoc, reST, numpydoc, google, groups*
 
 The input format for the docstring interpretation. Set to **auto** if you want
 Pyment to autodetect for each docstring its format.
