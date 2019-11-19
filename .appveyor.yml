@@ -1,0 +1,44 @@
+environment:
+
+  matrix:
+
+    # For Python versions available on Appveyor, see
+    # http://www.appveyor.com/docs/installed-software#python
+    # The list here is complete (excluding Python 2.6, which
+    # isn't covered by this document) at the time of writing.
+
+    - PYTHON: "C:\\Python27"
+    - PYTHON: "C:\\Python27-x64"
+    - PYTHON: "C:\\Miniconda"
+    - PYTHON: "C:\\Miniconda-x64"
+    - PYTHON: "C:\\Python34-x64"
+    - PYTHON: "C:\\Miniconda34-x64"
+    - PYTHON: "C:\\Python35-x64"
+    - PYTHON: "C:\\Miniconda35-x64"
+    - PYTHON: "C:\\Python36-x64"
+    - PYTHON: "C:\\Miniconda36-x64"
+
+install:
+  # We need wheel installed to build wheels
+  - "pip install coverage"
+  - "pip install coveralls"
+
+build: off
+
+test_script:
+  # Put your test command here.
+  - "coverage run setup.py test"
+
+#after_test:
+  # This step builds your wheels.
+  # Again, you only need build.cmd if you're building C extensions for
+  # 64-bit Python 3.3/3.4. And you need to use %PYTHON% to get the correct
+  # interpreter
+
+#artifacts:
+  # bdist_wheel puts your built wheel in the dist directory
+
+#on_success:
+#  You can use this step to upload your artifacts to a public website.
+#  See Appveyor's documentation for more details. Or you can simply
+#  access your wheels from the Appveyor "artifacts" tab for your build.
