@@ -51,15 +51,24 @@ Pyment is usable as is on command line using pyment script. But it can also be u
 How to install
 --------------
 
-The better way is to get the latest version from Github:
+The easiest way is from Pypi using pip:
 
 .. code-block:: sh
 
-    git clone git@github.com:dadadel/pyment.git # or https://github.com/dadadel/pyment.git    
+    pip install pyment
+
+But to have the latest version, the better way is to isntall from Github:
+
+.. code-block:: sh
+
+    $ pip install git+https://github.com/dadadel/pyment.git
+    or
+    git clone git@github.com:dadadel/pyment.git # or https://github.com/dadadel/pyment.git
     cd pyment
     python setup.py install
 
 You can also get an archive of a released version `from Github <https://github.com/dadadel/pyment/releases>`_.
+
 
 How to run
 ----------
@@ -68,8 +77,11 @@ How to run
 
 .. code-block:: sh
 
-    pyment example.py
+    pyment example.py # will generate a patch
     pyment folder/to/python/progs
+    pyment -w myfile.py  # will overwrite the file
+    cat myfile.py | pyment -  # will proceed the content from stdin and create a patch written on stdout
+    cat myfile.py | pyment -w -  # will proceed the content from stdin and write on stdout the converted content
 
 - To get the available options, run:
 
@@ -89,7 +101,8 @@ Will provide the output:
 
     positional arguments:
       path                  python file or folder containing python files to
-                            proceed (explore also sub-folders)
+                            proceed (explore also sub-folders). Use "-" to read
+                            from stdin and write to stdout
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -117,7 +130,9 @@ Will provide the output:
                             Don't proceed the private methods/functions starting
                             with __ (two underscores) (default "True")
       -v, --version         show program's version number and exit
-      -w, --write           Don't write patches. Overwrite files instead.
+      -w, --write           Don't write patches. Overwrite files instead. If used
+                            with path '-' won't overwrite but write to stdout the
+                            new content instead of a patch.
 
 - To run the unit-tests:
 

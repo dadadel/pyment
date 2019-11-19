@@ -143,7 +143,7 @@ def main():
     parser.add_argument('-v', '--version', action='version',
                         version=desc)
     parser.add_argument('-w', '--write', action='store_true', dest='overwrite',
-                        default=False, help="Don't write patches. Overwrite files instead.")
+                        default=False, help="Don't write patches. Overwrite files instead. If used with path '-' won\'t overwrite but write to stdout the new content instead of a patch/.")
     # parser.add_argument('-c', '--config', metavar='config_file',
     #                   dest='config', help='Configuration file')
 
