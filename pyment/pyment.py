@@ -83,6 +83,7 @@ class PyComment(object):
         raw = ''
         start = 0
         end = 0
+        before_lim = ""
 
         try:
             if self.input_file == '-':
@@ -129,8 +130,15 @@ class PyComment(object):
                 elem_list.append({'docs': e, 'location': (-i, -i)})
             else:
                 if waiting_docs and ('"""' in l or "'''" in l):
+                    # not docstring
+                    if not reading_docs and not (
+                            l[:3] in ['"""', "'''"] or
+                            (l[0] in ['r', 'u', 'f'] and l[1:4] in ['"""', "'''"]) or
+                            (l[0] in ['r', 'u', 'f'] and l[1] in ['r', 'u', 'f'] and l[2:5] in ['"""', "'''"])
+                    ):
+                        waiting_docs = False
                     # start of docstring bloc
-                    if not reading_docs:
+                    elif not reading_docs:
                         start = i
                         # determine which delimiter
                         idx_c = l.find('"""')
@@ -144,11 +152,18 @@ class PyComment(object):
                         elif idx_c < 0:
                             lim = "'''"
                         reading_docs = lim
+                        # check if the docstring starts with 'r', 'u', or 'f' or combination thus extract it
+                        if not l.startswith(lim):
+                            idx_strip_lim = l.find(lim)
+                            idx_abs_lim = ln.find(lim)
+                            # remove and keep the prefix r|f|u
+                            before_lim = l[:idx_strip_lim]
+                            ln = ln[:idx_abs_lim-idx_strip_lim]+ln[idx_abs_lim:]
                         raw = ln
                         # one line docstring
                         if l.count(lim) == 2:
                             end = i
-                            elem_list[-1]['docs'].parse_docs(raw)
+                            elem_list[-1]['docs'].parse_docs(raw, before_lim)
                             elem_list[-1]['location'] = (start, end)
                             reading_docs = None
                             waiting_docs = False
@@ -158,7 +173,7 @@ class PyComment(object):
                     elif waiting_docs and lim in l:
                         end = i
                         raw += ln
-                        elem_list[-1]['docs'].parse_docs(raw)
+                        elem_list[-1]['docs'].parse_docs(raw, before_lim)
                         elem_list[-1]['location'] = (start, end)
                         reading_docs = None
                         waiting_docs = False
