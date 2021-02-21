@@ -227,6 +227,17 @@ class IssuesTests(unittest.TestCase):
         result = ''.join(p.diff())
         self.assertTrue(result == expected)
 
+    def testIssue90(self):
+        # Title: __doc__ is not well parsed
+        # If the line after function signature contains triple [double] quotes but is not a docstring
+        # it will be however considered as if it was and will have side effect.
+        p = pym.PyComment(absdir('issue90.py'))
+        p._parse()
+        f = open(absdir('issue90.py.patch'))
+        patch = f.read()
+        f.close()
+        self.assertEqual(''.join(p.diff()), patch)
+
 
 def main():
     unittest.main()
