@@ -227,6 +227,16 @@ class IssuesTests(unittest.TestCase):
         result = ''.join(p.diff())
         self.assertTrue(result == expected)
 
+    def testIssue88(self):
+        # Title: Not working on async functions
+        # The async functions are not managed
+        p = pym.PyComment(absdir('issue88.py'))
+        p._parse()
+        f = open(absdir('issue88.py.patch'))
+        patch = f.read()
+        f.close()
+        self.assertEqual(''.join(p.diff()), patch)
+
     def testIssue90(self):
         # Title: __doc__ is not well parsed
         # If the line after function signature contains triple [double] quotes but is not a docstring
