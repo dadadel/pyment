@@ -1,7 +1,8 @@
 0.3.3 - 2019/11/19:
         - add option for stdin/stdout
-        - integrate PRs #52, #54, #55, #57, #59, #60, #64, #75
-        - issue #51, #58, #63
+        - manage async functions
+        - integrate PRs #52, #54, #55, #57, #59, #60, #64, #75, #91
+        - issues #51, #58, #63, #87, #88, #90
         - add CI using Travis and Appveyor (#68, #70)
 
 0.3.2 - 2017/10/17:

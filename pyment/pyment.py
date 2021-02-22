@@ -105,12 +105,12 @@ class PyComment(object):
                 elem += l
                 if l.endswith(':'):
                     reading_element = 'end'
-            elif (l.startswith('def ') or l.startswith('class ')) and not reading_docs:
+            elif (l.startswith('async def ') or l.startswith('def ') or l.startswith('class ')) and not reading_docs:
                 if self.ignore_private and l[l.find(' '):].strip().startswith("__"):
                     continue
                 reading_element = 'start'
                 elem = l
-                m = re.match(r'^(\s*)[dc]{1}', ln)
+                m = re.match(r'^(\s*)[adc]', ln)
                 if m is not None and m.group(1) is not None:
                     spaces = m.group(1)
                 else:

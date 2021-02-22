@@ -1336,11 +1336,14 @@ class DocString(object):
         else:
             l = raw.strip()
         is_class = False
-        if l.startswith('def ') or l.startswith('class '):
+        if l.startswith('async def ') or l.startswith('def ') or l.startswith('class '):
             # retrieves the type
             if l.startswith('def'):
                 self.element['type'] = 'def'
                 l = l.replace('def ', '')
+            elif l.startswith('async'):
+                self.element['type'] = 'def'
+                l = l.replace('async def ', '')
             else:
                 self.element['type'] = 'class'
                 l = l.replace('class ', '')
