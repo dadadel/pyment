@@ -1,0 +1,42 @@
+--- a/issue88.py
++++ b/issue88.py
+@@ -1,21 +1,35 @@
+ def std_func(param="foo", bar=42):
++    """
++
++    :param param:  (Default value = "foo")
++    :param bar:  (Default value = 42)
++
++    """
+     pass
+ 
+ 
+ async def async_func(param='foo', bar=42):
++    """
++
++    :param param:  (Default value = 'foo')
++    :param bar:  (Default value = 42)
++
++    """
+     return param
+ 
+ 
+ async def async_func2():
++    """ """
+     raise Exception
+ 
+ 
+ async def async_func3(param1, param2=None):
+-    """
+-    somme comment
++    """somme comment
++
+     :param param1: my parameter 1
+-    :param param2: my second param
+-    :return: nothing
++    :param param2: my second param (Default value = None)
++    :returns: nothing
+     :rtype: None
++
+     """
+     pass

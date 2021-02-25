@@ -1164,7 +1164,7 @@ class DocString(object):
     """This class represents the docstring"""
 
     def __init__(self, elem_raw, spaces='', docs_raw=None, quotes="'''", input_style=None, output_style=None,
-                 first_line=False, trailing_space=True, type_stub=False, **kwargs):
+                 first_line=False, trailing_space=True, type_stub=False, before_lim='', **kwargs):
         """
         :param elem_raw: raw data of the element (def or class).
         :param spaces: the leading whitespaces before the element
@@ -1183,9 +1183,11 @@ class DocString(object):
         :type trailing_space: boolean
         :param type_stub: if set, an empty stub will be created for a parameter type
         :type type_stub: boolean
+        :param before_lim: specify raw or unicode or format docstring type (ie. "r" for r'''... or "fu" for fu'''...)
 
         """
         self.dst = DocsTools()
+        self.before_lim = before_lim
         self.first_line = first_line
         self.trailing_space = ''
         self.type_stub = type_stub
@@ -1229,7 +1231,7 @@ class DocString(object):
                 'return': None,
                 'rtype': None,
                 'raises': [],
-                'spaces': spaces + ' ' * 2
+                'spaces': spaces + ' ' * kwargs.get('indent', 2)
                 }
             }
         if '\t' in spaces:
@@ -1337,11 +1339,14 @@ class DocString(object):
         else:
             l = raw.strip()
         is_class = False
-        if l.startswith('def ') or l.startswith('class '):
+        if l.startswith('async def ') or l.startswith('def ') or l.startswith('class '):
             # retrieves the type
             if l.startswith('def'):
                 self.element['type'] = 'def'
                 l = l.replace('def ', '')
+            elif l.startswith('async'):
+                self.element['type'] = 'def'
+                l = l.replace('async def ', '')
             else:
                 self.element['type'] = 'class'
                 l = l.replace('class ', '')
@@ -1613,12 +1618,14 @@ class DocString(object):
             lst = self.dst.numpydoc.get_list_key(data, 'attr')
             # TODO do something with this?
 
-    def parse_docs(self, raw=None):
+    def parse_docs(self, raw=None, before_lim=''):
         """Parses the docstring
 
         :param raw: the data to parse if not internally provided (Default value = None)
+        :param before_lim: specify raw or unicode or format docstring type (ie. "r" for r'''... or "fu" for fu'''...)
 
         """
+        self.before_lim = before_lim
         if raw is not None:
             raw = raw.strip()
             if raw.startswith('"""') or raw.startswith("'''"):
@@ -1920,7 +1927,7 @@ class DocString(object):
         with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + l if i > 0 else l for i, l in enumerate(s.splitlines())])
 
         # sets the description section
-        raw = self.docs['out']['spaces'] + self.quotes
+        raw = self.docs['out']['spaces'] + self.before_lim + self.quotes
         desc = self.docs['out']['desc'].strip()
         if not desc or not desc.count('\n'):
             if not self.docs['out']['params'] and not self.docs['out']['return'] and not self.docs['out']['rtype'] and not self.docs['out']['raises']:

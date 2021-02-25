@@ -1,0 +1,26 @@
+--- a/issue90.py
++++ b/issue90.py
+@@ -1,17 +1,21 @@
+ def foo():
++    """ """
+     __doc__ = """\
+     Foo"""
+ 
+ 
+ def bar(param):
+     r"""this is a docstring
++
++    :param param: 
++
+     """
+ 
+ 
+ def foobar():
+-    u"""this is a docstring
+-    """
++    u"""this is a docstring"""
+ 
+ 
+ def no_docs():
++    """ """
+     something = '''bla bla bla'''
