@@ -1164,7 +1164,7 @@ class DocString(object):
     """This class represents the docstring"""
 
     def __init__(self, elem_raw, spaces='', docs_raw=None, quotes="'''", input_style=None, output_style=None,
-                 first_line=False, trailing_space=True, before_lim='', **kwargs):
+                 first_line=False, trailing_space=True, type_stub=False, before_lim='', **kwargs):
         """
         :param elem_raw: raw data of the element (def or class).
         :param spaces: the leading whitespaces before the element
@@ -1181,6 +1181,8 @@ class DocString(object):
         :param trailing_space: if set, a trailing space will be inserted in places where the user
           should write a description
         :type trailing_space: boolean
+        :param type_stub: if set, an empty stub will be created for a parameter type
+        :type type_stub: boolean
         :param before_lim: specify raw or unicode or format docstring type (ie. "r" for r'''... or "fu" for fu'''...)
 
         """
@@ -1188,6 +1190,7 @@ class DocString(object):
         self.before_lim = before_lim
         self.first_line = first_line
         self.trailing_space = ''
+        self.type_stub = type_stub
         if trailing_space:
             self.trailing_space = ' '
         if docs_raw and not input_style:
@@ -1770,9 +1773,10 @@ class DocString(object):
                         if p[2] is not None and len(p[2]) > 0:
                             raw += '\n'
                             raw += self.docs['out']['spaces'] + self.dst.get_key('type', 'out') + ' ' + p[0] + sep + p[2]
+                    if self.type_stub and (len(p) <= 2 or p[2] is None or len(p[2]) == 0):
                         raw += '\n'
-                    else:
-                        raw += '\n'
+                        raw += self.docs['out']['spaces'] + self.dst.get_key('type', 'out') + ' ' + p[0] + sep
+                    raw += '\n'
         return raw
 
     def _set_raw_raise(self, sep):
