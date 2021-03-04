@@ -1,7 +1,8 @@
-0.3.3 - 2019/11/19:
+0.3.3 - 2021/03/04:
         - add option for stdin/stdout
         - manage async functions
-        - integrate PRs #52, #54, #55, #57, #59, #60, #64, #75, #91
+        - add type_stub param
+        - integrate PRs #52, #54, #55, #57, #59, #60, #64, #75, #91, #71
         - issues #51, #58, #63, #87, #88, #90
         - add CI using Travis and Appveyor (#68, #70)
 
