@@ -248,6 +248,16 @@ class IssuesTests(unittest.TestCase):
         f.close()
         self.assertEqual(''.join(p.diff()), patch)
 
+    def testIssue93(self):
+        # Title: Support for type hints
+        # Add support for type hints (PEP 484).
+        p = pym.PyComment(absdir('issue93.py'))
+        p._parse()
+        f = open(absdir('issue93.py.patch'))
+        patch = f.read()
+        f.close()
+        self.assertEqual(''.join(p.diff()), patch)
+
 
 def main():
     unittest.main()

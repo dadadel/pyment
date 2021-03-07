@@ -11,7 +11,7 @@ from .docstring import DocString
 __author__ = "A. Daouzli"
 __copyright__ = "Copyright 2012-2021"
 __licence__ = "GPL3"
-__version__ = "0.3.3"
+__version__ = "0.3.4dev"
 __maintainer__ = "A. Daouzli"
 
 #TODO:
@@ -110,11 +110,13 @@ class PyComment(object):
                     continue
                 reading_element = 'start'
                 elem = l
-                m = re.match(r'^(\s*)[adc]', ln)
+                m = re.match(r'^(\s*)[adc]', ln)  # a for async, d for def, c for class
                 if m is not None and m.group(1) is not None:
                     spaces = m.group(1)
                 else:
                     spaces = ''
+                # the end of definition should be ':' and eventually a comment following
+                # FIXME: but this is missing eventually use of # inside a string value of parameter
                 if re.search(r''':(|\s*#[^'"]*)$''', l):
                     reading_element = 'end'
             if reading_element == 'end':
@@ -217,7 +219,7 @@ class PyComment(object):
         for e in self.docs_list:
             if len(eclass) == len(einit) + 1 and e['docs'].element['name'] == '__init__':
                 einit.append(e)
-            elif not eclass and e['docs'].element['type'] == 'class':
+            elif not eclass and e['docs'].element['deftype'] == 'class':
                 eclass.append(e)
         for c, i in zip(eclass, einit):
             start, _ = c['location']

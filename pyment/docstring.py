@@ -997,11 +997,12 @@ class DocsTools(object):
             pass
 
         if self.style['in'] in ['params', 'groups', 'unknown'] and (start, end) == (-1, -1):
-            if self.params is None:
+            if not self.params:#is None:
                 return -2, -2
             idx = -1
             param = None
             for p in self.params:
+                """p = p['param']"""
                 if type(p) is tuple:
                     p = p[0]
                 i = data.find('\n' + p)
@@ -1204,7 +1205,8 @@ class DocString(object):
             'name': None,
             'type': None,
             'params': [],
-            'spaces': spaces
+            'spaces': spaces,
+            'rtype': None,
             }
         if docs_raw:
             docs_raw = docs_raw.strip()
@@ -1243,13 +1245,13 @@ class DocString(object):
         self.parsed_docs = False
         self.generated_docs = False
 
-        self.parse_element()
+        self.parse_definition()
         self.quotes = quotes
 
     def __str__(self):
         # for debuging
         txt = "\n\n** " + str(self.element['name'])
-        txt += ' of type ' + str(self.element['type']) + ':'
+        txt += ' of type ' + str(self.element['deftype']) + ':'
         txt += str(self.docs['in']['desc']) + '\n'
         txt += '->' + str(self.docs['in']['params']) + '\n'
         txt += '***>>' + str(self.docs['out']['raw']) + '\n' + '\n'
@@ -1323,14 +1325,14 @@ class DocString(object):
         """
         self.docs['out']['spaces'] = spaces
 
-    def parse_element(self, raw=None):
+    def parse_definition(self, raw=None):
         """Parses the element's elements (type, name and parameters) :)
         e.g.: def methode(param1, param2='default')
         def                      -> type
         methode                  -> name
         param1, param2='default' -> parameters
 
-        :param raw: raw data of the element (def or class). (Default value = None)
+        :param raw: raw data of the element (def or class). If None will use `self.element['raw']` (Default value = None)
 
         """
         # TODO: retrieve return from element external code (in parameter)
@@ -1342,19 +1344,32 @@ class DocString(object):
         if l.startswith('async def ') or l.startswith('def ') or l.startswith('class '):
             # retrieves the type
             if l.startswith('def'):
-                self.element['type'] = 'def'
+                self.element['deftype'] = 'def'
                 l = l.replace('def ', '')
             elif l.startswith('async'):
-                self.element['type'] = 'def'
+                self.element['deftype'] = 'def'
                 l = l.replace('async def ', '')
             else:
-                self.element['type'] = 'class'
+                self.element['deftype'] = 'class'
                 l = l.replace('class ', '')
                 is_class = True
             # retrieves the name
             self.element['name'] = l[:l.find('(')].strip()
             if not is_class:
-                if l[-1] == ':':
+                extracted = self._extract_signature_elements(self._remove_signature_comment(l))
+                # remove self and cls parameters if any and also empty params (if no param)
+                remove_keys = []
+                for key in extracted['parameters']:
+                    if extracted['parameters'][key]['param'] in ['self', 'cls']:
+                        remove_keys.append(key)
+                    elif not extracted['parameters'][key]['param']:
+                        remove_keys.append(key)
+                for key in remove_keys:
+                    del extracted['parameters'][key]
+                if extracted['return_type']:
+                    self.element['rtype'] = extracted['return_type'] # TODO manage this
+                self.element['params'].extend(extracted['parameters'].values())
+                """if l[-1] == ':':
                     l = l[:-1].strip()
                 # retrieves the parameters
                 l = l[l.find('(') + 1:l.rfind('):')].strip()
@@ -1364,8 +1379,90 @@ class DocString(object):
                         k, v = e.split('=', 1)
                         self.element['params'].append((k.strip(), v.strip()))
                     elif e and e != 'self' and e != 'cls':
-                        self.element['params'].append(e)
+                        self.element['params'].append(e)"""
         self.parsed_elem = True
+
+    def _remove_signature_comment(self, txt):
+        """If there is a comment at the end of the signature statement, remove it"""
+        ret = ""
+        inside = None
+        end_inside = {'(': ')', '{': '}', '[': ']', "'": "'", '"': '"'}
+        for c in txt:
+            if (inside and end_inside[inside] != c) or (not inside and c in end_inside.keys()):
+                if not inside:
+                    inside = c
+                ret += c
+                continue
+            if inside and c == end_inside[inside]:
+                inside = None
+                ret += c
+                continue
+            if not inside and c == '#':
+                # found a comment so signature is finished we stop parsing
+                break
+            ret += c
+        return ret
+
+    def _extract_signature_elements(self, txt):
+        name = txt[:txt.find('(')].strip()
+        start = txt.find('(') + 1
+        end_start = txt.rfind(')')
+        end_end = txt.rfind(':')
+        return_type = txt[end_start + 1:end_end].replace(' ', '').replace('\t', '').replace('->', '')
+        elems = {}
+        elem_idx = 0
+        reading = 'param'
+        elems[elem_idx] = {'type': '', 'param': '', 'default': ''}
+        inside = None
+        end_inside = {'(': ')', '{': '}', '[': ']', "'": "'", '"': '"'}
+        for c in txt[start:end_start]:
+            if (inside and end_inside[inside] != c) or (not inside and c in end_inside.keys()):
+                if not inside:
+                    inside = c
+                if reading == 'type':
+                    elems[elem_idx]['type'] += c
+                elif reading == 'default':
+                    elems[elem_idx]['default'] += c
+                else:
+                    # FIXME: this should not happen!
+                    raise Exception(f"unexpected nested element after {inside} while reading {reading}")
+                continue
+            if inside and c == end_inside[inside]:
+                inside = None
+            if reading == 'param':
+                if c not in ': ,=':
+                    elems[elem_idx]['param'] += c
+                else:
+                    if c == ' ' and elems[elem_idx]['param'] or c != ' ':
+                        reading = 'after_param'
+            elif reading == 'type':
+                if c not in ',=':
+                    elems[elem_idx]['type'] += c
+                else:
+                    reading = 'after_type'
+            elif reading == 'default':
+                if c != ',':
+                    elems[elem_idx]['default'] += c
+                else:
+                    reading = 'after_default'
+            if reading.startswith('after_'):
+                if reading == 'after_param' and c == ':':
+                    reading = 'type'
+                elif c == ',':
+                    elem_idx += 1
+                    elems[elem_idx] = {'type': '', 'param': '', 'default': ''}
+                    reading = 'param'
+                elif c == '=':
+                    reading = 'default'
+        # strip extracted elements
+        for elem in elems:
+            for subelem in elems[elem]:
+                if type(elems[elem][subelem]) is str:
+                    elems[elem][subelem] = elems[elem][subelem].strip()
+        return {
+            'parameters': elems,
+            'return_type': return_type.strip()
+        }
 
     def _extract_docs_doctest(self):
         """Extract the doctests if found.
@@ -1660,24 +1757,32 @@ class DocString(object):
             # list of parameters is like: (name, description, type)
             self.docs['out']['params'] = list(self.docs['in']['params'])
         for e in self.element['params']:
-            if type(e) is tuple:
+            """if type(e) is tuple:
                 # tuple is: (name, default)
                 param = e[0]
             else:
-                param = e
+                param = e"""
+            param = e['param']
             found = False
             for i, p in enumerate(self.docs['out']['params']):
                 if param == p[0]:
                     found = True
                     # add default value if any
-                    if type(e) is tuple:
+                    """if type(e) is tuple:
                         # param will contain: (name, desc, type, default)
-                        self.docs['out']['params'][i] = (p[0], p[1], p[2], e[1])
+                        self.docs['out']['params'][i] = (p[0], p[1], p[2], e[1])"""
+                    if e['default']:
+                        # param will contain: (name, desc, type, default)
+                        self.docs['out']['params'][i] = (p[0], p[1], p[2], e['default'])
             if not found:
-                if type(e) is tuple:
-                    p = (param, '', None, e[1])
+                if e['default']:
+                    p = (param, '', None, e['default'])
                 else:
                     p = (param, '', None, None)
+                """if type(e) is tuple:
+                    p = (param, '', None, e[1])
+                else:
+                    p = (param, '', None, None)"""
                 self.docs['out']['params'].append(p)
 
     def _set_raises(self):
@@ -1762,8 +1867,9 @@ class DocString(object):
         elif self.dst.style['out'] == 'groups':
             pass
         else:
-            with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + l\
-                                                    if i > 0 else l for i, l in enumerate(s.splitlines())])
+            with_space = lambda s: '\n'.join(
+                [self.docs['out']['spaces'] + l if i > 0 else l for i, l in enumerate(s.splitlines())]
+            )
             if len(self.docs['out']['params']):
                 for p in self.docs['out']['params']:
                     raw += self.docs['out']['spaces'] + self.dst.get_key('param', 'out') + ' ' + p[0] + sep + with_space(p[1]).strip()
