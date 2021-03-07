@@ -997,14 +997,12 @@ class DocsTools(object):
             pass
 
         if self.style['in'] in ['params', 'groups', 'unknown'] and (start, end) == (-1, -1):
-            if not self.params:#is None:
+            if not self.params:
                 return -2, -2
             idx = -1
             param = None
             for p in self.params:
-                """p = p['param']"""
-                if type(p) is tuple:
-                    p = p[0]
+                p = p['param']
                 i = data.find('\n' + p)
                 if i >= 0:
                     if idx == -1 or i < idx:
@@ -1084,7 +1082,7 @@ class DocsTools(object):
                 # TODO: manage this
                 pass
 
-        return (start, end)
+        return start, end
 
     def get_return_description_indexes(self, data):
         """Get from a docstring the return parameter description indexes.
@@ -1369,17 +1367,6 @@ class DocString(object):
                 if extracted['return_type']:
                     self.element['rtype'] = extracted['return_type'] # TODO manage this
                 self.element['params'].extend(extracted['parameters'].values())
-                """if l[-1] == ':':
-                    l = l[:-1].strip()
-                # retrieves the parameters
-                l = l[l.find('(') + 1:l.rfind('):')].strip()
-                lst = [c.strip() for c in l.split(',')]
-                for e in lst:
-                    if '=' in e:
-                        k, v = e.split('=', 1)
-                        self.element['params'].append((k.strip(), v.strip()))
-                    elif e and e != 'self' and e != 'cls':
-                        self.element['params'].append(e)"""
         self.parsed_elem = True
 
     def _remove_signature_comment(self, txt):
@@ -1404,7 +1391,6 @@ class DocString(object):
         return ret
 
     def _extract_signature_elements(self, txt):
-        name = txt[:txt.find('(')].strip()
         start = txt.find('(') + 1
         end_start = txt.rfind(')')
         end_end = txt.rfind(':')
@@ -1757,20 +1743,12 @@ class DocString(object):
             # list of parameters is like: (name, description, type)
             self.docs['out']['params'] = list(self.docs['in']['params'])
         for e in self.element['params']:
-            """if type(e) is tuple:
-                # tuple is: (name, default)
-                param = e[0]
-            else:
-                param = e"""
             param = e['param']
             found = False
             for i, p in enumerate(self.docs['out']['params']):
                 if param == p[0]:
                     found = True
                     # add default value if any
-                    """if type(e) is tuple:
-                        # param will contain: (name, desc, type, default)
-                        self.docs['out']['params'][i] = (p[0], p[1], p[2], e[1])"""
                     if e['default']:
                         # param will contain: (name, desc, type, default)
                         self.docs['out']['params'][i] = (p[0], p[1], p[2], e['default'])
@@ -1779,10 +1757,6 @@ class DocString(object):
                     p = (param, '', None, e['default'])
                 else:
                     p = (param, '', None, None)
-                """if type(e) is tuple:
-                    p = (param, '', None, e[1])
-                else:
-                    p = (param, '', None, None)"""
                 self.docs['out']['params'].append(p)
 
     def _set_raises(self):
