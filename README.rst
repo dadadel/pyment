@@ -27,13 +27,7 @@ Windows: |appveyor|
 
 **Supported Versions**  
 
-.. image:: https://img.shields.io/badge/python-3.4-blue.svg
-    :target: https://img.shields.io/badge/python-3.4-blue.svg  
-    :alt: Supports Python34                                    
-.. image:: https://img.shields.io/badge/python-3.5-blue.svg    
-    :target: https://img.shields.io/badge/python-3.5-blue.svg  
-    :alt: Supports Python35                                    
-.. image:: https://img.shields.io/badge/python-3.6-blue.svg    
+.. image:: https://img.shields.io/badge/python-3.6-blue.svg
     :target: https://img.shields.io/badge/python-3.6-blue.svg  
     :alt: Supports Python36
 .. image:: https://img.shields.io/badge/python-3.7-blue.svg
@@ -42,6 +36,9 @@ Windows: |appveyor|
 .. image:: https://img.shields.io/badge/python-3.8-blue.svg
     :target: https://img.shields.io/badge/python-3.8-blue.svg
     :alt: Supports Python38
+.. image:: https://img.shields.io/badge/python-3.9-blue.svg
+    :target: https://img.shields.io/badge/python-3.9-blue.svg
+    :alt: Supports Python39
 
 |
 
