@@ -181,11 +181,11 @@ class DocStringTests(unittest.TestCase):
 
     def testParsingElement(self):
         d = docs.DocString(myelem, '    ')
-        self.assertTrue(d.element['type'] == 'def')
+        self.assertTrue(d.element['deftype'] == 'def')
         self.assertTrue(d.element['name'] == 'my_method')
         self.assertTrue(len(d.element['params']) == 3)
-        self.assertTrue(type(d.element['params'][0]) is str)
-        self.assertTrue(d.element['params'][2] == ('third', '"value"'))
+        self.assertTrue(type(d.element['params'][0]['param']) is str)
+        self.assertTrue((d.element['params'][2]['param'], d.element['params'][2]['default']) == ('third', '"value"'))
 
     def testIfParsedDocs(self):
         doc = mydocs

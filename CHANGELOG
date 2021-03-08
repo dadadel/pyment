@@ -1,3 +1,7 @@
+0.4.0:
+        - add support to type hints (PEP 484)
+        - issues #93
+
 0.3.4 - 2021/03/04:
         - manage async functions
         - add type_stub param

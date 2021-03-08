@@ -1,0 +1,233 @@
+--- a/issue93.py
++++ b/issue93.py
+@@ -1,20 +1,36 @@
+ def func(): # comment with (parents):
++    """ """
+     pass
+ 
+ 
+ def func0(param1): # comment with (parents):,
+     """description
++
+     :param param1: yoyo
+     :returns: nothing
++
+     """
+     pass
+ 
+ 
+ def func1(param1: str):
++    """
++
++    :param param1: 
++    :type param1: str
++
++    """
+     pass
+ 
+ 
+ def func2(param1: str) -> int:
++    """
++
++    :param param1: 
++    :type param1: str
++    :rtype: int
++
++    """
+     pass
+ 
+ 
+@@ -22,16 +38,36 @@
+     """Func 3
+ 
+     :param param1: param description
+-    :return: the value
++    :type param1: str
++    :returns: the value
++    :rtype: str
++
+     """
+     pass
+ 
+ 
+ def func4(param1: str, param2: List[int]):
++    """
++
++    :param param1: 
++    :type param1: str
++    :param param2: 
++    :type param2: List[int]
++
++    """
+     pass
+ 
+ 
+ def func5(param1: str, param2: List[int]) -> Dict[str,Object]:  # yet:(another) comment
++    """
++
++    :param param1: 
++    :type param1: str
++    :param param2: 
++    :type param2: List[int]
++    :rtype: Dict[str,Object]
++
++    """
+     pass
+ 
+ 
+@@ -41,6 +77,7 @@
+     :param param1: the first parameter
+     :type param1: str
+     :param param2: the second parameter
++    :type param2: Dict[str,Object]
+     :returns: the message
+     :rtype: str
+ 
+@@ -49,53 +86,133 @@
+ 
+ 
+ def func7(param1: str, param2: Dict[str, Object], param3: int = 12) -> str:
++    """
++
++    :param param1: 
++    :type param1: str
++    :param param2: 
++    :type param2: Dict[str, Object]
++    :param param3:  (Default value = 12)
++    :type param3: int
++    :rtype: str
++
++    """
+     pass
+ 
+ 
+ def func8(param1 : str, param2: list=None, param3: str = "foo", param4="bar") -> str:
++    """
++
++    :param param1: 
++    :type param1: str
++    :param param2:  (Default value = None)
++    :type param2: list
++    :param param3:  (Default value = "foo")
++    :type param3: str
++    :param param4:  (Default value = "bar")
++    :rtype: str
++
++    """
+     pass
+ 
+ 
+ def func9(param1: str,
+           param2: list = None,
+           param3: str = "foo") -> str:
++    """
++
++    :param param1: 
++    :type param1: str
++    :param param2:  (Default value = None)
++    :type param2: list
++    :param param3:  (Default value = "foo")
++    :type param3: str
++    :rtype: str
++
++    """
+     pass
+ 
+ 
+ def func10(  param1: str = "", param2='', param3=call_func('foobar')  ) :
++    """
++
++    :param param1:  (Default value = "")
++    :type param1: str
++    :param param2:  (Default value = '')
++    :param param3:  (Default value = call_func('foobar'))
++
++    """
+     pass
+ 
+ 
+ def func11(self, param1: str, param2: Dict[str, Object], param3: OAuth2PasswordRequestForm = Depends(), param4: int = 1) -> str:
++    """
++
++    :param param1: 
++    :type param1: str
++    :param param2: 
++    :type param2: Dict[str, Object]
++    :param param3:  (Default value = Depends())
++    :type param3: OAuth2PasswordRequestForm
++    :param param4:  (Default value = 1)
++    :type param4: int
++    :rtype: str
++
++    """
+     pass
+ 
+ 
+ def func12(cls, param1: str, param2: Dict[str, Object], param3: int = 12) -> str:
++    """
++
++    :param param1: 
++    :type param1: str
++    :param param2: 
++    :type param2: Dict[str, Object]
++    :param param3:  (Default value = 12)
++    :type param3: int
++    :rtype: str
++
++    """
+     pass
+ 
+ 
+ def func13(param1, param2: Dict["str", Object], param3: int = 12) -> str:
++    """
++
++    :param param1: 
++    :param param2: 
++    :type param2: Dict["str", Object]
++    :param param3:  (Default value = 12)
++    :type param3: int
++    :rtype: str
++
++    """
+     pass
+ 
+ 
+ def func14(param1=True, param2: str = 'default val'):
+-    '''Description of func with docstring groups style.
+-
+-    Params:
+-        param1 - descr of param1 that has True for default value.
+-        param2 - descr of param2
+-
+-    Returns:
+-        some value
+-
+-    Raises:
+-        keyError: raises key exception
+-        TypeError: raises type exception
+-
+-    '''
++    """Description of func with docstring groups style.
++
++    :param param1: descr of param1 that has True for default value
++    :param param2: descr of param2 (Default value = 'default val')
++    :type param2: str
++    :returns: some value
++    :raises keyError: raises key exception
++    :raises TypeError: raises type exception
++
++    """
+     pass
+ 
+     class A:
++        """ """
+         def method(self, param1, param2=None) -> int:
++            """
++
++            :param param1: 
++            :param param2:  (Default value = None)
++            :rtype: int
++
++            """
+             pass
+ 
