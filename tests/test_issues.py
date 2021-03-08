@@ -154,7 +154,6 @@ class IssuesTests(unittest.TestCase):
         result = ''.join(p.diff())
         self.assertTrue(result == '')
 
-    @unittest.expectedFailure
     def testIssue46(self):
         # Title: list, tuple, dict default param values are not parsed correctly
         # if a list/tuple/dict is given as default value for a parameter, the

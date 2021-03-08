@@ -1,6 +1,6 @@
 0.4.0:
         - add support to type hints (PEP 484)
-        - issues #93
+        - issues #46, #93
 
 0.3.4 - 2021/03/04:
         - manage async functions
