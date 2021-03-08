@@ -11,7 +11,7 @@ from .docstring import DocString
 __author__ = "A. Daouzli"
 __copyright__ = "Copyright 2012-2021"
 __licence__ = "GPL3"
-__version__ = "0.3.3"
+__version__ = "0.3.4"
 __maintainer__ = "A. Daouzli"
 
 #TODO:
