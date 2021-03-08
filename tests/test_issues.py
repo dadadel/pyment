@@ -226,6 +226,16 @@ class IssuesTests(unittest.TestCase):
         result = ''.join(p.diff())
         self.assertTrue(result == expected)
 
+    def testIssue69(self):
+        # Title: Wrong Formatting for Input params with default values
+        # When default value has a list it is split and considers list's elements as parameters
+        p = pym.PyComment(absdir('issue69.py'))
+        p._parse()
+        f = open(absdir('issue69.py.patch'))
+        patch = f.read()
+        f.close()
+        self.assertEqual(''.join(p.diff()), patch)
+
     def testIssue88(self):
         # Title: Not working on async functions
         # The async functions are not managed
