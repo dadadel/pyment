@@ -1,4 +1,4 @@
-def func1(param1, param2='default val'):
+def func1(param1: str, param2='default val'):
     '''Description of func with docstring javadoc style.
 
     @param param1: descr of param
@@ -9,7 +9,7 @@ def func1(param1, param2='default val'):
     '''
     pass
 
-def func2(param1, param2='default val2'):
+def func2(param1, param2='default val2') -> list:
     '''Description of func with docstring reST style.
 
     :param param1: descr of param

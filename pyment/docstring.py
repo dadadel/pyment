@@ -1242,6 +1242,10 @@ class DocString(object):
         self.parsed_elem = False
         self.parsed_docs = False
         self.generated_docs = False
+        self._options = {
+            'rtype_priority': 'hint',  # 'hint' or 'docstring'
+            'type_priority': 'hint',  # 'hint' or 'docstring'
+        }
 
         self.parse_definition()
         self.quotes = quotes
@@ -1411,7 +1415,7 @@ class DocString(object):
                     elems[elem_idx]['default'] += c
                 else:
                     # FIXME: this should not happen!
-                    raise Exception(f"unexpected nested element after {inside} while reading {reading}")
+                    raise Exception("unexpected nested element after "+str(inside)+" while reading "+reading)
                 continue
             if inside and c == end_inside[inside]:
                 inside = None
@@ -1743,20 +1747,22 @@ class DocString(object):
             # list of parameters is like: (name, description, type)
             self.docs['out']['params'] = list(self.docs['in']['params'])
         for e in self.element['params']:
-            param = e['param']
-            found = False
-            for i, p in enumerate(self.docs['out']['params']):
-                if param == p[0]:
-                    found = True
-                    # add default value if any
-                    if e['default']:
-                        # param will contain: (name, desc, type, default)
-                        self.docs['out']['params'][i] = (p[0], p[1], p[2], e['default'])
-            if not found:
-                if e['default']:
-                    p = (param, '', None, e['default'])
-                else:
-                    p = (param, '', None, None)
+            found_in_input_docstring = False
+            # FIXME extract in a dict with key name and avoid nested loop and strange update that overrides the input origin in the output and could have side effects!!!
+            for i, (name, description, ptype, *pdefault) in enumerate(self.docs['out']['params']):
+                pdefault = pdefault[0] if len(pdefault) and pdefault[0] else None
+                if e['param'] == name:
+                    found_in_input_docstring = True
+                    default = e['default'] if e['default'] else pdefault
+                    # param will contain: (name, desc, type, default)
+                    param_type = ptype
+                    if (self._options['type_priority'] == 'hint' or not ptype) and e['type']:
+                        param_type = e['type']
+                    self.docs['out']['params'][i] = (name, description, param_type, default)
+            if not found_in_input_docstring:
+                default = e['default'] if e['default'] else None
+                param_type = e['type'] if e['type'] else None
+                p = (e['param'], '', param_type, default)
                 self.docs['out']['params'].append(p)
 
     def _set_raises(self):
@@ -1787,6 +1793,8 @@ class DocString(object):
         else:
             self.docs['out']['return'] = self.docs['in']['return']
             self.docs['out']['rtype'] = self.docs['in']['rtype']
+        if (self._options['rtype_priority'] == 'hint' or not self.docs['out']['rtype']) and self.element['rtype']:
+            self.docs['out']['rtype'] = self.element['rtype']
 
     def _set_other(self):
         """Sets other specific sections"""

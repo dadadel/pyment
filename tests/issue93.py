@@ -5,7 +5,7 @@ def func(): # comment with (parents):
 def func0(param1): # comment with (parents):,
     """description
     :param param1: yoyo
-    :return: nothing
+    :returns: nothing
     """
     pass
 
@@ -21,7 +21,7 @@ def func2(param1: str) -> int:
 def func3(param1: str) -> str:
     """Func 3
 
-    :param param1:
+    :param param1: param description
     :return: the value
     """
     pass
@@ -41,8 +41,9 @@ def func6(param1: str, param2: Dict[str,Object]) -> str:
     :param param1: the first parameter
     :type param1: str
     :param param2: the second parameter
-    :return: the message
+    :returns: the message
     :rtype: str
+
     """
     pass
 
@@ -75,4 +76,26 @@ def func12(cls, param1: str, param2: Dict[str, Object], param3: int = 12) -> str
 
 def func13(param1, param2: Dict["str", Object], param3: int = 12) -> str:
     pass
+
+
+def func14(param1=True, param2: str = 'default val'):
+    '''Description of func with docstring groups style.
+
+    Params:
+        param1 - descr of param1 that has True for default value.
+        param2 - descr of param2
+
+    Returns:
+        some value
+
+    Raises:
+        keyError: raises key exception
+        TypeError: raises type exception
+
+    '''
+    pass
+
+    class A:
+        def method(self, param1, param2=None) -> int:
+            pass
 
