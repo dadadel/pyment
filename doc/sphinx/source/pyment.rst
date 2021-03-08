@@ -44,7 +44,7 @@ The first is using the command line options (`pyment --help`). The second is pro
 Using Pyment
 ============
 
-Pyment runs under Python 2.7+/3+. But if *argparser* is installed it can run under Python 2.6, and maybe less.
+Pyment runs using Python3.6+.
 
 Pyment is usable as is on command line using pyment script. But it can also be used inside a Python program.
 

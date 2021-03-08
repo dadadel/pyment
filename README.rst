@@ -27,10 +27,7 @@ Windows: |appveyor|
 
 **Supported Versions**  
 
-.. image:: https://img.shields.io/badge/python-2.7-blue.svg    
-    :target: https://img.shields.io/badge/python-2.7-blue.svg  
-    :alt: Supports Python27
-.. image:: https://img.shields.io/badge/python-3.4-blue.svg    
+.. image:: https://img.shields.io/badge/python-3.4-blue.svg
     :target: https://img.shields.io/badge/python-3.4-blue.svg  
     :alt: Supports Python34                                    
 .. image:: https://img.shields.io/badge/python-3.5-blue.svg    
@@ -58,7 +55,7 @@ Windows: |appveyor|
 Description
 -----------
 
-This Python (2.7, 3+) program intends to help Python programmers to enhance inside code documentation using docstrings.
+This Python3 program intends to help Python programmers to enhance inside code documentation using docstrings.
 It is useful for code not well documented, or code without docstrings, or some not yet or partially documented code, or a mix of all of this :-)
 It can be helpful also to harmonize or change a project docstring style format.
 

@@ -7,16 +7,16 @@ environment:
     # The list here is complete (excluding Python 2.6, which
     # isn't covered by this document) at the time of writing.
 
-    - PYTHON: "C:\\Python27"
-    - PYTHON: "C:\\Python27-x64"
     - PYTHON: "C:\\Miniconda"
     - PYTHON: "C:\\Miniconda-x64"
-    - PYTHON: "C:\\Python34-x64"
-    - PYTHON: "C:\\Miniconda34-x64"
-    - PYTHON: "C:\\Python35-x64"
-    - PYTHON: "C:\\Miniconda35-x64"
     - PYTHON: "C:\\Python36-x64"
     - PYTHON: "C:\\Miniconda36-x64"
+    - PYTHON: "C:\\Python37-x64"
+    - PYTHON: "C:\\Miniconda37-x64"
+    - PYTHON: "C:\\Python38-x64"
+    - PYTHON: "C:\\Miniconda38-x64"
+    - PYTHON: "C:\\Python39-x64"
+    - PYTHON: "C:\\Miniconda39-x64"
 
 install:
   # We need wheel installed to build wheels
