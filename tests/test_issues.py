@@ -267,6 +267,15 @@ class IssuesTests(unittest.TestCase):
         f.close()
         self.assertEqual(''.join(p.diff()), patch)
 
+    def testIssue95(self):
+        # Title: When there's a parameter without description in reST, Pyment copies the whole next element
+        p = pym.PyComment(absdir('issue95.py'))
+        p._parse()
+        f = open(absdir('issue95.py.patch'))
+        patch = f.read()
+        f.close()
+        self.assertEqual(''.join(p.diff()), patch)
+
 
 def main():
     unittest.main()

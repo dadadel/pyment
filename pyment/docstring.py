@@ -1032,6 +1032,9 @@ class DocsTools(object):
             first = m.group(1)
             start = data[prev:].find(first)
             if start >= 0:
+                if '\n' in data[prev:prev+start]:
+                    # avoid to get next element as a description
+                    return -1, -1
                 start += prev
                 if self.style['in'] in self.tagstyles + ['unknown']:
                     end = self.get_elem_index(data[start:])
@@ -1741,29 +1744,29 @@ class DocString(object):
             self.docs['out']['desc'] = ''
 
     def _set_params(self):
-        """Sets the parameters with types, descriptions and default value if any"""
+        """Sets the parameters with types, descriptions and default value if any
+        taken from the input docstring and the signature parameters"""
         # TODO: manage different in/out styles
-        if self.docs['in']['params']:
-            # list of parameters is like: (name, description, type)
-            self.docs['out']['params'] = list(self.docs['in']['params'])
-        for e in self.element['params']:
-            found_in_input_docstring = False
-            # FIXME extract in a dict with key name and avoid nested loop and strange update that overrides the input origin in the output and could have side effects!!!
-            for i, (name, description, ptype, *pdefault) in enumerate(self.docs['out']['params']):
-                pdefault = pdefault[0] if len(pdefault) and pdefault[0] else None
-                if e['param'] == name:
-                    found_in_input_docstring = True
-                    default = e['default'] if e['default'] else pdefault
-                    # param will contain: (name, desc, type, default)
-                    param_type = ptype
-                    if (self._options['type_priority'] == 'hint' or not ptype) and e['type']:
-                        param_type = e['type']
-                    self.docs['out']['params'][i] = (name, description, param_type, default)
-            if not found_in_input_docstring:
-                default = e['default'] if e['default'] else None
-                param_type = e['type'] if e['type'] else None
-                p = (e['param'], '', param_type, default)
-                self.docs['out']['params'].append(p)
+        # convert the list of signature's extracted params into a dict with the names of param as keys
+        sig_params = {e['param']: {'type': e['type'], 'default': e['default']} for e in self.element['params']}
+        # convert the list of docsting's extracted params into a dict with the names of param as keys
+        docs_params = {
+            name: {
+                'description': desc,
+                'type': param_type,
+            } for name, desc, param_type in self.docs['in']['params']
+        }
+        for name in sig_params:
+            # WARNING: Note that if a param in docstring isn't in the signature params, it will be dropped
+            sig_type, sig_default = sig_params[name]['type'], sig_params[name]['default']
+            out_description = ""
+            out_type = sig_type if sig_type else None
+            out_default = sig_default if sig_default else None
+            if name in docs_params:
+                out_description = docs_params[name]['description']
+                if not out_type or (self._options['type_priority'] != 'hint' and docs_params[name]['type']):
+                    out_type = docs_params[name]['type']
+            self.docs['out']['params'].append((name, out_description, out_type, out_default))
 
     def _set_raises(self):
         """Sets the raises and descriptions"""
