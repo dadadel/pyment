@@ -1,0 +1,17 @@
+--- a/issue99.py
++++ b/issue99.py
+@@ -12,11 +12,9 @@
+ def func2(param1):
+     """Description
+ 
+-    Args:
+-      param1(str): 
+-
+-    Returns:
+-      the return value
++    :param param1: 
++    :type param1: str
++    :returns: the return value
+ 
+     """
+     pass

@@ -276,6 +276,15 @@ class IssuesTests(unittest.TestCase):
         f.close()
         self.assertEqual(''.join(p.diff()), patch)
 
+    def testIssue99(self):
+        # Title: Type is removed from parameter if not in type hints when converting reST docstring
+        p = pym.PyComment(absdir('issue99.py'))
+        p._parse()
+        f = open(absdir('issue99.py.patch'))
+        patch = f.read()
+        f.close()
+        self.assertEqual(''.join(p.diff()), patch)
+
 
 def main():
     unittest.main()

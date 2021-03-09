@@ -1553,9 +1553,12 @@ class DocString(object):
             if start >= 0:
                 param = data[start: end]
                 desc = ''
+                param_end = end
                 start, end = self.dst.get_param_description_indexes(data, prev=end)
                 if start > 0:
                     desc = data[start: end].strip()
+                if end == -1:
+                    end = param_end
                 ptype = ''
                 start, pend = self.dst.get_param_type_indexes(data, name=param, prev=end)
                 if start > 0:
