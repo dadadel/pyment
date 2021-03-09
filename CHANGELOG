@@ -1,7 +1,7 @@
 0.4.0:
         - add support to type hints (PEP 484)
         - stop supporting running Pyment with Python from version 2.7 to 3.5
-        - issues #34, #46, #69, #86, #93, #95, #97, #99
+        - issues #34, #46, #69, #85, #86, #93, #95, #97, #99
         - integrate PRs #96, #98
 
 0.3.4 - 2021/03/04:

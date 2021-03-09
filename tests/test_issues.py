@@ -236,6 +236,18 @@ class IssuesTests(unittest.TestCase):
         f.close()
         self.assertEqual(''.join(p.diff()), patch)
 
+    def testIssue85(self):
+        # Title: When converting from reST, parameter types are not handled correctly
+        # For reST, Sphinx allows to declare the type inside the parameter statement
+        # like this: `:param str name: description`
+        # Pyment should support this.
+        p = pym.PyComment(absdir('issue85.py'))
+        p._parse()
+        f = open(absdir('issue85.py.patch'))
+        patch = f.read()
+        f.close()
+        self.assertEqual(''.join(p.diff()), patch)
+
     def testIssue88(self):
         # Title: Not working on async functions
         # The async functions are not managed

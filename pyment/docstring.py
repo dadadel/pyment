@@ -965,6 +965,124 @@ class DocsTools(object):
 
         return start, end
 
+    def _extra_tagstyle_elements(self, data):
+        ret = {}
+        style_param = self.opt['param'][self.style['in']]['name']
+        style_type = self.opt['type'][self.style['in']]['name']
+        # fixme for return and raise, ignore last char as there's an optional 's' at the end and they are not managed in this function
+        style_return = self.opt['return'][self.style['in']]['name'][:-1]
+        style_raise = self.opt['raise'][self.style['in']]['name'][:-1]
+        last_element = {'nature': None, 'name': None}
+        for line in data.splitlines():
+            param_name = None
+            param_type = None
+            param_description = None
+            param_part = None
+            # parameter statement
+            if line.strip().startswith(style_param):
+                last_element['nature'] = 'param'
+                last_element['name'] = None
+                line = line.strip().replace(style_param, '', 1).strip()
+                if ':' in line:
+                    param_part, param_description = line.split(':', 1)
+                else:
+                    print("WARNING: malformed docstring parameter")
+                res = re.split(r'\s+', param_part.strip())
+                if len(res) == 1:
+                    param_name = res[0].strip()
+                elif len(res) == 2:
+                    param_type, param_name = res[0].strip(), res[1].strip()
+                else:
+                    print("WARNING: malformed docstring parameter")
+                if param_name:
+                    # keep track in case of multiline
+                    last_element['nature'] = 'param'
+                    last_element['name'] = param_name
+                    if param_name not in ret:
+                        ret[param_name] = {'type': None, 'type_in_param': None, 'description': None}
+                    if param_type:
+                        ret[param_name]['type_in_param'] = param_type
+                    if param_description:
+                        ret[param_name]['description'] = param_description.strip()
+                else:
+                    print("WARNING: malformed docstring parameter: unable to extract name")
+            # type statement
+            elif line.strip().startswith(style_type):
+                last_element['nature'] = 'type'
+                last_element['name'] = None
+                line = line.strip().replace(style_type, '', 1).strip()
+                if ':' in line:
+                    param_name, param_type = line.split(':', 1)
+                    param_name = param_name.strip()
+                    param_type = param_type.strip()
+                else:
+                    print("WARNING: malformed docstring parameter")
+                if param_name:
+                    # keep track in case of multiline
+                    last_element['nature'] = 'type'
+                    last_element['name'] = param_name
+                    if param_name not in ret:
+                        ret[param_name] = {'type': None, 'type_in_param': None, 'description': None}
+                    if param_type:
+                        ret[param_name]['type'] = param_type.strip()
+            elif line.strip().startswith(style_raise) or line.startswith(style_return):
+                # fixme not managed in this function
+                last_element['nature'] = 'raise-return'
+                last_element['name'] = None
+            else:
+                # suppose to be line of a multiline element
+                if last_element['nature'] == 'param':
+                    ret[last_element['name']]['description'] += f"\n{line}"
+                elif last_element['nature'] == 'type':
+                    ret[last_element['name']]['description'] += f"\n{line}"
+        return ret
+
+    def _extract_not_tagstyle_old_way(self, data):
+        ret = {}
+        listed = 0
+        loop = True
+        maxi = 10000  # avoid infinite loop but should never happen
+        i = 0
+        while loop:
+            i += 1
+            if i > maxi:
+                loop = False
+            start, end = self.get_param_indexes(data)
+            if start >= 0:
+                param = data[start: end]
+                desc = ''
+                param_end = end
+                start, end = self.get_param_description_indexes(data, prev=end)
+                if start > 0:
+                    desc = data[start: end].strip()
+                if end == -1:
+                    end = param_end
+                ptype = ''
+                start, pend = self.get_param_type_indexes(data, name=param, prev=end)
+                if start > 0:
+                    ptype = data[start: pend].strip()
+                if param in ret:
+                    print(f"WARNING: unexpected parsing duplication of docstring parameter '{param}'")
+                ret[param] = {'type': ptype, 'type_in_param': None, 'description': desc}
+                data = data[end:]
+                listed += 1
+            else:
+                loop = False
+        if i > maxi:
+            print("WARNING: an infinite loop was reached while extracting docstring parameters (>10000). This should never happen!!!")
+        return ret
+
+    def extract_elements(self, data) -> dict:
+        """Extract parameter name, description and type from docstring"""
+        ret = []
+        tagstyles = self.tagstyles + ['unknown']
+        if self.style['in'] in tagstyles:
+            ret = self._extra_tagstyle_elements(data)
+        else:
+            # fixme enhance management of other styles
+            ret = self._extract_not_tagstyle_old_way(data)
+        return ret
+
     def get_param_indexes(self, data):
         """Get from a docstring the next parameter name indexes.
         In javadoc style it is after @param.
@@ -1246,8 +1364,9 @@ class DocString(object):
         self.parsed_docs = False
         self.generated_docs = False
         self._options = {
-            'rtype_priority': 'hint',  # 'hint' or 'docstring'
-            'type_priority': 'hint',  # 'hint' or 'docstring'
+            'hint_rtype_priority': True,  # priority in type hint else in docstring
+            'hint_type_priority': True,  # priority in type hint else in docstring
+            'rst_type_in_param_priority': False,  # in reST docstring priority on type present in param else on type
         }
 
         self.parse_definition()
@@ -1541,6 +1660,17 @@ class DocString(object):
     def _extract_tagstyle_docs_params(self):
         """ """
         data = '\n'.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].splitlines()])
+        extracted = self.dst.extract_elements(data)
+        for param_name, param in extracted.items():
+            param_type = param['type']
+            if self._options['rst_type_in_param_priority'] and param['type_in_param']:
+                param_type = param['type_in_param']
+            desc = param['description'] if param['description'] else ""
+            self.docs['in']['params'].append((param_name, desc, param_type))
+
+    def _old_extract_tagstyle_docs_params(self):
+        """ """
+        data = '\n'.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].splitlines()])
         listed = 0
         loop = True
         maxi = 10000  # avoid infinite loop but should never happen
@@ -1767,7 +1897,7 @@ class DocString(object):
             out_default = sig_default if sig_default else None
             if name in docs_params:
                 out_description = docs_params[name]['description']
-                if not out_type or (self._options['type_priority'] != 'hint' and docs_params[name]['type']):
+                if not out_type or (not self._options['hint_type_priority'] and docs_params[name]['type']):
                     out_type = docs_params[name]['type']
             self.docs['out']['params'].append((name, out_description, out_type, out_default))
 
@@ -1799,7 +1929,7 @@ class DocString(object):
         else:
             self.docs['out']['return'] = self.docs['in']['return']
             self.docs['out']['rtype'] = self.docs['in']['rtype']
-        if (self._options['rtype_priority'] == 'hint' or not self.docs['out']['rtype']) and self.element['rtype']:
+        if (self._options['hint_rtype_priority'] or not self.docs['out']['rtype']) and self.element['rtype']:
             self.docs['out']['rtype'] = self.element['rtype']
 
     def _set_other(self):
