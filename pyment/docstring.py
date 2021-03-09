@@ -1366,7 +1366,7 @@ class DocString(object):
         self._options = {
             'hint_rtype_priority': True,  # priority in type hint else in docstring
             'hint_type_priority': True,  # priority in type hint else in docstring
-            'rst_type_in_param_priority': False,  # in reST docstring priority on type present in param else on type
+            'rst_type_in_param_priority': True,  # in reST docstring priority on type present in param else on type
         }
 
         self.parse_definition()

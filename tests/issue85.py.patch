@@ -1,6 +1,6 @@
 --- a/issue85.py
 +++ b/issue85.py
-@@ -1,58 +1,71 @@
+@@ -1,58 +1,76 @@
  def func(param_file, mask):
      """
 -    :param lxml.etree.ElementTree param_file: xml-element tree
@@ -8,7 +8,9 @@
 +    :param param_file: xml-element tree
          obtained from the file.
 -    :param str mask: Name of mask to be considered.
++    :type param_file: lxml.etree.ElementTree
 +    :param mask: Name of mask to be considered.
++    :type mask: str
 +
      """
      pass
@@ -22,6 +24,7 @@
 +    :param param1: description 1
 +    :type param1: str
 +    :param param2: description 2
++    :type param2: str
      :returns: description return
 +
      """
@@ -36,6 +39,7 @@
      :type param1: str
 -    :param str param2: description 2
 +    :param param2: description 2
++    :type param2: str
      :returns: description return
 +
      """
@@ -49,6 +53,7 @@
      :type param1: str
 -    :param str param2: description 2
 +    :param param2: description 2
++    :type param2: str
      :returns: description return
 +
      """
@@ -58,9 +63,10 @@
  def func5(param1, param2):
      """
 -    :param int param1: description 1
+-    :type param1: str
 +
 +    :param param1: description 1
-     :type param1: str
++    :type param1: int
      :param param2: description 2
      :returns: description return
 +
