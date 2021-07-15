@@ -1959,7 +1959,8 @@ class DocString(object):
                 if p[2] is not None and len(p[2]) > 0:
                     raw += ' ' + p[2]
                 raw += '\n'
-                raw += self.docs['out']['spaces'] + spaces + with_space(p[1]).strip()
+                description = spaces + with_space(p[1]).strip() if p[1] else ''
+                raw += self.docs['out']['spaces'] + description
                 if len(p) > 2:
                     if 'default' not in p[1].lower() and len(p) > 3 and p[3] is not None:
                         raw += ' (Default value = ' + str(p[3]) + ')'
@@ -1977,7 +1978,8 @@ class DocString(object):
                     if len(p) > 3 and p[3] is not None:
                         raw += ', optional'
                     raw += ')'
-                raw += ': ' + with_space(p[1]).strip()
+                description = ': ' + with_space(p[1]).strip() if p[1] else ''
+                raw += description
                 if len(p) > 2:
                     if 'default' not in p[1].lower() and len(p) > 3 and p[3] is not None:
                         raw += ' (Default value = ' + str(p[3]) + ')'
@@ -1990,7 +1992,8 @@ class DocString(object):
             )
             if len(self.docs['out']['params']):
                 for p in self.docs['out']['params']:
-                    raw += self.docs['out']['spaces'] + self.dst.get_key('param', 'out') + ' ' + p[0] + sep + with_space(p[1]).strip()
+                    description = sep + with_space(p[1]).strip() if p[1] else ''
+                    raw += self.docs['out']['spaces'] + self.dst.get_key('param', 'out') + ' ' + p[0] + description
                     if len(p) > 2:
                         if 'default' not in p[1].lower() and len(p) > 3 and p[3] is not None:
                             raw += ' (Default value = ' + str(p[3]) + ')'
