@@ -107,6 +107,11 @@ class PyComment(object):
                     reading_element = 'end'
             elif (l.startswith('async def ') or l.startswith('def ') or l.startswith('class ')) and not reading_docs:
                 if self.ignore_private and l[l.find(' '):].strip().startswith("__"):
+                    # If we were still looking for the class docstring, stop
+                    # looking.  Otherwise we'll mistake this __dunder_method__
+                    # docstring for the class docstring and mess stuff up!
+                    # (See issue #83).
+                    waiting_docs = False
                     continue
                 reading_element = 'start'
                 elem = l

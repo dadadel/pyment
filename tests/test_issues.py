@@ -236,6 +236,16 @@ class IssuesTests(unittest.TestCase):
         f.close()
         self.assertEqual(''.join(p.diff()), patch)
 
+    def testIssue83(self):
+        # Title: No docstring in class results in wrong indentation in __init__()
+        p = pym.PyComment(absdir('issue83.py'), ignore_private=True)
+        p.proceed()
+        with open(absdir('issue83.py.patch')) as f:
+           patch = f.read()
+        result = ''.join(p.diff())
+        print(result)
+        self.assertEqual(result, patch)
+
     def testIssue85(self):
         # Title: When converting from reST, parameter types are not handled correctly
         # For reST, Sphinx allows to declare the type inside the parameter statement
