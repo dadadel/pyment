@@ -163,7 +163,7 @@ class AppTests(unittest.TestCase):
         :param output_format: The output format - it adds the --output option, use None if auto is required
 
         :return: None
-        :raises: Assertion error if the expected rsult is not found
+        :raises: Assertion error if the expected result is not found
         """
 
         def assert_output(cmd_to_run, what, got, expected):
@@ -259,7 +259,7 @@ class AppTests(unittest.TestCase):
         The .patch and temporary files are removed at the end of the test.
 
         :param file_contents: write this into the temporary file
-        :param cmd_args: Arguments to pyment - do not put the '-w' argument here - it is trigged by overwrite_mode
+        :param cmd_args: Arguments to pyment - do not put the '-w' argument here - it is triggered by overwrite_mode
         :param overwrite_mode: set to True if in overwrite mode
         :param expected_file_contents: expected result - for a patch file ensure the filename is '-'. The '-'
             is replaced with the patch filename when overwrite_mode is False

@@ -1373,7 +1373,7 @@ class DocString(object):
         self.quotes = quotes
 
     def __str__(self):
-        # for debuging
+        # for debugging
         txt = "\n\n** " + str(self.element['name'])
         txt += ' of type ' + str(self.element['deftype']) + ':'
         txt += str(self.docs['in']['desc']) + '\n'

@@ -94,7 +94,7 @@ class MyTestClass(object):
         print ("this has elems in several lines")
 
     def my_method_full(self, first, second=None, third="value"):
-        '''The desctiption of method with 3 params and return value
+        '''The description of method with 3 params and return value
         on several lines
 
         @param first: the 1st param

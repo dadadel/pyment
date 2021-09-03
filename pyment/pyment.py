@@ -280,7 +280,7 @@ class PyComment(object):
         """Build the diff between original docstring and proposed docstring.
 
         :type which: int
-          -> -1 means all the dosctrings of the file
+          -> -1 means all the docstrings of the file
           -> >=0 means the index of the docstring to proceed (Default value = -1)
         :param source_path:  (Default value = '')
         :param target_path:  (Default value = '')
