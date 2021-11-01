@@ -1965,7 +1965,7 @@ class DocString(object):
                         raw += ' (Default value = ' + str(p[3]) + ')'
                 raw += '\n'
         elif self.dst.style['out'] == 'google':
-            spaces = ' ' * 2
+            spaces = ' ' * 4
             with_space = lambda s: '\n'.join([self.docs['out']['spaces'] +\
                                                     l.lstrip() if i > 0 else\
                                                     l for i, l in enumerate(s.splitlines())])
