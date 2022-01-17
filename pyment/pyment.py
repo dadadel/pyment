@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import os
-import re
 import difflib
+import os
 import platform
+import re
 import sys
 
 from .docstring import DocString
@@ -44,7 +44,7 @@ class PyComment:
         convert_only=False,
         config_file=None,
         ignore_private=False,
-        **kwargs
+        **kwargs,
     ):
         """Sets the configuration including the source to proceed and options.
 
@@ -109,9 +109,7 @@ class PyComment:
 
         except IOError:
             msg = BaseException(
-                'Failed to open file "'
-                + self.input_file
-                + '". Please provide a valid file.'
+                f'Failed to open file "{self.input_file}". Please provide a valid file.'
             )
             raise msg
         for i, ln in enumerate(self.input_lines):
@@ -150,7 +148,7 @@ class PyComment:
                     input_style=self.input_style,
                     output_style=self.output_style,
                     first_line=self.first_line,
-                    **self.kwargs
+                    **self.kwargs,
                 )
                 elem_list.append({"docs": e, "location": (-i, -i)})
             else:

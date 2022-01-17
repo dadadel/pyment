@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import unittest
 
 def my_func_full(first, second=None, third="value"):
     """This is a description of a method.

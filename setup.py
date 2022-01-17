@@ -33,7 +33,7 @@ setup(name='Pyment',
           ],
       url='https://github.com/dadadel/pyment',
       packages=['pyment'],
-      test_suite='tests.test_all',
+      # test_suite='tests.test_all',
       entry_points={
         'console_scripts': [
             'pyment = pyment.pymentapp:main'

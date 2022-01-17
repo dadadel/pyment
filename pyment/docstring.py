@@ -417,7 +417,6 @@ class DocString:
         data = self.docs["in"]["raw"]
         start, end = self.dst.get_doctests_indexes(data)
         while start != -1:
-            print(start, end)
             result = True
             datalst = data.splitlines()
             if self.docs["in"]["doctests"] != "":
