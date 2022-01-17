@@ -27,7 +27,7 @@ __maintainer__ = "A. Daouzli"
 # -dev a server that take sources and send back patches
 
 
-class PyComment(object):
+class PyComment:
     """This class allow to manage several python scripts docstrings.
     It is used to parse and rewrite in a Pythonic way all the functions', methods' and classes' docstrings.
     The changes are then provided in a patch file.
