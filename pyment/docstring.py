@@ -1284,7 +1284,8 @@ class DocString(object):
     """This class represents the docstring"""
 
     def __init__(self, elem_raw, spaces='', docs_raw=None, quotes="'''", input_style=None, output_style=None,
-                 first_line=False, trailing_space=True, type_stub=False, before_lim='', num_of_spaces=4, **kwargs):
+                 first_line=False, trailing_space=True, type_stub=False, before_lim='', num_of_spaces=4,
+                 skip_empty=False, **kwargs):
         """
         :param elem_raw: raw data of the element (def or class).
         :param spaces: the leading whitespaces before the element
@@ -1306,6 +1307,8 @@ class DocString(object):
         :param before_lim: specify raw or unicode or format docstring type (ie. "r" for r'''... or "fu" for fu'''...)
         :param num_of_spaces: the number of spaces to indent
         :type num_of_spaces: integer
+        :param skip_empty: if set, will skip writing the params, returns, or raises if they are empty
+        :type skip_empty: boolean
 
         """
         self.dst = DocsTools()
@@ -1374,6 +1377,7 @@ class DocString(object):
         self.parse_definition()
         self.quotes = quotes
         self.num_of_spaces = num_of_spaces
+        self.skip_empty = skip_empty
 
     def __str__(self):
         # for debuging
@@ -1951,6 +1955,8 @@ class DocString(object):
 
         """
         raw = '\n'
+        if self.skip_empty and not self.docs['out']['params']:
+            return raw
         if self.dst.style['out'] == 'numpydoc':
             spaces = ' ' * self.num_of_spaces
             with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + spaces +\
@@ -2013,6 +2019,8 @@ class DocString(object):
 
         """
         raw = ''
+        if self.skip_empty and not self.docs['out']['raises']:
+            return raw
         if self.dst.style['out'] == 'numpydoc':
             if 'raise' not in self.dst.numpydoc.get_excluded_sections():
                 raw += '\n'
@@ -2069,6 +2077,8 @@ class DocString(object):
 
         """
         raw = ''
+        if self.skip_empty and not self.docs['out']['return']:
+            return raw
         if self.dst.style['out'] == 'numpydoc':
             raw += '\n'
             spaces = ' ' * self.num_of_spaces

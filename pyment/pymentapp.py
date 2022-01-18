@@ -69,7 +69,8 @@ def get_config(config_file):
 
 
 def run(source, files=[], input_style='auto', output_style='reST', first_line=True, quotes='"""',
-        init2class=False, convert=False, config_file=None, ignore_private=False, overwrite=False, spaces=4):
+        init2class=False, convert=False, config_file=None, ignore_private=False, overwrite=False, spaces=4,
+        skip_empty=False):
     if input_style == 'auto':
         input_style = None
 
@@ -99,6 +100,7 @@ def run(source, files=[], input_style='auto', output_style='reST', first_line=Tr
                       ignore_private=ignore_private,
                       convert_only=convert,
                       num_of_spaces=spaces,
+                      skip_empty=skip_empty,
                       **config)
         c.proceed()
         if init2class:
@@ -147,6 +149,9 @@ def main():
                         default=False, help="Don't write patches. Overwrite files instead. If used with path '-' won\'t overwrite but write to stdout the new content instead of a patch/.")
     parser.add_argument('-s', '--spaces', metavar='spaces', dest='spaces', default=4, type=int,
                         help="The default number of spaces to use for indenting on output. Default is 4.")
+    parser.add_argument('-e', '--skip-empty', action='store_true', dest='skip_empty',
+                        default=False,
+                        help="Don't write params, returns, or raises sections if they are empty.")
     # parser.add_argument('-c', '--config', metavar='config_file',
     #                   dest='config', help='Configuration file')
 
@@ -167,7 +172,7 @@ def main():
         tobool(args.first_line), args.quotes,
         args.init2class, args.convert, config_file,
         tobool(args.ignore_private), overwrite=args.overwrite,
-        spaces=args.spaces)
+        spaces=args.spaces, skip_empty=args.skip_empty)
 
 
 if __name__ == "__main__":

@@ -34,7 +34,8 @@ class PyComment(object):
 
     """
     def __init__(self, input_file, input_style=None, output_style='reST', quotes='"""', first_line=True,
-                 convert_only=False, config_file=None, ignore_private=False, num_of_spaces=4, **kwargs):
+                 convert_only=False, config_file=None, ignore_private=False, num_of_spaces=4, skip_empty=False,
+                 **kwargs):
         """Sets the configuration including the source to proceed and options.
 
         :param input_file: path name (file or folder)
@@ -47,6 +48,8 @@ class PyComment(object):
         :param convert_only: if set only existing docstring will be converted. No missing docstring will be created.
         :param config_file: if given configuration file for Pyment
         :param ignore_private: don't proceed the private methods/functions starting with __ (two underscores)
+        :param num_of_spaces: the number of spaces for a tab on output
+        :param skip_empty: if set, will not write the params, returns, or raises sections if they are empty
 
         """
         self.file_type = '.py'
@@ -65,6 +68,7 @@ class PyComment(object):
         self.config_file = config_file
         self.ignore_private = ignore_private
         self.num_of_spaces = num_of_spaces
+        self.skip_empty = skip_empty
         self.kwargs = kwargs
 
     def _parse(self):
@@ -130,6 +134,7 @@ class PyComment(object):
                               output_style=self.output_style,
                               first_line=self.first_line,
                               num_of_spaces=self.num_of_spaces,
+                              skip_empty=self.skip_empty,
                               **self.kwargs)
                 elem_list.append({'docs': e, 'location': (-i, -i)})
             else:
