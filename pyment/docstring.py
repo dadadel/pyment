@@ -2040,7 +2040,7 @@ class DocString(object):
                         for p in self.docs['out']['raises']:
                             raw += self.docs['out']['spaces'] + spaces
                             if p[0] is not None:
-                                raw += p[0] + sep
+                                raw += p[0] + ':' + sep
                             if p[1]:
                                 raw += p[1].strip()
                             raw += '\n'
