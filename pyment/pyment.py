@@ -34,7 +34,7 @@ class PyComment(object):
 
     """
     def __init__(self, input_file, input_style=None, output_style='reST', quotes='"""', first_line=True,
-                 convert_only=False, config_file=None, ignore_private=False, **kwargs):
+                 convert_only=False, config_file=None, ignore_private=False, num_of_spaces=4, **kwargs):
         """Sets the configuration including the source to proceed and options.
 
         :param input_file: path name (file or folder)
@@ -64,6 +64,7 @@ class PyComment(object):
         self.convert_only = convert_only
         self.config_file = config_file
         self.ignore_private = ignore_private
+        self.num_of_spaces = num_of_spaces
         self.kwargs = kwargs
 
     def _parse(self):
@@ -128,6 +129,7 @@ class PyComment(object):
                               input_style=self.input_style,
                               output_style=self.output_style,
                               first_line=self.first_line,
+                              num_of_spaces=self.num_of_spaces,
                               **self.kwargs)
                 elem_list.append({'docs': e, 'location': (-i, -i)})
             else:

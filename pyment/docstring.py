@@ -1284,7 +1284,7 @@ class DocString(object):
     """This class represents the docstring"""
 
     def __init__(self, elem_raw, spaces='', docs_raw=None, quotes="'''", input_style=None, output_style=None,
-                 first_line=False, trailing_space=True, type_stub=False, before_lim='', **kwargs):
+                 first_line=False, trailing_space=True, type_stub=False, before_lim='', num_of_spaces=4, **kwargs):
         """
         :param elem_raw: raw data of the element (def or class).
         :param spaces: the leading whitespaces before the element
@@ -1304,6 +1304,8 @@ class DocString(object):
         :param type_stub: if set, an empty stub will be created for a parameter type
         :type type_stub: boolean
         :param before_lim: specify raw or unicode or format docstring type (ie. "r" for r'''... or "fu" for fu'''...)
+        :param num_of_spaces: the number of spaces to indent
+        :type num_of_spaces: integer
 
         """
         self.dst = DocsTools()
@@ -1371,6 +1373,7 @@ class DocString(object):
 
         self.parse_definition()
         self.quotes = quotes
+        self.num_of_spaces = num_of_spaces
 
     def __str__(self):
         # for debuging
@@ -1949,7 +1952,7 @@ class DocString(object):
         """
         raw = '\n'
         if self.dst.style['out'] == 'numpydoc':
-            spaces = ' ' * 4
+            spaces = ' ' * self.num_of_spaces
             with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + spaces +\
                                                     l.lstrip() if i > 0 else\
                                                     l for i, l in enumerate(s.splitlines())])
@@ -1965,7 +1968,7 @@ class DocString(object):
                         raw += ' (Default value = ' + str(p[3]) + ')'
                 raw += '\n'
         elif self.dst.style['out'] == 'google':
-            spaces = ' ' * 2
+            spaces = ' ' * self.num_of_spaces
             with_space = lambda s: '\n'.join([self.docs['out']['spaces'] +\
                                                     l.lstrip() if i > 0 else\
                                                     l for i, l in enumerate(s.splitlines())])
@@ -1973,7 +1976,7 @@ class DocString(object):
             for p in self.docs['out']['params']:
                 raw += self.docs['out']['spaces'] + spaces + p[0]
                 if p[2] is not None and len(p[2]) > 0:
-                    raw += '(' + p[2]
+                    raw += ' (' + p[2]
                     if len(p) > 3 and p[3] is not None:
                         raw += ', optional'
                     raw += ')'
@@ -2015,7 +2018,7 @@ class DocString(object):
                 raw += '\n'
                 if 'raise' in self.dst.numpydoc.get_mandatory_sections() or \
                         (self.docs['out']['raises'] and 'raise' in self.dst.numpydoc.get_optional_sections()):
-                    spaces = ' ' * 4
+                    spaces = ' ' * self.num_of_spaces
                     with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + spaces + l.lstrip() if i > 0 else l for i, l in enumerate(s.splitlines())])
                     raw += self.dst.numpydoc.get_key_section_header('raise', self.docs['out']['spaces'])
                     if len(self.docs['out']['raises']):
@@ -2028,7 +2031,7 @@ class DocString(object):
                 raw += '\n'
                 if 'raise' in self.dst.googledoc.get_mandatory_sections() or \
                         (self.docs['out']['raises'] and 'raise' in self.dst.googledoc.get_optional_sections()):
-                    spaces = ' ' * 2
+                    spaces = ' ' * self.num_of_spaces
                     with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + spaces + \
                                                             l.lstrip() if i > 0 else \
                                                             l for i, l in enumerate(s.splitlines())])
@@ -2068,7 +2071,7 @@ class DocString(object):
         raw = ''
         if self.dst.style['out'] == 'numpydoc':
             raw += '\n'
-            spaces = ' ' * 4
+            spaces = ' ' * self.num_of_spaces
             with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + spaces + l.lstrip() if i > 0 else l for i, l in enumerate(s.splitlines())])
             raw += self.dst.numpydoc.get_key_section_header('return', self.docs['out']['spaces'])
             if self.docs['out']['rtype']:
@@ -2097,7 +2100,7 @@ class DocString(object):
                 raw += '\n' + self.docs['out']['spaces'] + spaces + with_space(self.docs['out']['return']).strip() + '\n'
         elif self.dst.style['out'] == 'google':
             raw += '\n'
-            spaces = ' ' * 2
+            spaces = ' ' * self.num_of_spaces
             with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + spaces +\
                                                     l.lstrip() if i > 0 else\
                                                     l for i, l in enumerate(s.splitlines())])
