@@ -145,7 +145,7 @@ def main():
                         version=desc)
     parser.add_argument('-w', '--write', action='store_true', dest='overwrite',
                         default=False, help="Don't write patches. Overwrite files instead. If used with path '-' won\'t overwrite but write to stdout the new content instead of a patch/.")
-    parser.add_argument('-s', '--spaces', metavar='spaces', dest='spaces', default=4,
+    parser.add_argument('-s', '--spaces', metavar='spaces', dest='spaces', default=4, type=int,
                         help="The default number of spaces to use for indenting on output. Default is 4.")
     # parser.add_argument('-c', '--config', metavar='config_file',
     #                   dest='config', help='Configuration file')
