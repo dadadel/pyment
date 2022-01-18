@@ -1,109 +1,121 @@
-#!/usr/bin/python
-
-import unittest
 import shutil
-import os
+import textwrap
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
+import pytest
+
 import pyment.pyment as pym
 
-myelem = '    def my_method(self, first, second=None, third="value"):'
-mydocs = '''        """This is a description of a method.
-        It is on several lines.
-        Several styles exists:
-            -javadoc,
-            -reST,
-            -cstyle.
-        It uses the javadoc style.
-
-        @param first: the 1st argument.
-        with multiple lines
-        @type first: str
-        @param second: the 2nd argument.
-        @return: the result value
-        @rtype: int
-        @raise KeyError: raises exception
-
-        """'''
-
-current_dir = os.path.dirname(__file__)
-absdir = lambda f: os.path.join(current_dir, f)
-
-inifile = absdir('origin_test.py')
-jvdfile = absdir('javadoc_test.py')
-rstfile = absdir('rest_test.py')
-foo = absdir("foo")
+DATA = Path(__file__).parent / "data"
+INIFILE = DATA / "origin_test.py"
 
 
-class DocStringTests(unittest.TestCase):
+from .utils import assert_docstring
 
-    @classmethod
-    def setUpClass(cls):
-        # prepare test file
-        txt = ""
-        shutil.copyfile(inifile, jvdfile)
-        with open(jvdfile, 'r') as fs:
-            txt = fs.read()
-        txt = txt.replace("@return", ":returns")
-        txt = txt.replace("@raise", ":raises")
-        txt = txt.replace("@", ":")
-        with open(rstfile, 'w') as ft:
-            ft.write(txt)
-        with open(foo, "w") as fooo:
-            fooo.write("foo")
-        print("setup")
+@pytest.fixture
+def javadoc_file():
+    """Returns the path to the javadoc input file."""
+    with TemporaryDirectory() as folder:
+        path = Path(folder) / "javadoc_file.py"
+        shutil.copy(INIFILE, path)
+        yield path
 
-    @classmethod
-    def tearDownClass(cls):
-        os.remove(jvdfile)
-        os.remove(rstfile)
-        os.remove(foo)
-        print("end")
 
-    def testParsedJavadoc(self):
-        p = pym.PyComment(inifile)
-        p._parse()
-        self.assertTrue(p.parsed)
+@pytest.fixture
+def reST_file():
+    """Returns the path to the reStructured input file."""
+    with TemporaryDirectory() as folder:
+        path = Path(folder) / "reST_file.py"
+        with open(INIFILE, "r") as ori:
+            with open(path, "w") as out:
+                out.write(
+                    ori.read()
+                    .replace("@return", ":returns")
+                    .replace("@raise", ":raises")
+                    .replace("@", ":")
+                )
+        yield path
 
-    def testSameOutJavadocReST(self):
-        pj = pym.PyComment(jvdfile)
-        pr = pym.PyComment(rstfile)
-        pj._parse()
-        pr._parse()
-        self.assertEqual(pj.get_output_docs(), pr.get_output_docs())
 
-    def testMultiLinesElements(self):
-        p = pym.PyComment(inifile)
-        p._parse()
-        self.assertTrue('first' in p.get_output_docs()[1])
-        self.assertTrue('second' in p.get_output_docs()[1])
-        self.assertTrue('third' in p.get_output_docs()[1])
-        self.assertTrue('multiline' in p.get_output_docs()[1])
+def testParsedJavadoc():
+    """ """
+    p = pym.PyComment(INIFILE)
+    assert len(p._parse()) == 15
 
-    def testMultiLinesShiftElements(self):
-        p = pym.PyComment(inifile)
-        p._parse()
-        #TODO: improve this test
-        self.assertEqual((len(p.get_output_docs()[13])-len(p.get_output_docs()[13].lstrip())), 8)
-        self.assertTrue('first' in p.get_output_docs()[13])
-        self.assertTrue('second' in p.get_output_docs()[13])
-        self.assertTrue('third' in p.get_output_docs()[13])
-        self.assertTrue('multiline' in p.get_output_docs()[13])
 
-    def testWindowsRename(self):
-        bar = absdir("bar")
+def testSameOutJavadocReST(javadoc_file, reST_file):
+    """
+
+    Args:
+      javadoc_file:
+      reST_file:
+
+    Returns:
+
+    Raises:
+
+    """
+    assert (
+        pym.PyComment(javadoc_file).get_output_docs()
+        == pym.PyComment(reST_file).get_output_docs()
+    )
+
+
+def testMultiLinesElements():
+    """ """
+    p = pym.PyComment(INIFILE)
+    p._parse()
+
+    assert_docstring(
+        p.get_output_docs()[1],
+        """\
+        multiline
+
+        :param first:
+        :param second:
+        :param third:  (Default value = "")
+
+        """,
+    )
+
+
+def testMultiLinesShiftElements():
+    """ """
+    p = pym.PyComment(INIFILE)
+    p._parse()
+    assert_docstring(
+        p.get_output_docs()[13],
+        """\
+        there are multilines, shift and kwargs
+
+        :param first:
+        :param second:
+        :param third:  (Default value = "")
+        :param **kwargs:
+
+        """,
+    )
+
+
+def testWindowsRename():
+    """ """
+    with TemporaryDirectory() as folder:
+        bar = Path(folder, "bar")
+        foo = Path(folder, "foo")
+
         with open(bar, "w") as fbar:
             fbar.write("bar")
+
+        with open(foo, "w") as fooo:
+            fooo.write("foo")
+
+        assert bar.is_file()
         p = pym.PyComment(foo)
         p._windows_rename(bar)
-        self.assertFalse(os.path.isfile(bar))
-        self.assertTrue(os.path.isfile(foo))
+
+        assert foo.is_file()
+
         with open(foo, "r") as fooo:
             foo_txt = fooo.read()
-        self.assertTrue(foo_txt == "bar")
-
-
-def main():
-    unittest.main()
-
-
-if __name__ == '__main__':
-    main()
+        assert foo_txt == "bar"
