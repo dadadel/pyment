@@ -1984,7 +1984,7 @@ class DocString(object):
                 raw += '\n'
         elif self.dst.style['out'] == 'groups':
             pass
-        else:
+        else:  # sphinx/reST style
             with_space = lambda s: '\n'.join(
                 [self.docs['out']['spaces'] + l if i > 0 else l for i, l in enumerate(s.splitlines())]
             )
