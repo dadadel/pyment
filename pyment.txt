@@ -1,0 +1,29 @@
+.TH PYMENT "1" "Mai 2022" "PYMENT 0.3.4" "automatically turns docstrings into code signing"
+NAME
+ pyment - automatically turns docstrings into code signing
+SYNOPSIS
+ pyment [OPTION]
+ pyment [DIRECTORY]
+DESCRIPTION
+ pyment Generate, automatically convert code signing docstrings. Developed
+ for Python programmers who make use of docstrings in their projects.
+ It is useful for code not well documented, or code without docstrings,
+ or some code not yet or partially documented, or a mixture of all these.
+ It can also be useful to harmonize or change a project docstring style
+ format.
+OPTIONS
+ pyment  myfile.py      # will generate a patch.
+ pyment  -w myfile.py   # will overwrite the file.
+ pyment  -h             # get help.
+EXAMPLES
+ run from the command line:
+ pyment  my/folder/
+ pyment  myfile.py
+REPORTING BUGS
+ To report a bug please visit cargo strip issues tracking system at:
+ https://github.com/dadadel/pyment/issues
+AUTHORS
+ Written by A. Daouzli <dadel@hadoly.fr>
+ This manual page was written by Josenison F. da Silva
+ <nilsonfsilva@hotmail.com> for the Debian project
+ (but may be used by others).
