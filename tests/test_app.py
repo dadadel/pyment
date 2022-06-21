@@ -163,7 +163,7 @@ class AppTests(unittest.TestCase):
         :param output_format: The output format - it adds the --output option, use None if auto is required
 
         :return: None
-        :raises: Assertion error if the expected rsult is not found
+        :raises: Assertion error if the expected result is not found
         """
 
         def assert_output(cmd_to_run, what, got, expected):
