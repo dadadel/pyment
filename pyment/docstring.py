@@ -1868,38 +1868,60 @@ class DocString(object):
         self._extract_docs_other()
         self.parsed_docs = True
 
+    def prettify_des(self):
+        desc_in_copy: str = self.docs['in']['desc']
+        if desc_in_copy:
+            desc_in_copy = desc_in_copy.strip()
+        if desc_in_copy:
+            if '\n' in desc_in_copy:
+                desc_in_copy = f"Заполнить краткое описание в одну строчку.\n\n{desc_in_copy.strip()}"
+            else:
+                if not desc_in_copy.endswith("."):
+                    desc_in_copy = desc_in_copy + "."
+
+        return desc_in_copy
+
     def _set_desc(self):
         """Sets the global description if any"""
         # TODO: manage different in/out styles
-        if self.docs['in']['desc']:
-            self.docs['out']['desc'] = self.docs['in']['desc']
+        desc_in_copy = self.prettify_des()
+        if desc_in_copy:  # or desc_copy != '':
+            self.docs['out']['desc'] = desc_in_copy
+        elif desc_in_copy == '':
+            default_desc = "Общее описание."
+            self.docs['out']['desc'] = default_desc
         else:
-            self.docs['out']['desc'] = ''
+            default_desc = "Общее описание."
+            self.docs['out']['desc'] = default_desc
+            pass
 
     def _set_params(self):
-        """Sets the parameters with types, descriptions and default value if any
-        taken from the input docstring and the signature parameters"""
+        """Sets the parameters with types, descriptions and default value if any"""
         # TODO: manage different in/out styles
-        # convert the list of signature's extracted params into a dict with the names of param as keys
-        sig_params = {e['param']: {'type': e['type'], 'default': e['default']} for e in self.element['params']}
-        # convert the list of docsting's extracted params into a dict with the names of param as keys
-        docs_params = {
-            name: {
-                'description': desc,
-                'type': param_type,
-            } for name, desc, param_type in self.docs['in']['params']
-        }
-        for name in sig_params:
-            # WARNING: Note that if a param in docstring isn't in the signature params, it will be dropped
-            sig_type, sig_default = sig_params[name]['type'], sig_params[name]['default']
-            out_description = ""
-            out_type = sig_type if sig_type else None
-            out_default = sig_default if sig_default else None
-            if name in docs_params:
-                out_description = docs_params[name]['description']
-                if not out_type or (not self._options['hint_type_priority'] and docs_params[name]['type']):
-                    out_type = docs_params[name]['type']
-            self.docs['out']['params'].append((name, out_description, out_type, out_default))
+        if self.docs['in']['params']:
+            # list of parameters is like: (name, description, type)
+            self.docs['out']['params'] = list(self.docs['in']['params'])
+        for e in self.element['params']:
+            if type(e) is tuple:
+                # tuple is: (name, default)
+                param = e[0]
+            else:
+                param = e
+            found = False
+            for i, p in enumerate(self.docs['out']['params']):
+                if param == p[0]:
+                    found = True
+                    # add default value if any
+                    if type(e) is tuple:
+                        # param will contain: (name, desc, type, default)
+                        self.docs['out']['params'][i] = (p[0], p[1], p[2], e[1])
+            if not found:
+                if type(e) is tuple:
+                    p = (param, '', None, e[1])
+                else:
+                    default_filling = 'Заполнить'
+                    p = (param, default_filling, None, None)
+                self.docs['out']['params'].append(p)
 
     def _set_raises(self):
         """Sets the raises and descriptions"""
@@ -1907,7 +1929,7 @@ class DocString(object):
         # manage setting if not mandatory for numpy but optional
         if self.docs['in']['raises']:
             if self.dst.style['out'] != 'numpydoc' or self.dst.style['in'] == 'numpydoc' or \
-                    (self.dst.style['out'] == 'numpydoc' and
+                    (self.dst.style['out'] == 'numpydoc' and \
                      'raise' not in self.dst.numpydoc.get_excluded_sections()):
                 # list of parameters is like: (name, description)
                 self.docs['out']['raises'] = list(self.docs['in']['raises'])
@@ -1927,10 +1949,14 @@ class DocString(object):
                     self.docs['out']['return'] = lst[0][1]
                 self.docs['out']['rtype'] = lst[0][2]
         else:
-            self.docs['out']['return'] = self.docs['in']['return']
+            if not self.docs['in']['return'] \
+                    and self.element['type'] != "class" \
+                    and self.docs["out"]["params"] != []:
+                # Заполняем return, если нет retrun, это не класс и нет аргументв функции
+                self.docs['out']['return'] = "Заполнить"
+            else:
+                self.docs['out']['return'] = self.docs['in']['return']
             self.docs['out']['rtype'] = self.docs['in']['rtype']
-        if (self._options['hint_rtype_priority'] or not self.docs['out']['rtype']) and self.element['rtype']:
-            self.docs['out']['rtype'] = self.element['rtype']
 
     def _set_other(self):
         """Sets other specific sections"""
@@ -1950,9 +1976,9 @@ class DocString(object):
         raw = '\n'
         if self.dst.style['out'] == 'numpydoc':
             spaces = ' ' * 4
-            with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + spaces +\
-                                                    l.lstrip() if i > 0 else\
-                                                    l for i, l in enumerate(s.splitlines())])
+            with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + spaces + \
+                                              l.lstrip() if i > 0 else \
+                                                  l for i, l in enumerate(s.splitlines())])
             raw += self.dst.numpydoc.get_key_section_header('param', self.docs['out']['spaces'])
             for p in self.docs['out']['params']:
                 raw += self.docs['out']['spaces'] + p[0] + ' :'
@@ -1966,9 +1992,9 @@ class DocString(object):
                 raw += '\n'
         elif self.dst.style['out'] == 'google':
             spaces = ' ' * 2
-            with_space = lambda s: '\n'.join([self.docs['out']['spaces'] +\
-                                                    l.lstrip() if i > 0 else\
-                                                    l for i, l in enumerate(s.splitlines())])
+            with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + \
+                                              l.lstrip() if i > 0 else \
+                                                  l for i, l in enumerate(s.splitlines())])
             raw += self.dst.googledoc.get_key_section_header('param', self.docs['out']['spaces'])
             for p in self.docs['out']['params']:
                 raw += self.docs['out']['spaces'] + spaces + p[0]
@@ -1985,22 +2011,22 @@ class DocString(object):
         elif self.dst.style['out'] == 'groups':
             pass
         else:
-            with_space = lambda s: '\n'.join(
-                [self.docs['out']['spaces'] + l if i > 0 else l for i, l in enumerate(s.splitlines())]
-            )
+            with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + l \
+                                                  if i > 0 else l for i, l in enumerate(s.splitlines())])
             if len(self.docs['out']['params']):
                 for p in self.docs['out']['params']:
-                    raw += self.docs['out']['spaces'] + self.dst.get_key('param', 'out') + ' ' + p[0] + sep + with_space(p[1]).strip()
+                    raw += self.docs['out']['spaces'] + self.dst.get_key('param', 'out') + ' ' + p[
+                        0] + sep + with_space(p[1]).strip()
                     if len(p) > 2:
                         if 'default' not in p[1].lower() and len(p) > 3 and p[3] is not None:
                             raw += ' (Default value = ' + str(p[3]) + ')'
                         if p[2] is not None and len(p[2]) > 0:
                             raw += '\n'
-                            raw += self.docs['out']['spaces'] + self.dst.get_key('type', 'out') + ' ' + p[0] + sep + p[2]
-                    if self.type_stub and (len(p) <= 2 or p[2] is None or len(p[2]) == 0):
+                            raw += self.docs['out']['spaces'] + self.dst.get_key('type', 'out') + ' ' + p[0] + sep + p[
+                                2]
                         raw += '\n'
-                        raw += self.docs['out']['spaces'] + self.dst.get_key('type', 'out') + ' ' + p[0] + sep
-                    raw += '\n'
+                    else:
+                        raw += '\n'
         return raw
 
     def _set_raw_raise(self, sep):
@@ -2151,13 +2177,18 @@ class DocString(object):
         with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + l if i > 0 else l for i, l in enumerate(s.splitlines())])
 
         # sets the description section
-        raw = self.docs['out']['spaces'] + self.before_lim + self.quotes
+        raw = self.docs['out']['spaces'] + self.quotes
         desc = self.docs['out']['desc'].strip()
         if not desc or not desc.count('\n'):
             if not self.docs['out']['params'] and not self.docs['out']['return'] and not self.docs['out']['rtype'] and not self.docs['out']['raises']:
                 raw += desc if desc else self.trailing_space
                 raw += self.quotes
-                self.docs['out']['raw'] = raw.rstrip()
+                if self.element["type"] == "class":
+                    # добавляем пустую строку после докстринга класса
+                    raw = raw.rstrip()
+                    self.docs['out']['raw'] = raw + "\n\n"
+                else:
+                    self.docs['out']['raw'] = raw.rstrip()
                 return
         if not self.first_line:
             raw += '\n' + self.docs['out']['spaces']
@@ -2182,7 +2213,15 @@ class DocString(object):
 
         if raw.count(self.quotes) == 1:
             raw += self.docs['out']['spaces'] + self.quotes
-        self.docs['out']['raw'] = raw.rstrip()
+
+        if self.element["type"] == "class":
+            # добавляем пустую строку после докстринга класса
+            raw = raw.rstrip()
+            self.docs['out']['raw'] = raw + "\n\n"
+        else:
+            self.docs['out']['raw'] = raw.rstrip()
+
+        pass
 
     def generate_docs(self):
         """Generates the output docstring"""
