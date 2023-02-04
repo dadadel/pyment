@@ -312,7 +312,7 @@ class NumpydocTools(DocToolsBase):
                                             excluded_sections=excluded_sections,
                                             opt={
                                                 'also': 'see also',
-                                                'attr': 'Attributes',
+                                                'attr': 'attributes',
                                                 'example': 'examples',
                                                 'method': 'methods',
                                                 'note': 'notes',
@@ -326,7 +326,6 @@ class NumpydocTools(DocToolsBase):
                                                 'param': 'Parameters',
                                                 'return': 'Returns',
                                                 'raise': 'Raises',
-                                                'attr': 'Attributes',
                                             },
                                             )
 
@@ -335,6 +334,7 @@ class NumpydocTools(DocToolsBase):
             '.. math::',
             'see also',
             '.. image::',
+            '.. deprecated::',
         ]
 
     def get_next_section_start_line(self, data):
@@ -433,7 +433,7 @@ class NumpydocTools(DocToolsBase):
                         section = [d.replace(spaces, '', 1).rstrip() for d in data[init:init + end]]
                     else:
                         section = [d.replace(spaces, '', 1).rstrip() for d in data[init:]]
-                    raw += '\n'.join(section) + '\n'
+                    raw += "\n\n" + '\n'.join(section)
                 init += 2
         return raw
 
@@ -1588,7 +1588,6 @@ class DocString(object):
         data = self.docs['in']['raw']
         start, end = self.dst.get_doctests_indexes(data)
         while start != -1:
-            print (start, end)
             result = True
             datalst = data.splitlines()
             if self.docs['in']['doctests'] != "":
@@ -1868,10 +1867,6 @@ class DocString(object):
         self._extract_docs_description()
         self._extract_docs_other()
         self.parsed_docs = True
-        print(self.element['deftype'])
-        if self.element['deftype']=="class":
-            for key, value in self.docs['in'].items():
-                print(key, value)
 
 
     def _set_desc(self):
@@ -1953,7 +1948,7 @@ class DocString(object):
         :param sep: the separator of current style
 
         """
-        raw = '\n'
+        raw = '\n\n'
         if self.dst.style['out'] == 'numpydoc':
             if not self.docs['out']['params']:
                 return ""
@@ -2170,8 +2165,11 @@ class DocString(object):
 
         # sets the description section
         raw = self.docs['out']['spaces'] + self.before_lim + self.quotes
+        lines = self.docs['out']['desc'].splitlines()
+        if lines and lines[0] and not lines[0].endswith("."):
+            lines[0] += "."
         desc = self.docs['out']['desc'].strip()
-        if not desc or not desc.count('\n'):
+        if not desc:
             if not self.docs['out']['params'] and not self.docs['out']['return'] and not self.docs['out']['rtype'] and not self.docs['out']['raises']:
                 raw += desc if desc else self.trailing_space
                 raw += self.quotes
@@ -2179,14 +2177,10 @@ class DocString(object):
                 return
         if not self.first_line:
             raw += '\n' + self.docs['out']['spaces']
-
-
         # Add a period to the first line if not present
-        lines = self.docs['out']['desc'].splitlines()
-        if lines and lines[0] and not lines[0].endswith("."):
-            lines[0] += "."
+
         self.docs['out']['desc'] = "\n".join(lines)
-        raw += with_space(self.docs['out']['desc'] if desc else "_summary_.").strip() + '\n'
+        raw += with_space(self.docs['out']['desc'] if desc else "_summary_.").strip()
 
         # sets the parameters section
         raw += self._set_raw_params(sep)
@@ -2198,8 +2192,8 @@ class DocString(object):
         raw += self._set_raw_raise(sep)
         # sets post specific if any
         if 'post' in self.docs['out']:
-            if with_space(self.docs['out']['post']).strip():
-                raw += "\n" + self.docs['out']['spaces'] + with_space(self.docs['out']['post']).strip()
+            if with_space(self.docs['out']['post']).rstrip():
+                raw += with_space(self.docs['out']['post']).rstrip()
 
         # sets the doctests if any
         if 'doctests' in self.docs['out']:
