@@ -1616,11 +1616,14 @@ class DocString(object):
                 idx = len('\n'.join(lines[:line_num]))
         elif self.dst.style['in'] == 'numpydoc':
             lines = data.splitlines()
+            if not lines[0].endswith("."):
+                lines[0] += "."
             line_num = self.dst.numpydoc.get_next_section_start_line(lines)
             if line_num == -1:
                 idx = -1
             else:
                 idx = len('\n'.join(lines[:line_num]))
+            print(line_num, idx)
         elif self.dst.style['in'] == 'unknown':
             idx = -1
         else:
@@ -1630,7 +1633,7 @@ class DocString(object):
         elif idx == -1:
             self.docs['in']['desc'] = data
         else:
-            self.docs['in']['desc'] = data[:idx]
+            self.docs['in']['desc'] = "\n".join(lines[:line_num])
 
     def _extract_groupstyle_docs_params(self):
         """Extract group style parameters"""
@@ -2017,17 +2020,18 @@ class DocString(object):
         raw = ''
         if self.dst.style['out'] == 'numpydoc':
             if 'raise' not in self.dst.numpydoc.get_excluded_sections():
-                raw += '\n'
                 if 'raise' in self.dst.numpydoc.get_mandatory_sections() or \
                         (self.docs['out']['raises'] and 'raise' in self.dst.numpydoc.get_optional_sections()):
+                    raw += '\n\n'
                     spaces = ' ' * 4
                     with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + spaces + l.lstrip() if i > 0 else l for i, l in enumerate(s.splitlines())])
                     raw += self.dst.numpydoc.get_key_section_header('raise', self.docs['out']['spaces'])
                     if len(self.docs['out']['raises']):
-                        for p in self.docs['out']['raises']:
+                        for i, p in enumerate(self.docs['out']['raises']):
                             raw += self.docs['out']['spaces'] + p[0] + '\n'
-                            raw += self.docs['out']['spaces'] + spaces + with_space(p[1]).strip() + '\n'
-                    raw += '\n'
+                            raw += self.docs['out']['spaces'] + spaces + with_space(p[1]).strip()
+                            if not i == len(self.docs['out']['raises'])-1:
+                                raw += "\n"
         elif self.dst.style['out'] == 'google':
             if 'raise' not in self.dst.googledoc.get_excluded_sections():
                 raw += '\n'
@@ -2091,16 +2095,16 @@ class DocString(object):
                         raw += self.docs['out']['spaces']
                         if ret_elem[0]:
                             raw += ret_elem[0] + ' : '
-                        raw += rtype + '\n' + self.docs['out']['spaces'] + spaces + with_space(ret_elem[1]).strip() + '\n'
+                        raw += rtype + '\n' + self.docs['out']['spaces'] + spaces + with_space(ret_elem[1]).strip()
                     else:
                         # There can be a problem
                         raw += self.docs['out']['spaces'] + rtype + '\n'
-                        raw += self.docs['out']['spaces'] + spaces + with_space(str(ret_elem)).strip() + '\n'
+                        raw += self.docs['out']['spaces'] + spaces + with_space(str(ret_elem)).strip()
             # case of a unique return
             # elif self.docs['out']['return'] is not None:
             else:
                 raw += self.docs['out']['spaces'] + rtype
-                raw += '\n' + self.docs['out']['spaces'] + spaces + with_space(self.docs['out']['return'] if self.docs['out']['return'] else "_description_").strip() + '\n'
+                raw += '\n' + self.docs['out']['spaces'] + spaces + with_space(self.docs['out']['return'] if self.docs['out']['return'] else "_description_").strip()
         elif self.dst.style['out'] == 'google':
             raw += '\n'
             spaces = ' ' * 2
@@ -2177,18 +2181,17 @@ class DocString(object):
 
         # sets the raises section
         raw += self._set_raw_raise(sep)
-
         # sets post specific if any
         if 'post' in self.docs['out']:
             if with_space(self.docs['out']['post']).strip():
-                raw += self.docs['out']['spaces'] + with_space(self.docs['out']['post']).strip() + '\n'
+                raw += "\n" + self.docs['out']['spaces'] + with_space(self.docs['out']['post']).strip()
 
         # sets the doctests if any
         if 'doctests' in self.docs['out']:
-            raw += self.docs['out']['spaces'] + with_space(self.docs['out']['doctests']).strip() + '\n'
+            raw += "\n" + self.docs['out']['spaces'] + with_space(self.docs['out']['doctests']).strip()
 
         if raw.count(self.quotes) == 1:
-            raw += self.docs['out']['spaces'] + self.quotes
+            raw += "\n" + self.docs['out']['spaces'] + self.quotes
         self.docs['out']['raw'] = raw.rstrip()
 
     def generate_docs(self):
