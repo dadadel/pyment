@@ -2089,17 +2089,19 @@ class DocString(object):
                 rtype = '_type_'
             # case of several returns
             if type(self.docs['out']['return']) is list and len(self.docs['out']['return']) > 0:
-                for ret_elem in self.docs['out']['return']:
+                for i, ret_elem in enumerate(self.docs['out']['return']):
                     # if tuple (name, desc, rtype) else string desc
                     if type(ret_elem) is tuple and len(ret_elem) == 3:
                         rtype = ret_elem[2]
                         if rtype is None:
                             rtype = ''
-                        raw += "\n" + self.docs['out']['spaces']
+                        raw += self.docs['out']['spaces']
                         if ret_elem[0]:
                             raw += ret_elem[0] + ' : '
                         if ret_elem[1]:
                             raw += rtype + '\n' + self.docs['out']['spaces'] + spaces + with_space(ret_elem[1]).strip()
+                        if i != len(self.docs['out']['return'])-1:
+                            raw += "\n"
                     else:
                         # There can be a problem
                         raw += self.docs['out']['spaces'] + rtype + '\n'
