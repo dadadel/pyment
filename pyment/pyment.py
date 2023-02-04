@@ -132,7 +132,7 @@ class PyComment(object):
                               input_style=self.input_style,
                               output_style=self.output_style,
                               first_line=self.first_line,
-                              trailing_space=self.trailing_space
+                              trailing_space=self.trailing_space,
                               **self.kwargs)
                 elem_list.append({'docs': e, 'location': (-i, -i)})
             else:
