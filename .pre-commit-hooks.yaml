@@ -1,0 +1,9 @@
+-   id: pyment
+    name: Pyment
+    description: Create, update or convert docstrings in existing Python files, managing several styles.
+    entry: pyment
+    language: python
+    language_version: python3
+    types: [text]
+    types_or: [python]
+    args: ["--write","--output=numpydoc"]
