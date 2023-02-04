@@ -47,6 +47,9 @@ class PyComment(object):
         :param convert_only: if set only existing docstring will be converted. No missing docstring will be created.
         :param config_file: if given configuration file for Pyment
         :param ignore_private: don't proceed the private methods/functions starting with __ (two underscores)
+        :param trailing_space: if set, a trailing space will be inserted in places where the user
+          should write a description
+        :type trailing_space: boolean
 
         """
         self.file_type = '.py'
@@ -64,6 +67,7 @@ class PyComment(object):
         self.convert_only = convert_only
         self.config_file = config_file
         self.ignore_private = ignore_private
+        self.trailing_space = True
         self.kwargs = kwargs
 
     def _parse(self):
@@ -128,6 +132,7 @@ class PyComment(object):
                               input_style=self.input_style,
                               output_style=self.output_style,
                               first_line=self.first_line,
+                              trailing_space=self.trailing_space
                               **self.kwargs)
                 elem_list.append({'docs': e, 'location': (-i, -i)})
             else:
@@ -353,9 +358,9 @@ class PyComment(object):
 
     def _windows_rename(self, tmp_filename):
         """ Workaround the fact that os.rename raises an OSError on Windows
-        
+
         :param tmp_filename: The file to rename
-    
+
         """
 
         os.remove(self.input_file) if os.path.isfile(self.input_file) else None
