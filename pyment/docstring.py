@@ -1621,7 +1621,6 @@ class DocString(object):
                 idx = -1
             else:
                 idx = len('\n'.join(lines[:line_num]))
-            print(line_num, idx)
         elif self.dst.style['in'] == 'unknown':
             idx = -1
         else:
@@ -1632,8 +1631,6 @@ class DocString(object):
             self.docs['in']['desc'] = data
         else:
             self.docs['in']['desc'] = "\n".join(lines[:line_num])
-        print(lines[:line_num])
-        print(self.docs['in']['desc'])
 
     def _extract_groupstyle_docs_params(self):
         """Extract group style parameters"""
