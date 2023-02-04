@@ -2177,7 +2177,8 @@ class DocString(object):
 
         # sets post specific if any
         if 'post' in self.docs['out']:
-            raw += self.docs['out']['spaces'] + with_space(self.docs['out']['post']).strip() + '\n'
+            if with_space(self.docs['out']['post']).strip():
+                raw += self.docs['out']['spaces'] + with_space(self.docs['out']['post']).strip() + '\n'
 
         # sets the doctests if any
         if 'doctests' in self.docs['out']:
