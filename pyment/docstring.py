@@ -1958,9 +1958,11 @@ class DocString(object):
                 raw += self.docs['out']['spaces'] + p[0] + ' :'
                 if p[2] is not None and len(p[2]) > 0:
                     raw += ' ' + p[2]
+                else:
+                    raw += ' ' + "_type_"
                 raw += '\n'
-                description = spaces + with_space(p[1]).strip() if p[1] else ''
-                raw += (self.docs['out']['spaces'] + description) if description else ''
+                description = spaces + with_space(p[1] if p[1] else "_description_").strip()
+                raw += self.docs['out']['spaces'] + description
                 if len(p) > 2:
                     if 'default' not in p[1].lower() and len(p) > 3 and p[3] is not None:
                         raw += ' (Default value = ' + str(p[3]) + ')' if description else (self.docs['out']['spaces']*2 +  '(Default value = ' + str(p[3]) + ')')
@@ -2077,9 +2079,9 @@ class DocString(object):
             if self.docs['out']['rtype']:
                 rtype = self.docs['out']['rtype']
             else:
-                rtype = 'type'
+                rtype = '_type_'
             # case of several returns
-            if type(self.docs['out']['return']) is list:
+            if type(self.docs['out']['return']) is list and len(self.docs['out']['return']) > 0:
                 for ret_elem in self.docs['out']['return']:
                     # if tuple (name, desc, rtype) else string desc
                     if type(ret_elem) is tuple and len(ret_elem) == 3:
@@ -2095,9 +2097,10 @@ class DocString(object):
                         raw += self.docs['out']['spaces'] + rtype + '\n'
                         raw += self.docs['out']['spaces'] + spaces + with_space(str(ret_elem)).strip() + '\n'
             # case of a unique return
-            elif self.docs['out']['return'] is not None:
+            # elif self.docs['out']['return'] is not None:
+            else:
                 raw += self.docs['out']['spaces'] + rtype
-                raw += '\n' + self.docs['out']['spaces'] + spaces + with_space(self.docs['out']['return']).strip() + '\n'
+                raw += '\n' + self.docs['out']['spaces'] + spaces + with_space(self.docs['out']['return'] if self.docs['out']['return'] else "_description_").strip() + '\n'
         elif self.dst.style['out'] == 'google':
             raw += '\n'
             spaces = ' ' * 2
@@ -2164,7 +2167,7 @@ class DocString(object):
                 return
         if not self.first_line:
             raw += '\n' + self.docs['out']['spaces']
-        raw += with_space(self.docs['out']['desc']).strip() + '\n'
+        raw += with_space(self.docs['out']['desc'] if desc else "_summary_").strip() + '\n'
 
         # sets the parameters section
         raw += self._set_raw_params(sep)
