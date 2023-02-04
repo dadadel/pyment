@@ -1616,8 +1616,6 @@ class DocString(object):
                 idx = len('\n'.join(lines[:line_num]))
         elif self.dst.style['in'] == 'numpydoc':
             lines = data.splitlines()
-            if not lines[0].endswith("."):
-                lines[0] += "."
             line_num = self.dst.numpydoc.get_next_section_start_line(lines)
             if line_num == -1:
                 idx = -1
@@ -1634,6 +1632,8 @@ class DocString(object):
             self.docs['in']['desc'] = data
         else:
             self.docs['in']['desc'] = "\n".join(lines[:line_num])
+        print(lines[:line_num])
+        print(self.docs['in']['desc'])
 
     def _extract_groupstyle_docs_params(self):
         """Extract group style parameters"""
@@ -1954,7 +1954,7 @@ class DocString(object):
         if self.dst.style['out'] == 'numpydoc':
             spaces = ' ' * 4
             with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + spaces +\
-                                                    l.lstrip() if i > 0 else\
+                                                    l.lstrip() if (i > 0 and l) else\
                                                     l for i, l in enumerate(s.splitlines())])
             raw += self.dst.numpydoc.get_key_section_header('param', self.docs['out']['spaces'])
             for p in self.docs['out']['params']:
@@ -2024,7 +2024,7 @@ class DocString(object):
                         (self.docs['out']['raises'] and 'raise' in self.dst.numpydoc.get_optional_sections()):
                     raw += '\n\n'
                     spaces = ' ' * 4
-                    with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + spaces + l.lstrip() if i > 0 else l for i, l in enumerate(s.splitlines())])
+                    with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + spaces + l.lstrip() if (i > 0 and l) else l for i, l in enumerate(s.splitlines())])
                     raw += self.dst.numpydoc.get_key_section_header('raise', self.docs['out']['spaces'])
                     if len(self.docs['out']['raises']):
                         for i, p in enumerate(self.docs['out']['raises']):
@@ -2078,7 +2078,7 @@ class DocString(object):
         if self.dst.style['out'] == 'numpydoc':
             raw += '\n'
             spaces = ' ' * 4
-            with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + spaces + l.lstrip() if i > 0 else l for i, l in enumerate(s.splitlines())])
+            with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + spaces + l.lstrip() if (i > 0 and l) else l for i, l in enumerate(s.splitlines())])
             raw += self.dst.numpydoc.get_key_section_header('return', self.docs['out']['spaces'])
             if self.docs['out']['rtype']:
                 rtype = self.docs['out']['rtype']
@@ -2158,7 +2158,7 @@ class DocString(object):
         """Sets the output raw docstring"""
         sep = self.dst.get_sep(target='out')
         sep = sep + ' ' if sep != ' ' else sep
-        with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + l if i > 0 else l for i, l in enumerate(s.splitlines())])
+        with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + l if (i > 0 and l) else l for i, l in enumerate(s.splitlines())])
 
         # sets the description section
         raw = self.docs['out']['spaces'] + self.before_lim + self.quotes
@@ -2171,7 +2171,14 @@ class DocString(object):
                 return
         if not self.first_line:
             raw += '\n' + self.docs['out']['spaces']
-        raw += with_space(self.docs['out']['desc'] if desc else "_summary_").strip() + '\n'
+
+
+        # Add a period to the first line if not present
+        lines = self.docs['out']['desc'].splitlines()
+        if lines and not lines[0].endswith("."):
+            lines[0] += "."
+        self.docs['out']['desc'] = "\n".join(lines)
+        raw += with_space(self.docs['out']['desc'] if desc else "_summary_.").strip() + '\n'
 
         # sets the parameters section
         raw += self._set_raw_params(sep)
