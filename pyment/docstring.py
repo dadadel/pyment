@@ -1960,10 +1960,10 @@ class DocString(object):
                     raw += ' ' + p[2]
                 raw += '\n'
                 description = spaces + with_space(p[1]).strip() if p[1] else ''
-                raw += self.docs['out']['spaces'] + description
+                raw += (self.docs['out']['spaces'] + description) if description else ''
                 if len(p) > 2:
                     if 'default' not in p[1].lower() and len(p) > 3 and p[3] is not None:
-                        raw += ' (Default value = ' + str(p[3]) + ')'
+                        raw += ' (Default value = ' + str(p[3]) + ')' if description else (self.docs['out']['spaces']*2 +  '(Default value = ' + str(p[3]) + ')')
                 raw += '\n'
         elif self.dst.style['out'] == 'google':
             spaces = ' ' * 2
