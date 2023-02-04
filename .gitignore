@@ -6,3 +6,4 @@ build
 # Packaging related files
 *.egg
 *.egg-info
+.vscode/

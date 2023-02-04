@@ -312,7 +312,7 @@ class NumpydocTools(DocToolsBase):
                                             excluded_sections=excluded_sections,
                                             opt={
                                                 'also': 'see also',
-                                                'attr': 'attributes',
+                                                'attr': 'Attributes',
                                                 'example': 'examples',
                                                 'method': 'methods',
                                                 'note': 'notes',
@@ -326,6 +326,7 @@ class NumpydocTools(DocToolsBase):
                                                 'param': 'Parameters',
                                                 'return': 'Returns',
                                                 'raise': 'Raises',
+                                                'attr': 'Attributes',
                                             },
                                             )
 
@@ -1630,7 +1631,7 @@ class DocString(object):
         elif idx == -1:
             self.docs['in']['desc'] = data
         else:
-            self.docs['in']['desc'] = "\n".join(lines[:line_num])
+            self.docs['in']['desc'] = data[:idx]
 
     def _extract_groupstyle_docs_params(self):
         """Extract group style parameters"""
@@ -1867,6 +1868,11 @@ class DocString(object):
         self._extract_docs_description()
         self._extract_docs_other()
         self.parsed_docs = True
+        print(self.element['deftype'])
+        if self.element['deftype']=="class":
+            for key, value in self.docs['in'].items():
+                print(key, value)
+
 
     def _set_desc(self):
         """Sets the global description if any"""
@@ -1949,12 +1955,14 @@ class DocString(object):
         """
         raw = '\n'
         if self.dst.style['out'] == 'numpydoc':
+            if not self.docs['out']['params']:
+                return ""
             spaces = ' ' * 4
             with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + spaces +\
                                                     l.lstrip() if (i > 0 and l) else\
                                                     l for i, l in enumerate(s.splitlines())])
             raw += self.dst.numpydoc.get_key_section_header('param', self.docs['out']['spaces'])
-            for p in self.docs['out']['params']:
+            for i, p in enumerate(self.docs['out']['params']):
                 raw += self.docs['out']['spaces'] + p[0] + ' :'
                 if p[2] is not None and len(p[2]) > 0:
                     raw += ' ' + p[2]
@@ -1966,7 +1974,8 @@ class DocString(object):
                 if len(p) > 2:
                     if 'default' not in p[1].lower() and len(p) > 3 and p[3] is not None:
                         raw += ' (Default value = ' + str(p[3]) + ')' if description else (self.docs['out']['spaces']*2 +  '(Default value = ' + str(p[3]) + ')')
-                raw += '\n'
+                if not i == len(self.docs['out']['params'])-1:
+                                raw += "\n"
         elif self.dst.style['out'] == 'google':
             spaces = ' ' * 2
             with_space = lambda s: '\n'.join([self.docs['out']['spaces'] +\
@@ -2073,7 +2082,9 @@ class DocString(object):
         """
         raw = ''
         if self.dst.style['out'] == 'numpydoc':
-            raw += '\n'
+            if self.docs["in"]["raw"] and not self.docs['out']['return']:
+                return raw
+            raw += '\n\n'
             spaces = ' ' * 4
             with_space = lambda s: '\n'.join([self.docs['out']['spaces'] + spaces + l.lstrip() if (i > 0 and l) else l for i, l in enumerate(s.splitlines())])
             raw += self.dst.numpydoc.get_key_section_header('return', self.docs['out']['spaces'])
@@ -2172,7 +2183,7 @@ class DocString(object):
 
         # Add a period to the first line if not present
         lines = self.docs['out']['desc'].splitlines()
-        if lines and not lines[0].endswith("."):
+        if lines and lines[0] and not lines[0].endswith("."):
             lines[0] += "."
         self.docs['out']['desc'] = "\n".join(lines)
         raw += with_space(self.docs['out']['desc'] if desc else "_summary_.").strip() + '\n'
