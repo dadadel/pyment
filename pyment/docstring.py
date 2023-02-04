@@ -2095,14 +2095,16 @@ class DocString(object):
                         rtype = ret_elem[2]
                         if rtype is None:
                             rtype = ''
-                        raw += self.docs['out']['spaces']
+                        raw += "\n" + self.docs['out']['spaces']
                         if ret_elem[0]:
                             raw += ret_elem[0] + ' : '
-                        raw += rtype + '\n' + self.docs['out']['spaces'] + spaces + with_space(ret_elem[1]).strip()
+                        if ret_elem[1]:
+                            raw += rtype + '\n' + self.docs['out']['spaces'] + spaces + with_space(ret_elem[1]).strip()
                     else:
                         # There can be a problem
                         raw += self.docs['out']['spaces'] + rtype + '\n'
-                        raw += self.docs['out']['spaces'] + spaces + with_space(str(ret_elem)).strip()
+                        if ret_elem:
+                            raw += self.docs['out']['spaces'] + spaces + with_space(str(ret_elem)).strip()
             # case of a unique return
             # elif self.docs['out']['return'] is not None:
             else:
@@ -2198,7 +2200,6 @@ class DocString(object):
         # sets the doctests if any
         if 'doctests' in self.docs['out']:
             raw += "\n" + self.docs['out']['spaces'] + with_space(self.docs['out']['doctests']).strip()
-
         if raw.count(self.quotes) == 1:
             raw += "\n" + self.docs['out']['spaces'] + self.quotes
         self.docs['out']['raw'] = raw.rstrip()
