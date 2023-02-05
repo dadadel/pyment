@@ -134,18 +134,15 @@ class DocToolsBase(object):
         return self.opt[key]
 
     def get_optional_sections(self) -> list[str]:
-        """Get optional sections.
-        """
+        """Get optional sections."""
         return self.optional_sections
 
     def get_excluded_sections(self) -> list[str]:
-        """Get excluded sections.
-        """
+        """Get excluded sections."""
         return self.excluded_sections
 
     def get_mandatory_sections(self) -> list[str]:
-        """Get mandatory sections.
-        """
+        """Get mandatory sections."""
         return [s for s in self.opt if s not in self.optional_sections and s not in self.excluded_sections]
 
     def _get_list_key(self, spaces: str, lines: list[str]) -> list[str]:
@@ -258,7 +255,7 @@ class DocToolsBase(object):
         """
         return self.get_list_key(data, "param")
 
-    def get_next_section_start_line(self, data: str) -> int:
+    def get_next_section_start_line(self, data: list[str]) -> int:
         """Get the starting line number of next section.
         It will return -1 if no section was found.
         The section is a section key (e.g. 'Parameters:')
@@ -276,7 +273,7 @@ class DocToolsBase(object):
         """
         raise NotImplementedError
 
-    def get_next_section_lines(self, data: str) -> tuple[int, int]:
+    def get_next_section_lines(self, data: list[str]) -> tuple[int, int]:
         """Get the starting line number and the ending line number of next section.
         It will return (-1, -1) if no section was found.
         The section is a section key (e.g. 'Parameters') then the content
@@ -314,7 +311,7 @@ class DocToolsBase(object):
 
         return header
 
-    def get_section_key_line(self, data: str, key: str, opt_extension: str = "") -> int:
+    def get_section_key_line(self, data: list[str], key: str, opt_extension: str = "") -> int:
         """Get the next section line for a given key.
 
         Parameters
@@ -422,7 +419,7 @@ class NumpydocTools(DocToolsBase):
         ]
         self.keyword_sections: list[str] = [".. deprecated::"]
 
-    def get_next_section_start_line(self, data: str) -> int:
+    def get_next_section_start_line(self, data: list[str]) -> int:
         """Get the starting line number of next section.
         It will return -1 if no section was found.
         The section is a section key (e.g. 'Parameters') followed by underline
@@ -630,7 +627,7 @@ class GoogledocTools(DocToolsBase):
             },
         )
 
-    def get_section_key_line(self, data, key, opt_extension=":"):
+    def get_section_key_line(self, data: str, key: str, opt_extension=":") -> int:
         """Get the next section line for a given key.
 
         Parameters
@@ -644,7 +641,7 @@ class GoogledocTools(DocToolsBase):
         """
         return super(GoogledocTools, self).get_section_key_line(data, key, opt_extension)
 
-    def _get_list_key(self, spaces, lines):
+    def _get_list_key(self, spaces: str, lines: str) -> list[tuple[Optional[str], str, Optional[str]]]:
         """_summary_.
 
         Parameters
@@ -705,7 +702,7 @@ class GoogledocTools(DocToolsBase):
 
         return key_list
 
-    def get_next_section_start_line(self, data):
+    def get_next_section_start_line(self, data: list[str]) -> int:
         """Get the starting line number of next section.
         It will return -1 if no section was found.
         The section is a section key (e.g. 'Parameters:')
@@ -728,7 +725,7 @@ class GoogledocTools(DocToolsBase):
                 break
         return start
 
-    def get_key_section_header(self, key, spaces):
+    def get_key_section_header(self, key: str, spaces: str) -> str:
         """Get the key of the section header.
 
         Parameters
@@ -1122,7 +1119,7 @@ class DocsTools(object):
             idx = -1
         return idx
 
-    def get_elem_desc(self, data, key):
+    def get_elem_desc(self, data: str, key: str):
         """TODO.
 
         Parameters
@@ -1792,7 +1789,7 @@ class DocString(object):
         """
         self.docs["out"]["spaces"] = spaces
 
-    def parse_definition(self, raw=None):
+    def parse_definition(self, raw: Optional[str] = None):
         """Parses the element's elements (type, name and parameters) :).
         e.g.: def methode(param1, param2='default')
         def                      -> type
@@ -1840,7 +1837,7 @@ class DocString(object):
                 self.element["params"].extend(extracted["parameters"].values())
         self.parsed_elem = True
 
-    def _remove_signature_comment(self, txt):
+    def _remove_signature_comment(self, txt: str) -> str:
         """If there is a comment at the end of the signature statement, remove it.
 
         Parameters
@@ -1867,7 +1864,7 @@ class DocString(object):
             ret += c
         return ret
 
-    def _extract_signature_elements(self, txt):
+    def _extract_signature_elements(self, txt: str) -> dict:
         """_summary_.
 
         Parameters
@@ -1936,12 +1933,15 @@ class DocString(object):
                     elems[elem][subelem] = elems[elem][subelem].strip()
         return {"parameters": elems, "return_type": return_type.strip()}
 
-    def _extract_docs_doctest(self):
+    def _extract_docs_doctest(self) -> bool:
         """Extract the doctests if found.
         If there are doctests, they are removed from the input data and set on
         a specific buffer as they won't be altered.
 
-        :return: True if found and proceeded else False
+        Returns
+        -------
+        bool
+            True if found and proceeded else False
         """
         result = False
         data = self.docs["in"]["raw"]
@@ -2237,7 +2237,7 @@ class DocString(object):
             lst = self.dst.numpydoc.get_list_key(data, "attr")
             # TODO do something with this?
 
-    def parse_docs(self, raw=None, before_lim=""):
+    def parse_docs(self, raw: Optional[str] = None, before_lim: str = ""):
         """Parses the docstring.
 
         Parameters
@@ -2329,7 +2329,7 @@ class DocString(object):
         ]:
             # TODO: manage return names
             # manage not setting return if not mandatory for numpy
-            lst = self.docs["in"]["return"]
+            lst: list[tuple[Optional[str], str, Optional[str]]] = self.docs["in"]["return"]
             if lst:
                 if lst[0][0] is not None:
                     self.docs["out"]["return"] = "%s-> %s" % (lst[0][0], lst[0][1])
@@ -2513,7 +2513,7 @@ class DocString(object):
         """
         raw = ""
         if self.dst.style["out"] == "numpydoc":
-            if self.docs["in"]["raw"] and not self.docs["out"]["return"]:
+            if self.docs["in"]["raw"] and not self.docs["out"]["return"] and not self.docs["out"]["rtype"]:
                 return raw
             raw += "\n\n"
             spaces = " " * 4
@@ -2628,7 +2628,6 @@ class DocString(object):
         with_space = lambda s: "\n".join(
             [self.docs["out"]["spaces"] + l if (i > 0 and l) else l for i, l in enumerate(s.splitlines())]
         )
-
         # sets the description section
         raw = self.docs["out"]["spaces"] + self.before_lim + self.quotes
         lines = self.docs["out"]["desc"].splitlines()
@@ -2651,23 +2650,18 @@ class DocString(object):
         if not self.first_line:
             raw += "\n" + self.docs["out"]["spaces"]
         # Add a period to the first line if not present
-
         self.docs["out"]["desc"] = "\n".join(lines)
         raw += with_space(self.docs["out"]["desc"] if desc else "_summary_.").strip()
-
         # sets the parameters section
         raw += self._set_raw_params(sep)
-
         # sets the return section
         raw += self._set_raw_return(sep)
-
         # sets the raises section
         raw += self._set_raw_raise(sep)
         # sets post specific if any
         if "post" in self.docs["out"]:
             if with_space(self.docs["out"]["post"]).rstrip():
                 raw += with_space(self.docs["out"]["post"]).rstrip()
-
         # sets the doctests if any
         if "doctests" in self.docs["out"]:
             raw += "\n" + self.docs["out"]["spaces"] + with_space(self.docs["out"]["doctests"]).strip()
