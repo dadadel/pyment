@@ -2174,7 +2174,6 @@ class DocString(object):
             lines[0] += "."
         desc = self.docs['out']['desc'].strip()
         if not desc or not desc.count("\n"):
-            print(desc)
             if not self.docs['out']['params'] and not self.docs['out']['return'] and not self.docs['out']['rtype'] and not self.docs['out']['raises'] and ('post' not in self.docs['out'] or not self.docs['out']['post']) and ('doctests' not in self.docs['out'] or not self.docs['out']['doctests']):
                 raw += desc if desc else self.trailing_space
                 raw += self.quotes
