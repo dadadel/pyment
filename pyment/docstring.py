@@ -33,6 +33,11 @@ def isin_alone(elems: list[str], line: str) -> bool:
         _description_
     line : str
         _description_
+
+    Returns
+    -------
+    bool
+        _description_
     """
     found = False
     for e in elems:
@@ -50,6 +55,11 @@ def isin_start(elems: list[str] | str, line: str) -> bool:
     elems : list[str] | str
         _description_
     line : str
+        _description_
+
+    Returns
+    -------
+    bool
         _description_
     """
     found = False
@@ -70,6 +80,11 @@ def isin(elems: list[str], line: str) -> bool:
         _description_
     line : str
         _description_
+
+    Returns
+    -------
+    bool
+        _description_
     """
     found = False
     for e in elems:
@@ -85,6 +100,11 @@ def get_leading_spaces(data: str) -> str:
     Parameters
     ----------
     data : str
+        _description_
+
+    Returns
+    -------
+    str
         _description_
     """
     spaces = ""
@@ -134,15 +154,33 @@ class DocToolsBase(object):
         return self.opt[key]
 
     def get_optional_sections(self) -> list[str]:
-        """Get optional sections."""
+        """Get optional sections.
+
+        Returns
+        -------
+        list[str]
+            _description_
+        """
         return self.optional_sections
 
     def get_excluded_sections(self) -> list[str]:
-        """Get excluded sections."""
+        """Get excluded sections.
+
+        Returns
+        -------
+        list[str]
+            _description_
+        """
         return self.excluded_sections
 
     def get_mandatory_sections(self) -> list[str]:
-        """Get mandatory sections."""
+        """Get mandatory sections.
+
+        Returns
+        -------
+        list[str]
+            _description_
+        """
         return [s for s in self.opt if s not in self.optional_sections and s not in self.excluded_sections]
 
     def _get_list_key(self, spaces: str, lines: list[str]) -> list[str]:
@@ -177,6 +215,11 @@ class DocToolsBase(object):
             the key
         header_lines : str
             How many lines the header is long (Default value = 1)
+
+        Returns
+        -------
+        list[tuple[Optional[str],str,Optional[str]]]
+            _description_
         """
         # Split the data into lines
         data = data.splitlines()
@@ -206,6 +249,11 @@ class DocToolsBase(object):
         ----------
         data : str
             the data to proceed
+
+        Returns
+        -------
+        list[tuple[str,str]]
+            _description_
         """
         return_list = []
         lst = self.get_list_key(data, "raise")
@@ -224,6 +272,11 @@ class DocToolsBase(object):
         ----------
         data : str
             the data to proceed
+
+        Returns
+        -------
+        list[tuple[Optional[str],str,Optional[str]]]
+            _description_
         """
         return_list = []
         lst = self.get_list_key(data, "return")
@@ -252,6 +305,11 @@ class DocToolsBase(object):
         ----------
         data : str
             the data to proceed
+
+        Returns
+        -------
+        list[tuple[str,str,Optional[str]]]
+            _description_
         """
         return self.get_list_key(data, "param")
 
@@ -263,7 +321,7 @@ class DocToolsBase(object):
 
         Parameters
         ----------
-        data : str
+        data : list[str]
             a list of strings containing the docstring's lines
 
         Returns
@@ -282,8 +340,13 @@ class DocToolsBase(object):
 
         Parameters
         ----------
-        data : str
+        data : list[str]
             the data to proceed
+
+        Returns
+        -------
+        tuple[int,int]
+            _description_
         """
         end = -1
         # Get the start of the next section
@@ -303,6 +366,11 @@ class DocToolsBase(object):
             the key name
         spaces : str
             spaces to set at the beginning of the header
+
+        Returns
+        -------
+        str
+            _description_
         """
         if key in self.section_headers:
             header = self.section_headers[key]
@@ -316,12 +384,17 @@ class DocToolsBase(object):
 
         Parameters
         ----------
-        data : str
+        data : list[str]
             the data to proceed
         key : str
             the key
         opt_extension : str
             an optional extension to delimit the opt value (Default value = "")
+
+        Returns
+        -------
+        int
+            _description_
         """
         start = 0  # The index of the starting line of the desired section
         init = 0
@@ -427,7 +500,7 @@ class NumpydocTools(DocToolsBase):
 
         Parameters
         ----------
-        data : str
+        data : list[str]
             a list of strings containing the docstring's lines
 
         Returns
@@ -469,6 +542,11 @@ class NumpydocTools(DocToolsBase):
             the key
         header_lines : str
             _description_ (Default value = 2)
+
+        Returns
+        -------
+        list[tuple[str|None,str,str|None]]
+            _description_
         """
         return super(NumpydocTools, self).get_list_key(data, key, header_lines=header_lines)
 
@@ -549,6 +627,11 @@ class NumpydocTools(DocToolsBase):
         ----------
         data : str
             the data to proceed
+
+        Returns
+        -------
+        str
+            _description_
         """
         keys = ["also", "ref", "note", "other", "example", "method", "attr"]
         elems = [self.opt[k] for k in self.opt if k in keys]
@@ -632,12 +715,17 @@ class GoogledocTools(DocToolsBase):
 
         Parameters
         ----------
-        data : _type_
+        data : str
             the data to proceed
-        key : _type_
+        key : str
             the key
         opt_extension : _type_
             an optional extension to delimit the opt value (Default value = ":")
+
+        Returns
+        -------
+        int
+            _description_
         """
         return super(GoogledocTools, self).get_section_key_line(data, key, opt_extension)
 
@@ -646,9 +734,9 @@ class GoogledocTools(DocToolsBase):
 
         Parameters
         ----------
-        spaces : _type_
+        spaces : str
             _description_
-        lines : _type_
+        lines : str
             _description_
 
         Returns
@@ -710,7 +798,7 @@ class GoogledocTools(DocToolsBase):
 
         Parameters
         ----------
-        data : _type_
+        data : list[str]
             a list of strings containing the docstring's lines
 
         Returns
@@ -730,10 +818,15 @@ class GoogledocTools(DocToolsBase):
 
         Parameters
         ----------
-        key : _type_
+        key : str
             the key name
-        spaces : _type_
+        spaces : str
             spaces to set at the beginning of the header
+
+        Returns
+        -------
+        str
+            _description_
         """
         header = super(GoogledocTools, self).get_key_section_header(key, spaces)
         header = spaces + header + ":" + "\n"
@@ -906,6 +999,18 @@ class DocsTools(object):
             the key wanted (param, type, return, rtype,..)
         target : str
             the target docstring is 'in' for the input or (Default value = "in")
+
+        Parameters
+        ----------
+        key : str
+            _description_
+        target : str
+            _description_ (Default value = "in")
+
+        Returns
+        -------
+        str
+            _description_
         """
         target = "out" if target == "out" else "in"
         return self.opt[key][self.style[target]]["name"]
@@ -920,6 +1025,11 @@ class DocsTools(object):
             the key which separator is wanted (param, type, return, rtype,..) (Default value = 'param')
         target : str
             the target docstring is 'in' for the input or (Default value = "in")
+
+        Returns
+        -------
+        str
+            _description_
         """
         target = "out" if target == "out" else "in"
         if self.style[target] in ["numpydoc", "google"]:
@@ -1109,6 +1219,18 @@ class DocsTools(object):
         -------
         int
             index of found element else -1
+
+        Parameters
+        ----------
+        data : str
+            _description_
+        starting : bool
+            _description_ (Default value = True)
+
+        Returns
+        -------
+        int
+            _description_
         """
         idx = len(data)
         for opt in self.opt.keys():
@@ -1124,9 +1246,9 @@ class DocsTools(object):
 
         Parameters
         ----------
-        data : _type_
+        data : str
             _description_
-        key : _type_
+        key : str
             _description_
         """
 
@@ -1148,6 +1270,16 @@ class DocsTools(object):
             start and end indexes of found element else (-1, -1)
             or else (-2, -2) if try to use params style but no parameters were provided.
             Note: the end index is the index after the last name character
+
+        Parameters
+        ----------
+        data : str
+            _description_
+
+        Returns
+        -------
+        tuple[int,int]
+            _description_
         """
         start, end = -1, -1
         stl_param = self.opt["raise"][self.style["in"]]["name"]
@@ -1185,6 +1317,18 @@ class DocsTools(object):
         -------
         tuple[int,int]
             start and end indexes of found element else (-1, -1)
+
+        Parameters
+        ----------
+        data : str
+            _description_
+        prev : Optional[int]
+            _description_ (Default value = None)
+
+        Returns
+        -------
+        tuple[int,int]
+            _description_
         """
         start, end = -1, -1
         if not prev:
@@ -1359,6 +1503,11 @@ class DocsTools(object):
         ----------
         data : str
             _description_
+
+        Returns
+        -------
+        dict[str,dict[str,Optional[str]]]
+            _description_
         """
         ret = []
         tagstyles = self.tagstyles + ["unknown"]
@@ -1384,6 +1533,16 @@ class DocsTools(object):
             start and end indexes of found element else (-1, -1)
             or else (-2, -2) if try to use params style but no parameters were provided.
             Note: the end index is the index after the last name character
+
+        Parameters
+        ----------
+        data : str
+            _description_
+
+        Returns
+        -------
+        tuple[int,int]
+            _description_
         """
         # TODO: new method to extract an element's name so will be available for @param and @types and other styles (:param, \param)
         start, end = -1, -1
@@ -1439,6 +1598,18 @@ class DocsTools(object):
         -------
         tuple[int,int]
             start and end indexes of found element else (-1, -1)
+
+        Parameters
+        ----------
+        data : str
+            _description_
+        prev : Optional[int]
+            _description_ (Default value = None)
+
+        Returns
+        -------
+        tuple[int,int]
+            _description_
         """
         start, end = -1, -1
         if not prev:
@@ -1488,6 +1659,20 @@ class DocsTools(object):
             start and end indexes of found element else (-1, -1)
             Note: the end index is the index after the last included character or -1 if
             reached the end
+
+        Parameters
+        ----------
+        data : str
+            _description_
+        name : Optional[str]
+            _description_ (Default value = None)
+        prev : Optional[int]
+            _description_ (Default value = None)
+
+        Returns
+        -------
+        tuple[int,int]
+            _description_
         """
         start, end = -1, -1
         stl_type = self.opt["type"][self.style["in"]]["name"]
@@ -1529,6 +1714,16 @@ class DocsTools(object):
             start and end indexes of found element else (-1, -1)
             Note: the end index is the index after the last included character or -1 if
             reached the end
+
+        Parameters
+        ----------
+        data : str
+            _description_
+
+        Returns
+        -------
+        tuple[str,str]
+            _description_
         """
         start, end = -1, -1
         stl_return = self.opt["return"][self.style["in"]]["name"]
@@ -1573,6 +1768,16 @@ class DocsTools(object):
             start and end indexes of found element else (-1, -1)
             Note: the end index is the index after the last included character or -1 if
             reached the end
+
+        Parameters
+        ----------
+        data : str
+            _description_
+
+        Returns
+        -------
+        tuple[int,int]
+            _description_
         """
         start, end = -1, -1
         stl_rtype = self.opt["rtype"][self.style["in"]]["name"]
@@ -1798,7 +2003,7 @@ class DocString(object):
 
         Parameters
         ----------
-        raw : _type_
+        raw : Optional[str]
             raw data of the element (def or class). If None will use `self.element['raw']` (Default value = None)
         """
         # TODO: retrieve return from element external code (in parameter)
@@ -1842,7 +2047,12 @@ class DocString(object):
 
         Parameters
         ----------
-        txt : _type_
+        txt : str
+            _description_
+
+        Returns
+        -------
+        str
             _description_
         """
         ret = ""
@@ -1869,7 +2079,7 @@ class DocString(object):
 
         Parameters
         ----------
-        txt : _type_
+        txt : str
             _description_
 
         Returns
@@ -2242,9 +2452,9 @@ class DocString(object):
 
         Parameters
         ----------
-        raw : _type_
+        raw : Optional[str]
             the data to parse if not internally provided (Default value = None)
-        before_lim : _type_
+        before_lim : str
             specify raw or unicode or format docstring type (ie. "r" for r'''... or "fu" for fu'''...) (Default value = "")
         """
         self.before_lim = before_lim
