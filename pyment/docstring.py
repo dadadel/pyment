@@ -358,6 +358,8 @@ class NumpydocTools(DocToolsBase):
                     start = -1
             if isin_alone(self.opt.values(), line):
                 start = i
+            elif isin(self.keywords, line):
+                return i
         return start
 
     def get_list_key(self, data, key, header_lines=2):
@@ -427,7 +429,7 @@ class NumpydocTools(DocToolsBase):
             if start != -1:
                 init += start
                 if isin_alone(elems, data[init]) and \
-                        not isin_alone([self.opt[e] for e in self.excluded_sections], data[init]):
+                        not isin_alone([self.opt[e] for e in self.excluded_sections], data[init]) or isin(self.keywords, data[init]):
                     spaces = get_leading_spaces(data[init])
                     if end != -1:
                         section = [d.replace(spaces, '', 1).rstrip() for d in data[init:init + end]]
@@ -1819,7 +1821,7 @@ class DocString(object):
             data = '\n'.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].splitlines()])
             self.docs['in']['return'] = self.dst.numpydoc.get_return_list(data)
             self.docs['in']['rtype'] = None
-# TODO: fix this
+        # TODO: fix this
         elif self.dst.style['in'] == 'google':
             data = '\n'.join([d.rstrip().replace(self.docs['out']['spaces'], '', 1) for d in self.docs['in']['raw'].splitlines()])
             self.docs['in']['return'] = self.dst.googledoc.get_return_list(data)
