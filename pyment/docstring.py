@@ -2,7 +2,7 @@
 
 import re
 from collections import defaultdict
-from typing import Optional, Iterator, List, Dict, Tuple
+from typing import Optional, Iterator, List, Dict, Tuple, Union
 
 __author__ = "J. Nitschke"
 __copyright__ = "Copyright 2012-2018, A. Daouzli"
@@ -47,12 +47,12 @@ def isin_alone(elems: List[str], line: str) -> bool:
     return found
 
 
-def isin_start(elems: List[str] | str, line: str) -> bool:
+def isin_start(elems: Union[List[str], str], line: str) -> bool:
     """Check if an element from a list starts a string.
 
     Parameters
     ----------
-    elems : List[str] | str
+    elems : Union[List[str],str]
         _description_
     line : str
         _description_
@@ -333,6 +333,7 @@ class DocToolsBase(object):
 
     def get_next_section_lines(self, data: List[str]) -> Tuple[int, int]:
         """Get the starting line number and the ending line number of next section.
+
         It will return (-1, -1) if no section was found.
         The section is a section key (e.g. 'Parameters') then the content
         The ending line number is the line after the end of the section or -1 if
@@ -529,7 +530,9 @@ class NumpydocTools(DocToolsBase):
                 return i
         return start
 
-    def get_list_key(self, data: str, key: str, header_lines: str = 2) -> List[Tuple[str | None, str, str | None]]:
+    def get_list_key(
+        self, data: str, key: str, header_lines: str = 2
+    ) -> List[Tuple[Optional[str], str, Optional[str]]]:
         """Get the list of a key elements.
         Each element is a tuple (key=None, description, type=None).
         Note that the tuple's element can differ depending on the key.
@@ -550,7 +553,7 @@ class NumpydocTools(DocToolsBase):
         """
         return super(NumpydocTools, self).get_list_key(data, key, header_lines=header_lines)
 
-    def _get_list_key(self, spaces: str, lines: List[str]) -> List[Tuple[str | None, str, str | None]]:
+    def _get_list_key(self, spaces: str, lines: List[str]) -> List[Tuple[Optional[str], str, Optional[str]]]:
         """_summary_.
 
         Parameters
@@ -565,7 +568,7 @@ class NumpydocTools(DocToolsBase):
         List[Tuple[str|None,str,str|None]]
             _description_
         """
-        key_list: List[Tuple[str | None, str, str | None]] = []
+        key_list: List[Tuple[Optional[str], str, Optional[str]]] = []
         parse_key: bool = False  # Tracks whether we are currently parsing a key
         key, desc, ptype = None, "", None
 
@@ -1206,6 +1209,7 @@ class DocsTools(object):
 
     def get_elem_index(self, data: str, starting: bool = True) -> int:
         """Get from a docstring the next option.
+
         In javadoc style it could be @param, @return, @type,...
 
         Parameters
@@ -1219,18 +1223,6 @@ class DocsTools(object):
         -------
         int
             index of found element else -1
-
-        Parameters
-        ----------
-        data : str
-            _description_
-        starting : bool
-            _description_ (Default value = True)
-
-        Returns
-        -------
-        int
-            _description_
         """
         idx = len(data)
         for opt in self.opt.keys():
@@ -1270,16 +1262,6 @@ class DocsTools(object):
             start and end indexes of found element else (-1, -1)
             or else (-2, -2) if try to use params style but no parameters were provided.
             Note: the end index is the index after the last name character
-
-        Parameters
-        ----------
-        data : str
-            _description_
-
-        Returns
-        -------
-        Tuple[int,int]
-            _description_
         """
         start, end = -1, -1
         stl_param = self.opt["raise"][self.style["in"]]["name"]
@@ -1317,18 +1299,6 @@ class DocsTools(object):
         -------
         Tuple[int,int]
             start and end indexes of found element else (-1, -1)
-
-        Parameters
-        ----------
-        data : str
-            _description_
-        prev : Optional[int]
-            _description_ (Default value = None)
-
-        Returns
-        -------
-        Tuple[int,int]
-            _description_
         """
         start, end = -1, -1
         if not prev:
@@ -1533,16 +1503,6 @@ class DocsTools(object):
             start and end indexes of found element else (-1, -1)
             or else (-2, -2) if try to use params style but no parameters were provided.
             Note: the end index is the index after the last name character
-
-        Parameters
-        ----------
-        data : str
-            _description_
-
-        Returns
-        -------
-        Tuple[int,int]
-            _description_
         """
         # TODO: new method to extract an element's name so will be available for @param and @types and other styles (:param, \param)
         start, end = -1, -1
@@ -1598,18 +1558,6 @@ class DocsTools(object):
         -------
         Tuple[int,int]
             start and end indexes of found element else (-1, -1)
-
-        Parameters
-        ----------
-        data : str
-            _description_
-        prev : Optional[int]
-            _description_ (Default value = None)
-
-        Returns
-        -------
-        Tuple[int,int]
-            _description_
         """
         start, end = -1, -1
         if not prev:
@@ -1659,20 +1607,6 @@ class DocsTools(object):
             start and end indexes of found element else (-1, -1)
             Note: the end index is the index after the last included character or -1 if
             reached the end
-
-        Parameters
-        ----------
-        data : str
-            _description_
-        name : Optional[str]
-            _description_ (Default value = None)
-        prev : Optional[int]
-            _description_ (Default value = None)
-
-        Returns
-        -------
-        Tuple[int,int]
-            _description_
         """
         start, end = -1, -1
         stl_type = self.opt["type"][self.style["in"]]["name"]
@@ -1768,16 +1702,6 @@ class DocsTools(object):
             start and end indexes of found element else (-1, -1)
             Note: the end index is the index after the last included character or -1 if
             reached the end
-
-        Parameters
-        ----------
-        data : str
-            _description_
-
-        Returns
-        -------
-        Tuple[int,int]
-            _description_
         """
         start, end = -1, -1
         stl_rtype = self.opt["rtype"][self.style["in"]]["name"]
