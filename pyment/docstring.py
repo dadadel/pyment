@@ -2,7 +2,7 @@
 
 import re
 from collections import defaultdict
-from typing import Optional, Iterator
+from typing import Optional, Iterator, List, Dict, Tuple
 
 __author__ = "J. Nitschke"
 __copyright__ = "Copyright 2012-2018, A. Daouzli"
@@ -24,12 +24,12 @@ Formats supported at the time:
 RAISES_NAME_REGEX = r"^([\w.]+)"
 
 
-def isin_alone(elems: list[str], line: str) -> bool:
+def isin_alone(elems: List[str], line: str) -> bool:
     """Check if an element from a list is the only element of a string.
 
     Parameters
     ----------
-    elems : list[str]
+    elems : List[str]
         _description_
     line : str
         _description_
@@ -47,12 +47,12 @@ def isin_alone(elems: list[str], line: str) -> bool:
     return found
 
 
-def isin_start(elems: list[str] | str, line: str) -> bool:
+def isin_start(elems: List[str] | str, line: str) -> bool:
     """Check if an element from a list starts a string.
 
     Parameters
     ----------
-    elems : list[str] | str
+    elems : List[str] | str
         _description_
     line : str
         _description_
@@ -71,12 +71,12 @@ def isin_start(elems: list[str] | str, line: str) -> bool:
     return found
 
 
-def isin(elems: list[str], line: str) -> bool:
+def isin(elems: List[str], line: str) -> bool:
     """Check if an element from a list is in a string.
 
     Parameters
     ----------
-    elems : list[str]
+    elems : List[str]
         _description_
     line : str
         _description_
@@ -120,10 +120,10 @@ class DocToolsBase(object):
     def __init__(
         self,
         first_line: Optional[bool] = None,
-        optional_sections: Optional[tuple[str, ...]] = None,
-        excluded_sections: Optional[tuple[str, ...]] = None,
-        opt: Optional[dict[str, str]] = None,
-        section_headers: Optional[dict[str, str]] = None,
+        optional_sections: Optional[Tuple[str, ...]] = None,
+        excluded_sections: Optional[Tuple[str, ...]] = None,
+        opt: Optional[Dict[str, str]] = None,
+        section_headers: Optional[Dict[str, str]] = None,
     ):
         """
 
@@ -153,56 +153,56 @@ class DocToolsBase(object):
     def __getitem__(self, key: str) -> str:
         return self.opt[key]
 
-    def get_optional_sections(self) -> list[str]:
+    def get_optional_sections(self) -> List[str]:
         """Get optional sections.
 
         Returns
         -------
-        list[str]
+        List[str]
             _description_
         """
         return self.optional_sections
 
-    def get_excluded_sections(self) -> list[str]:
+    def get_excluded_sections(self) -> List[str]:
         """Get excluded sections.
 
         Returns
         -------
-        list[str]
+        List[str]
             _description_
         """
         return self.excluded_sections
 
-    def get_mandatory_sections(self) -> list[str]:
+    def get_mandatory_sections(self) -> List[str]:
         """Get mandatory sections.
 
         Returns
         -------
-        list[str]
+        List[str]
             _description_
         """
         return [s for s in self.opt if s not in self.optional_sections and s not in self.excluded_sections]
 
-    def _get_list_key(self, spaces: str, lines: list[str]) -> list[str]:
+    def _get_list_key(self, spaces: str, lines: List[str]) -> List[str]:
         """Parse lines and extract the list of key elements.
 
         Parameters
         ----------
         spaces : str
             leading spaces of starting line
-        lines : list[str]
+        lines : List[str]
             list of strings
 
         Returns
         -------
-        list[str]
+        List[str]
             list of key elements
         """
         raise NotImplementedError
 
     def get_list_key(
         self, data: str, key: str, header_lines: str = 1
-    ) -> list[tuple[Optional[str], str, Optional[str]]]:
+    ) -> List[Tuple[Optional[str], str, Optional[str]]]:
         """Get the list of a key elements.
         Each element is a tuple (key=None, description, type=None).
         Note that the tuple's element can differ depending on the key.
@@ -218,7 +218,7 @@ class DocToolsBase(object):
 
         Returns
         -------
-        list[tuple[Optional[str],str,Optional[str]]]
+        List[Tuple[Optional[str],str,Optional[str]]]
             _description_
         """
         # Split the data into lines
@@ -241,7 +241,7 @@ class DocToolsBase(object):
         # So now we grab the actual lines
         return self._get_list_key(spaces, data[start:end])
 
-    def get_raise_list(self, data: str) -> list[tuple[str, str]]:
+    def get_raise_list(self, data: str) -> List[Tuple[str, str]]:
         """Get the list of exceptions.
         The list contains tuples (name, desc)
 
@@ -252,7 +252,7 @@ class DocToolsBase(object):
 
         Returns
         -------
-        list[tuple[str,str]]
+        List[Tuple[str,str]]
             _description_
         """
         return_list = []
@@ -264,7 +264,7 @@ class DocToolsBase(object):
 
         return return_list
 
-    def get_return_list(self, data: str) -> list[tuple[Optional[str], str, Optional[str]]]:
+    def get_return_list(self, data: str) -> List[Tuple[Optional[str], str, Optional[str]]]:
         """Get the list of returned values.
         The list contains tuples (name=None, desc, type=None)
 
@@ -275,7 +275,7 @@ class DocToolsBase(object):
 
         Returns
         -------
-        list[tuple[Optional[str],str,Optional[str]]]
+        List[Tuple[Optional[str],str,Optional[str]]]
             _description_
         """
         return_list = []
@@ -297,7 +297,7 @@ class DocToolsBase(object):
 
         return return_list
 
-    def get_param_list(self, data: str) -> list[tuple[str, str, Optional[str]]]:
+    def get_param_list(self, data: str) -> List[Tuple[str, str, Optional[str]]]:
         """Get the list of parameters.
         The list contains tuples (name, desc, type=None)
 
@@ -308,12 +308,12 @@ class DocToolsBase(object):
 
         Returns
         -------
-        list[tuple[str,str,Optional[str]]]
+        List[Tuple[str,str,Optional[str]]]
             _description_
         """
         return self.get_list_key(data, "param")
 
-    def get_next_section_start_line(self, data: list[str]) -> int:
+    def get_next_section_start_line(self, data: List[str]) -> int:
         """Get the starting line number of next section.
         It will return -1 if no section was found.
         The section is a section key (e.g. 'Parameters:')
@@ -321,7 +321,7 @@ class DocToolsBase(object):
 
         Parameters
         ----------
-        data : list[str]
+        data : List[str]
             a list of strings containing the docstring's lines
 
         Returns
@@ -331,7 +331,7 @@ class DocToolsBase(object):
         """
         raise NotImplementedError
 
-    def get_next_section_lines(self, data: list[str]) -> tuple[int, int]:
+    def get_next_section_lines(self, data: List[str]) -> Tuple[int, int]:
         """Get the starting line number and the ending line number of next section.
         It will return (-1, -1) if no section was found.
         The section is a section key (e.g. 'Parameters') then the content
@@ -340,12 +340,12 @@ class DocToolsBase(object):
 
         Parameters
         ----------
-        data : list[str]
+        data : List[str]
             the data to proceed
 
         Returns
         -------
-        tuple[int,int]
+        Tuple[int,int]
             _description_
         """
         end = -1
@@ -379,12 +379,12 @@ class DocToolsBase(object):
 
         return header
 
-    def get_section_key_line(self, data: list[str], key: str, opt_extension: str = "") -> int:
+    def get_section_key_line(self, data: List[str], key: str, opt_extension: str = "") -> int:
         """Get the next section line for a given key.
 
         Parameters
         ----------
-        data : list[str]
+        data : List[str]
             the data to proceed
         key : str
             the key
@@ -425,7 +425,7 @@ class NumpydocTools(DocToolsBase):
     def __init__(
         self,
         first_line: Optional[bool] = None,
-        optional_sections: tuple[str, ...] = (
+        optional_sections: Tuple[str, ...] = (
             "raise",
             "also",
             "ref",
@@ -435,7 +435,7 @@ class NumpydocTools(DocToolsBase):
             "method",
             "attr",
         ),
-        excluded_sections: tuple[str, ...] = (),
+        excluded_sections: Tuple[str, ...] = (),
     ):
         """
         :param first_line: indicate if description should start
@@ -485,14 +485,14 @@ class NumpydocTools(DocToolsBase):
         # Probably need two separate lists here.
         # One for inline stuff and one that function as a full section
         # like deprecated
-        self.keywords: list[str] = [
+        self.keywords: List[str] = [
             ":math:",
             ".. math::",
             ".. image::",
         ]
-        self.keyword_sections: list[str] = [".. deprecated::"]
+        self.keyword_sections: List[str] = [".. deprecated::"]
 
-    def get_next_section_start_line(self, data: list[str]) -> int:
+    def get_next_section_start_line(self, data: List[str]) -> int:
         """Get the starting line number of next section.
         It will return -1 if no section was found.
         The section is a section key (e.g. 'Parameters') followed by underline
@@ -500,7 +500,7 @@ class NumpydocTools(DocToolsBase):
 
         Parameters
         ----------
-        data : list[str]
+        data : List[str]
             a list of strings containing the docstring's lines
 
         Returns
@@ -529,7 +529,7 @@ class NumpydocTools(DocToolsBase):
                 return i
         return start
 
-    def get_list_key(self, data: str, key: str, header_lines: str = 2) -> list[tuple[str | None, str, str | None]]:
+    def get_list_key(self, data: str, key: str, header_lines: str = 2) -> List[Tuple[str | None, str, str | None]]:
         """Get the list of a key elements.
         Each element is a tuple (key=None, description, type=None).
         Note that the tuple's element can differ depending on the key.
@@ -545,27 +545,27 @@ class NumpydocTools(DocToolsBase):
 
         Returns
         -------
-        list[tuple[str|None,str,str|None]]
+        List[Tuple[str|None,str,str|None]]
             _description_
         """
         return super(NumpydocTools, self).get_list_key(data, key, header_lines=header_lines)
 
-    def _get_list_key(self, spaces: str, lines: list[str]) -> list[tuple[str | None, str, str | None]]:
+    def _get_list_key(self, spaces: str, lines: List[str]) -> List[Tuple[str | None, str, str | None]]:
         """_summary_.
 
         Parameters
         ----------
         spaces : str
             _description_
-        lines : list[str]
+        lines : List[str]
             _description_
 
         Returns
         -------
-        list[tuple[str|None,str,str|None]]
+        List[Tuple[str|None,str,str|None]]
             _description_
         """
-        key_list: list[tuple[str | None, str, str | None]] = []
+        key_list: List[Tuple[str | None, str, str | None]] = []
         parse_key: bool = False  # Tracks whether we are currently parsing a key
         key, desc, ptype = None, "", None
 
@@ -729,7 +729,7 @@ class GoogledocTools(DocToolsBase):
         """
         return super(GoogledocTools, self).get_section_key_line(data, key, opt_extension)
 
-    def _get_list_key(self, spaces: str, lines: str) -> list[tuple[Optional[str], str, Optional[str]]]:
+    def _get_list_key(self, spaces: str, lines: str) -> List[Tuple[Optional[str], str, Optional[str]]]:
         """_summary_.
 
         Parameters
@@ -790,7 +790,7 @@ class GoogledocTools(DocToolsBase):
 
         return key_list
 
-    def get_next_section_start_line(self, data: list[str]) -> int:
+    def get_next_section_start_line(self, data: List[str]) -> int:
         """Get the starting line number of next section.
         It will return -1 if no section was found.
         The section is a section key (e.g. 'Parameters:')
@@ -798,7 +798,7 @@ class GoogledocTools(DocToolsBase):
 
         Parameters
         ----------
-        data : list[str]
+        data : List[str]
             a list of strings containing the docstring's lines
 
         Returns
@@ -1036,17 +1036,17 @@ class DocsTools(object):
             return ""
         return self.opt[key][self.style[target]]["sep"]
 
-    def set_known_parameters(self, params: list[str]):
+    def set_known_parameters(self, params: List[str]):
         """Set known parameters names.
 
         Parameters
         ----------
-        params : list[str]
+        params : List[str]
             the docstring parameters names
         """
         self.params = params
 
-    def get_doctests_indexes(self, data: str) -> tuple[int, int]:
+    def get_doctests_indexes(self, data: str) -> Tuple[int, int]:
         """Extract Doctests if found and return it.
 
         Parameters
@@ -1056,7 +1056,7 @@ class DocsTools(object):
 
         Returns
         -------
-        tuple[int,int]
+        Tuple[int,int]
             index of start and index of end of the doctest, else (-1, -1)
         """
         start, end = -1, -1
@@ -1255,7 +1255,7 @@ class DocsTools(object):
     def get_elem_param(self):
         """TODO"""
 
-    def get_raise_indexes(self, data: str) -> tuple[int, int]:
+    def get_raise_indexes(self, data: str) -> Tuple[int, int]:
         """Get from a docstring the next raise name indexes.
         In javadoc style it is after @raise.
 
@@ -1266,7 +1266,7 @@ class DocsTools(object):
 
         Returns
         -------
-        tuple[int,int]
+        Tuple[int,int]
             start and end indexes of found element else (-1, -1)
             or else (-2, -2) if try to use params style but no parameters were provided.
             Note: the end index is the index after the last name character
@@ -1278,7 +1278,7 @@ class DocsTools(object):
 
         Returns
         -------
-        tuple[int,int]
+        Tuple[int,int]
             _description_
         """
         start, end = -1, -1
@@ -1302,7 +1302,7 @@ class DocsTools(object):
 
         return start, end
 
-    def get_raise_description_indexes(self, data: str, prev: Optional[int] = None) -> tuple[int, int]:
+    def get_raise_description_indexes(self, data: str, prev: Optional[int] = None) -> Tuple[int, int]:
         """Get from a docstring the next raise's description.
         In javadoc style it is after @param.
 
@@ -1315,7 +1315,7 @@ class DocsTools(object):
 
         Returns
         -------
-        tuple[int,int]
+        Tuple[int,int]
             start and end indexes of found element else (-1, -1)
 
         Parameters
@@ -1327,7 +1327,7 @@ class DocsTools(object):
 
         Returns
         -------
-        tuple[int,int]
+        Tuple[int,int]
             _description_
         """
         start, end = -1, -1
@@ -1354,7 +1354,7 @@ class DocsTools(object):
 
         return start, end
 
-    def _extra_tagstyle_elements(self, data: str) -> dict[str, dict[str, Optional[str]]]:
+    def _extra_tagstyle_elements(self, data: str) -> Dict[str, Dict[str, Optional[str]]]:
         """_summary_.
 
         Parameters
@@ -1364,7 +1364,7 @@ class DocsTools(object):
 
         Returns
         -------
-        dict[str,dict[str,Optional[str]]]
+        Dict[str,Dict[str,Optional[str]]]
             _description_
         """
         ret = {}
@@ -1447,7 +1447,7 @@ class DocsTools(object):
                     ret[last_element["name"]]["description"] += f"\n{line}"
         return ret
 
-    def _extract_not_tagstyle_old_way(self, data: str) -> dict[str, dict[str, Optional[str]]]:
+    def _extract_not_tagstyle_old_way(self, data: str) -> Dict[str, Dict[str, Optional[str]]]:
         """_summary_.
 
         Parameters
@@ -1457,7 +1457,7 @@ class DocsTools(object):
 
         Returns
         -------
-        dict[str,dict[str,Optional[str]]]
+        Dict[str,Dict[str,Optional[str]]]
             _description_
         """
         ret = {}
@@ -1496,7 +1496,7 @@ class DocsTools(object):
             )
         return ret
 
-    def extract_elements(self, data: str) -> dict[str, dict[str, Optional[str]]]:
+    def extract_elements(self, data: str) -> Dict[str, Dict[str, Optional[str]]]:
         """Extract parameter name, description and type from docstring.
 
         Parameters
@@ -1506,7 +1506,7 @@ class DocsTools(object):
 
         Returns
         -------
-        dict[str,dict[str,Optional[str]]]
+        Dict[str,Dict[str,Optional[str]]]
             _description_
         """
         ret = []
@@ -1518,7 +1518,7 @@ class DocsTools(object):
             ret = self._extract_not_tagstyle_old_way(data)
         return ret
 
-    def get_param_indexes(self, data: str) -> tuple[int, int]:
+    def get_param_indexes(self, data: str) -> Tuple[int, int]:
         """Get from a docstring the next parameter name indexes.
         In javadoc style it is after @param.
 
@@ -1529,7 +1529,7 @@ class DocsTools(object):
 
         Returns
         -------
-        tuple[int,int]
+        Tuple[int,int]
             start and end indexes of found element else (-1, -1)
             or else (-2, -2) if try to use params style but no parameters were provided.
             Note: the end index is the index after the last name character
@@ -1541,7 +1541,7 @@ class DocsTools(object):
 
         Returns
         -------
-        tuple[int,int]
+        Tuple[int,int]
             _description_
         """
         # TODO: new method to extract an element's name so will be available for @param and @types and other styles (:param, \param)
@@ -1583,7 +1583,7 @@ class DocsTools(object):
                 start, end = idx, idx + len(param)
         return start, end
 
-    def get_param_description_indexes(self, data: str, prev: Optional[int] = None) -> tuple[int, int]:
+    def get_param_description_indexes(self, data: str, prev: Optional[int] = None) -> Tuple[int, int]:
         """Get from a docstring the next parameter's description.
         In javadoc style it is after @param.
 
@@ -1596,7 +1596,7 @@ class DocsTools(object):
 
         Returns
         -------
-        tuple[int,int]
+        Tuple[int,int]
             start and end indexes of found element else (-1, -1)
 
         Parameters
@@ -1608,7 +1608,7 @@ class DocsTools(object):
 
         Returns
         -------
-        tuple[int,int]
+        Tuple[int,int]
             _description_
         """
         start, end = -1, -1
@@ -1640,7 +1640,7 @@ class DocsTools(object):
 
     def get_param_type_indexes(
         self, data: str, name: Optional[str] = None, prev: Optional[int] = None
-    ) -> tuple[int, int]:
+    ) -> Tuple[int, int]:
         """Get from a docstring a parameter type indexes.
         In javadoc style it is after @type.
 
@@ -1655,7 +1655,7 @@ class DocsTools(object):
 
         Returns
         -------
-        tuple[int,int]
+        Tuple[int,int]
             start and end indexes of found element else (-1, -1)
             Note: the end index is the index after the last included character or -1 if
             reached the end
@@ -1671,7 +1671,7 @@ class DocsTools(object):
 
         Returns
         -------
-        tuple[int,int]
+        Tuple[int,int]
             _description_
         """
         start, end = -1, -1
@@ -1699,7 +1699,7 @@ class DocsTools(object):
 
         return start, end
 
-    def get_return_description_indexes(self, data: str) -> tuple[str, str]:
+    def get_return_description_indexes(self, data: str) -> Tuple[str, str]:
         """Get from a docstring the return parameter description indexes.
         In javadoc style it is after @return.
 
@@ -1710,7 +1710,7 @@ class DocsTools(object):
 
         Returns
         -------
-        tuple[str,str]
+        Tuple[str,str]
             start and end indexes of found element else (-1, -1)
             Note: the end index is the index after the last included character or -1 if
             reached the end
@@ -1722,7 +1722,7 @@ class DocsTools(object):
 
         Returns
         -------
-        tuple[str,str]
+        Tuple[str,str]
             _description_
         """
         start, end = -1, -1
@@ -1753,7 +1753,7 @@ class DocsTools(object):
 
         return start, end
 
-    def get_return_type_indexes(self, data: str) -> tuple[int, int]:
+    def get_return_type_indexes(self, data: str) -> Tuple[int, int]:
         """Get from a docstring the return parameter type indexes.
         In javadoc style it is after @rtype.
 
@@ -1764,7 +1764,7 @@ class DocsTools(object):
 
         Returns
         -------
-        tuple[int,int]
+        Tuple[int,int]
             start and end indexes of found element else (-1, -1)
             Note: the end index is the index after the last included character or -1 if
             reached the end
@@ -1776,7 +1776,7 @@ class DocsTools(object):
 
         Returns
         -------
-        tuple[int,int]
+        Tuple[int,int]
             _description_
         """
         start, end = -1, -1
@@ -2539,7 +2539,7 @@ class DocString(object):
         ]:
             # TODO: manage return names
             # manage not setting return if not mandatory for numpy
-            lst: list[tuple[Optional[str], str, Optional[str]]] = self.docs["in"]["return"]
+            lst: List[Tuple[Optional[str], str, Optional[str]]] = self.docs["in"]["return"]
             if lst:
                 if lst[0][0] is not None:
                     self.docs["out"]["return"] = "%s-> %s" % (lst[0][0], lst[0][1])
