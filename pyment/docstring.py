@@ -47,7 +47,7 @@ def isin_alone(elems: List[str], line: str) -> bool:
     return found
 
 
-def isin_start(elems: List[str], line: str) -> bool:
+def isin_start(elems: Union[List[str], str], line: str) -> bool:
     """Check if an element from a list starts a string.
 
     Parameters
@@ -994,7 +994,8 @@ class DocsTools(object):
 
     def get_key(self, key: str, target: str = "in") -> str:
         """Get the name of a key in current style.
-        e.g.: in javadoc style, the returned key for 'param' is '@param'
+
+        e.g.: in javadoc style, the returned key for 'param' is
 
         Parameters
         ----------
@@ -1002,13 +1003,6 @@ class DocsTools(object):
             the key wanted (param, type, return, rtype,..)
         target : str
             the target docstring is 'in' for the input or (Default value = "in")
-
-        Parameters
-        ----------
-        key : str
-            _description_
-        target : str
-            _description_ (Default value = "in")
 
         Returns
         -------
@@ -1209,8 +1203,6 @@ class DocsTools(object):
 
     def get_elem_index(self, data: str, starting: bool = True) -> int:
         """Get from a docstring the next option.
-
-        In javadoc style it could be @param, @return, @type,...
 
         Parameters
         ----------

@@ -123,8 +123,8 @@ def run(source, files=[], input_style='auto', output_style='reST', first_line=Tr
 def main():
     desc = 'Pyment v{0} - {1} - {2} - {3}'.format(__version__, __copyright__, __author__, __licence__)
     parser = argparse.ArgumentParser(description='Generates patches after (re)writing docstrings.')
-    parser.add_argument('path', type=str,
-                        help='python file or folder containing python files to proceed (explore also sub-folders). Use "-" to read from stdin and write to stdout')
+    parser.add_argument('path', type=str, nargs='+',
+                        help='python files or folders containing python files to proceed (explore also sub-folders). Use "-" to read from stdin and write to stdout')
     parser.add_argument('-i', '--input', metavar='style', default='auto',
                         dest='input', help='Input docstring style in ["javadoc", "reST", "numpydoc", "google", "auto"] (default autodetected)')
     parser.add_argument('-o', '--output', metavar='style', default="reST",
@@ -151,9 +151,10 @@ def main():
     #                   dest='config', help='Configuration file')
 
     args = parser.parse_args()
-    source = args.path
+    source = ""
 
-    files = get_files_from_dir(source)
+    # files = get_files_from_dir(source)
+    files = args.path
     if not files:
         msg = BaseException("No files were found matching {0}".format(args.path))
         raise msg
