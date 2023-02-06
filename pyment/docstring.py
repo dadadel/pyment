@@ -47,7 +47,7 @@ def isin_alone(elems: List[str], line: str) -> bool:
     return found
 
 
-def isin_start(elems: Union[List[str], str], line: str) -> bool:
+def isin_start(elems: List[str], line: str) -> bool:
     """Check if an element from a list starts a string.
 
     Parameters
