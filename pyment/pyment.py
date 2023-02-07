@@ -67,7 +67,7 @@ class PyComment(object):
         self.convert_only = convert_only
         self.config_file = config_file
         self.ignore_private = ignore_private
-        self.trailing_space = True
+        self.trailing_space = False
         self.kwargs = kwargs
 
     def _parse(self):

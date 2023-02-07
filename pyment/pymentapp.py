@@ -139,7 +139,7 @@ def main():
                         dest='config_file', help='Get a Pyment configuration from a file. Note that the config values will overload the command line ones.')
     parser.add_argument('-d', '--init2class', help='If no docstring to class, then move the __init__ one',
                         action="store_true")
-    parser.add_argument('-p', '--ignore-private', metavar='status', default="True",
+    parser.add_argument('-p', '--ignore-private', metavar='status', default="False",
                         dest='ignore_private', help='Don\'t proceed the private methods/functions starting with __ (two underscores) (default "True")')
     parser.add_argument('-v', '--version', action='version',
                         version=desc)

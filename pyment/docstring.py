@@ -126,7 +126,6 @@ class DocToolsBase(object):
         section_headers: Optional[Dict[str, str]] = None,
     ):
         """
-
         :param first_line: indicate if description should start
           on first or second line. By default it will follow global config.
         :type first_line: boolean
@@ -1756,15 +1755,14 @@ class DocString(object):
         :param type_stub: if set, an empty stub will be created for a parameter type
         :type type_stub: boolean
         :param before_lim: specify raw or unicode or format docstring type (ie. "r" for r'''... or "fu" for fu'''...)
-
         """
         self.dst = DocsTools()
         self.before_lim = before_lim
         self.first_line = first_line
         self.trailing_space = ""
         self.type_stub = type_stub
-        if trailing_space:
-            self.trailing_space = " "
+        # if trailing_space:
+        #     self.trailing_space = " "
         if docs_raw and not input_style:
             self.dst.autodetect_style(docs_raw)
         elif input_style:
@@ -2760,19 +2758,6 @@ class DocString(object):
         if lines and lines[0] and not lines[0].endswith("."):
             lines[0] += "."
         desc = self.docs["out"]["desc"].strip()
-        if not desc or not desc.count("\n"):
-            if (
-                not self.docs["out"]["params"]
-                and not self.docs["out"]["return"]
-                and not self.docs["out"]["rtype"]
-                and not self.docs["out"]["raises"]
-                and ("post" not in self.docs["out"] or not self.docs["out"]["post"])
-                and ("doctests" not in self.docs["out"] or not self.docs["out"]["doctests"])
-            ):
-                raw += desc if desc else self.trailing_space
-                raw += self.quotes
-                self.docs["out"]["raw"] = raw.rstrip()
-                return
         if not self.first_line:
             raw += "\n" + self.docs["out"]["spaces"]
         # Add a period to the first line if not present
@@ -2792,7 +2777,9 @@ class DocString(object):
         if "doctests" in self.docs["out"]:
             raw += "\n" + self.docs["out"]["spaces"] + with_space(self.docs["out"]["doctests"]).strip()
         if raw.count(self.quotes) == 1:
-            raw += "\n" + self.docs["out"]["spaces"] + self.quotes
+            if raw.count("\n") > 0:
+                raw += "\n" + self.docs["out"]["spaces"]
+            raw += self.quotes
         self.docs["out"]["raw"] = raw.rstrip()
 
     def generate_docs(self):
