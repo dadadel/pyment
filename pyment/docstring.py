@@ -1240,7 +1240,6 @@ class DocsTools(object):
 
     def get_raise_indexes(self, data: str) -> Tuple[int, int]:
         """Get from a docstring the next raise name indexes.
-        In javadoc style it is after @raise.
 
         Parameters
         ----------
@@ -1277,7 +1276,6 @@ class DocsTools(object):
 
     def get_raise_description_indexes(self, data: str, prev: Optional[int] = None) -> Tuple[int, int]:
         """Get from a docstring the next raise's description.
-        In javadoc style it is after @param.
 
         Parameters
         ----------
@@ -1481,7 +1479,6 @@ class DocsTools(object):
 
     def get_param_indexes(self, data: str) -> Tuple[int, int]:
         """Get from a docstring the next parameter name indexes.
-        In javadoc style it is after @param.
 
         Parameters
         ----------
@@ -1536,7 +1533,6 @@ class DocsTools(object):
 
     def get_param_description_indexes(self, data: str, prev: Optional[int] = None) -> Tuple[int, int]:
         """Get from a docstring the next parameter's description.
-        In javadoc style it is after @param.
 
         Parameters
         ----------
@@ -1581,7 +1577,6 @@ class DocsTools(object):
         self, data: str, name: Optional[str] = None, prev: Optional[int] = None
     ) -> Tuple[int, int]:
         """Get from a docstring a parameter type indexes.
-        In javadoc style it is after @type.
 
         Parameters
         ----------
@@ -1626,7 +1621,6 @@ class DocsTools(object):
 
     def get_return_description_indexes(self, data: str) -> Tuple[str, str]:
         """Get from a docstring the return parameter description indexes.
-        In javadoc style it is after @return.
 
         Parameters
         ----------
@@ -1680,7 +1674,6 @@ class DocsTools(object):
 
     def get_return_type_indexes(self, data: str) -> Tuple[int, int]:
         """Get from a docstring the return parameter type indexes.
-        In javadoc style it is after @rtype.
 
         Parameters
         ----------
@@ -2004,36 +1997,51 @@ class DocString(object):
         start = txt.find("(") + 1
         end_start = txt.rfind(")")
         end_end = txt.rfind(":")
-        return_type = txt[end_start + 1 : end_end].replace(" ", "").replace("\t", "").replace("->", "")
+        return_type = txt[end_start + 1 : end_end].replace("->", "").strip()
         elems = {}
         elem_idx = 0
         reading = "param"
         elems[elem_idx] = {"type": "", "param": "", "default": ""}
-        inside = None
+        inside: list[str] = []  # Represents the bracket type we are in
         end_inside = {"(": ")", "{": "}", "[": "]", "'": "'", '"': '"'}
         for c in txt[start:end_start]:
-            if (inside and end_inside[inside] != c) or (not inside and c in end_inside.keys()):
-                if not inside:
-                    inside = c
+            # We are in a block and we are not ending that block
+            # or we are not in a block and we are starting a block
+            if (inside) or (c in end_inside):
+                # We are in the second condition and thus starting a block
+                if c in end_inside:
+                    inside.append(c)
+                if c == end_inside[inside[-1]]:
+                    inside.pop()
+                # We are in the first block
+                # If we are reading the type then the current char is appended
                 if reading == "type":
                     elems[elem_idx]["type"] += c
+                # If we are reading the default then append the char there
                 elif reading == "default":
                     elems[elem_idx]["default"] += c
                 else:
                     # FIXME: this should not happen!
                     raise Exception("unexpected nested element after " + str(inside) + " while reading " + reading)
                 continue
-            if inside and c == end_inside[inside]:
-                inside = None
+            # We are currently reading a parameter (name?)
             if reading == "param":
+                # We are not at a delimiter
+                # So add it to the param name
                 if c not in ": ,=":
                     elems[elem_idx]["param"] += c
+                # We are at a delimiter
                 else:
+                    # If we are at a space and our current param is empty or we are
+                    # not at a space then we are finished with the param
                     if c == " " and elems[elem_idx]["param"] or c != " ":
                         reading = "after_param"
+            # If we are reading the type
             elif reading == "type":
+                # If we are not reading , or = we are adding to our type
                 if c not in ",=":
                     elems[elem_idx]["type"] += c
+                # We are reading , or = and finished our type
                 else:
                     reading = "after_type"
             elif reading == "default":
@@ -2041,13 +2049,16 @@ class DocString(object):
                     elems[elem_idx]["default"] += c
                 else:
                     reading = "after_default"
+            # If we are after param then ':' indicates now comes the type
             if reading.startswith("after_"):
                 if reading == "after_param" and c == ":":
                     reading = "type"
+                # Otherwise ',' indicates a new parameter
                 elif c == ",":
                     elem_idx += 1
                     elems[elem_idx] = {"type": "", "param": "", "default": ""}
                     reading = "param"
+                # and '=' indicates a default value
                 elif c == "=":
                     reading = "default"
         # strip extracted elements
