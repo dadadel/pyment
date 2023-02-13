@@ -105,7 +105,9 @@ def run(source, files=[], input_style='auto', output_style='reST', first_line=Tr
             c.docs_init_to_class()
 
         if overwrite:
-            list_from, list_to = c.compute_before_after()
+            list_from, list_to, list_changed = c.compute_before_after()
+            if (list_from == list_to) != (len(list_changed) == 0) :
+                raise AssertionError("The file having changed should be identical to any function having changed!")
             lines_to_write = list_to
         else:
             lines_to_write = c.get_patch_lines(path, path)
@@ -115,6 +117,7 @@ def run(source, files=[], input_style='auto', output_style='reST', first_line=Tr
         else:
             if overwrite:
                 if list_from != list_to:
+                    print("Modified docstrings of element{} ({}) in file {}.".format("s" if len(list_changed) > 1 else "", ", ".join(list_changed), f))
                     c.overwrite_source_file(lines_to_write)
             else:
                 c.write_patch_file(os.path.basename(f) + ".patch", lines_to_write)

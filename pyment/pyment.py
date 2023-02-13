@@ -264,8 +264,14 @@ class PyComment(object):
             self._parse()
         list_from = self.input_lines
         list_to = []
+        list_changed = []
         last = 0
         for e in self.docs_list:
+            elem_name = e["docs"].element["name"]
+            in_docstring = e['docs'].docs["in"]["raw"]
+            out_docstring = self.get_stripped_out_docstring(e['docs'].docs["out"]["raw"])
+            if in_docstring != out_docstring:
+                list_changed.append(elem_name)
             start, end = e['location']
             if start <= 0:
                 start, end = -start, -end
@@ -279,7 +285,31 @@ class PyComment(object):
         if last < len(list_from):
             list_to.extend(list_from[last:])
 
-        return list_from, list_to
+        return list_from, list_to, list_changed
+
+
+    def get_stripped_out_docstring(self, doc_string: str) -> str:
+        """Strip and remove docstring quotes from docstring.
+
+        This is the same that is done with the input docstring.
+        So do this to be able to directly compare input and output docstrings.
+
+        Parameters
+        ----------
+        doc_string : str
+            Docstring to strip
+
+        Returns
+        -------
+        str
+            Stripped docstring
+        """
+        doc_string = doc_string.strip()
+        if doc_string.startswith('"""') or doc_string.startswith("'''"):
+            doc_string = doc_string[3:]
+        if doc_string.endswith('"""') or doc_string.endswith("'''"):
+            doc_string = doc_string[:-3]
+        return doc_string
 
     def diff(self, source_path='', target_path='', which=-1):
         """Build the diff between original docstring and proposed docstring.
@@ -292,7 +322,7 @@ class PyComment(object):
         :returns: the resulted diff
         :rtype: List[str]
         """
-        list_from, list_to = self.compute_before_after()
+        list_from, list_to, _ = self.compute_before_after()
 
         if source_path.startswith(os.sep):
             source_path = source_path[1:]
