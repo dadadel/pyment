@@ -107,7 +107,7 @@ def run(source, files=[], input_style='auto', output_style='reST', first_line=Tr
         if overwrite:
             list_from, list_to, list_changed = c.compute_before_after()
             if (list_from == list_to) != (len(list_changed) == 0) :
-                raise AssertionError("The file having changed should be identical to any function having changed!")
+                raise AssertionError("The file {} having changed should be identical to any function having changed! However the list of changed functions was {} but the difference between the files was {}!".format(f, list_changed, list(set(list_from) ^ set(list_to))))
             lines_to_write = list_to
         else:
             lines_to_write = c.get_patch_lines(path, path)
