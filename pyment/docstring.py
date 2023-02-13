@@ -2390,6 +2390,7 @@ class DocString(object):
             if raw.endswith('"""') or raw.endswith("'''"):
                 raw = raw[:-3]
             self.docs["in"]["raw"] = raw
+            self.docs["in"]["pure_raw"] = raw
             self.dst.autodetect_style(raw)
         if self.docs["in"]["raw"] is None:
             return

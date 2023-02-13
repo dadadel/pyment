@@ -268,7 +268,7 @@ class PyComment(object):
         last = 0
         for e in self.docs_list:
             elem_name = e["docs"].element["name"]
-            in_docstring = e['docs'].docs["in"]["raw"]
+            in_docstring = e['docs'].docs["in"]["pure_raw"]
             out_docstring = self.get_stripped_out_docstring(e['docs'].docs["out"]["raw"])
             if in_docstring != out_docstring:
                 list_changed.append(elem_name)
