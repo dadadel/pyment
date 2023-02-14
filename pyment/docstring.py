@@ -1779,6 +1779,7 @@ class DocString(object):
         self.docs = {
             "in": {
                 "raw": docs_raw,
+                "pure_raw": docs_raw,
                 "doctests": "",
                 "desc": None,
                 "params": [],
