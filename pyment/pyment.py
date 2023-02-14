@@ -69,6 +69,30 @@ class PyComment(object):
         self.ignore_private = ignore_private
         self.trailing_space = False
         self.kwargs = kwargs
+        self.module_doc_index = 0
+        self.module_doc_found = False
+        self.module_doc_period_missing = False
+
+    def _is_shebang_or_pragma(self, line: str) -> bool:
+        """Checks if a given line contains encoding or shebang.
+
+        Parameters
+        ----------
+        line : str
+            Line to check
+
+        Returns
+        -------
+        bool
+            Whether the given line contains encoding or shebang
+        """
+        shebang_regex = r"^#!(.*)"
+        pragma_regex = r"^#.*coding[=:]\s*([-\w.]+)"
+        if re.search(shebang_regex, line) is not None:
+            return True
+        if re.search(pragma_regex, line) is not None:
+            return True
+        return False
 
     def _parse(self):
         """Parses the input file's content and generates a list of its elements/docstrings.
@@ -88,23 +112,33 @@ class PyComment(object):
         start = 0
         end = 0
         before_lim = ""
-
         try:
             if self.input_file == '-':
-                fd = sys.stdin
+                folder = sys.stdin
             else:
-                fd = open(self.input_file)
+                folder = open(self.input_file)
 
-            self.input_lines = fd.readlines()
+            self.input_lines = folder.readlines()
 
             if self.input_file != '-':
-                fd.close()
+                folder.close()
 
-        except IOError:
+        except IOError as exc:
             msg = BaseException('Failed to open file "' + self.input_file + '". Please provide a valid file.')
-            raise msg
+            raise msg from exc
+
         for i, ln in enumerate(self.input_lines):
             l = ln.strip()
+            # Fix or add docstring to beginning of file
+            if i < 3 and not self.module_doc_found:
+                if self._is_shebang_or_pragma(ln):
+                    self.module_doc_index = i+1
+                elif ln.startswith('"""') or ln.startswith("'''"):
+                    lim = ln[0:3]
+                    self.module_doc_found = True
+                    self.module_doc_index = i
+                    if l.endswith(lim) and not l.replace(lim, "").endswith("."):
+                        self.module_doc_period_missing = True
             if reading_element:
                 elem += l
                 if l.endswith(':'):
@@ -203,7 +237,6 @@ class PyComment(object):
                 else:
                     i += 1
         self.docs_list = elem_list
-
         self.parsed = True
         return elem_list
 
@@ -284,6 +317,14 @@ class PyComment(object):
             last = end + 1
         if last < len(list_from):
             list_to.extend(list_from[last:])
+        if not self.module_doc_found:
+            list_to.insert(self.module_doc_index, '"""_summary_."""\n')
+            list_changed.insert(0, "Module")
+        elif self.module_doc_period_missing:
+            module_doc_first_line = list_to[self.module_doc_index]
+            lim = module_doc_first_line[0:3]
+            list_to[self.module_doc_index] = lim + module_doc_first_line.strip().replace(lim, "") + "." + lim + "\n"
+            list_changed.insert(0, "Module")
 
         return list_from, list_to, list_changed
 
