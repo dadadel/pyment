@@ -2640,6 +2640,17 @@ class DocString(object):
             raw += "\n"
         return raw
 
+    def _none_return(self, return_value):
+        """Check if the return type was not set or set as None.
+
+        Args:
+            return_value (str | None): Read return type
+
+        Returns:
+            bool: Whether the read return type is None or 'None'
+        """
+        return return_value is None or return_value =="None"
+
     def _set_raw_return(self, sep):
         """Set the output raw return section.
 
@@ -2650,7 +2661,9 @@ class DocString(object):
         """
         raw = ""
         if self.dst.style["out"] == "numpydoc":
-            if self.docs["in"]["raw"] and not self.docs["out"]["return"] and not self.docs["out"]["rtype"]:
+            # If there is a docstring but no return section
+            # Then do not create one just to specify it as none
+            if self.docs["in"]["raw"] and not self.docs["in"]["return"] and self._none_return(self.docs["out"]["rtype"]):
                 return raw
             raw += "\n\n"
             spaces = " " * 4
@@ -2666,7 +2679,10 @@ class DocString(object):
             else:
                 rtype = "_type_"
             # case of several returns
-            if type(self.docs["out"]["return"]) is list and len(self.docs["out"]["return"]) > 0:
+            # Here an existing docstring takes precedence over the type hint.
+            # As the type hint could just be tuple[A, B, C] but the docstring
+            # Could already be specifying each entry individually.
+            if type(self.docs["out"]["return"]) is list and len(self.docs["out"]["return"]) > 1:
                 for i, ret_elem in enumerate(self.docs["out"]["return"]):
                     # if tuple (name, desc, rtype) else string desc
                     if type(ret_elem) is tuple and len(ret_elem) == 3:
@@ -2687,6 +2703,23 @@ class DocString(object):
                             raw += self.docs["out"]["spaces"] + spaces + with_space(str(ret_elem)).strip()
             # case of a unique return
             # elif self.docs['out']['return'] is not None:
+            # Length exactly 1
+            # Here the type hint has precedence again
+            elif isinstance(self.docs["out"]["return"], list) and self.docs["out"]["return"]:
+                ret_elem = self.docs["out"]["return"][0]
+                if type(ret_elem) is tuple and len(ret_elem) == 3:
+                    if rtype is None:
+                        rtype = ""
+                    raw += self.docs["out"]["spaces"]
+                    if ret_elem[0]:
+                        raw += ret_elem[0] + " : "
+                    if ret_elem[1]:
+                        raw += rtype + "\n" + self.docs["out"]["spaces"] + spaces + with_space(ret_elem[1]).strip()
+                else:
+                    # There can be a problem
+                    raw += self.docs["out"]["spaces"] + rtype + "\n"
+                    if ret_elem:
+                        raw += self.docs["out"]["spaces"] + spaces + with_space(str(ret_elem)).strip()
             else:
                 raw += self.docs["out"]["spaces"] + rtype
                 raw += (
@@ -2768,12 +2801,12 @@ class DocString(object):
         # sets the description section
         raw = self.docs["out"]["spaces"] + self.before_lim + self.quotes
         lines = self.docs["out"]["desc"].splitlines()
+        # Add a period to the first line if not present
         if lines and lines[0] and not lines[0].endswith("."):
             lines[0] += "."
         desc = self.docs["out"]["desc"].strip()
         if not self.first_line:
             raw += "\n" + self.docs["out"]["spaces"]
-        # Add a period to the first line if not present
         self.docs["out"]["desc"] = "\n".join(lines)
         raw += with_space(self.docs["out"]["desc"] if desc else "_summary_.").strip()
         # sets the parameters section
