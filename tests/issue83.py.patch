@@ -1,0 +1,14 @@
+--- a/issue83.py
++++ b/issue83.py
+@@ -1,9 +1,11 @@
+ class Foo:
++    """ """
+     def __init__(self):
+         """Some init docstring"""
+         pass
+ 
+ class Bar:
++    """ """
+     def __repr__(self):
+         """Some repr docstring"""
+         return 'Foo()'
