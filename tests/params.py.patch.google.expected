@@ -12,7 +12,7 @@
 +    """
 +
 +    Args:
-+      param1: 
++        param1: 
 +
 +    Returns:
 +
@@ -24,8 +24,8 @@
 +    """
 +
 +    Args:
-+      param1: 
-+      param2: 
++        param1: 
++        param2: 
 +
 +    Returns:
 +
@@ -37,9 +37,9 @@
 +    """
 +
 +    Args:
-+      param1: 
-+      param2: 
-+      param3: 
++        param1: 
++        param2: 
++        param3: 
 +
 +    Returns:
 +
@@ -51,7 +51,7 @@
 +    """
 +
 +    Args:
-+      param1:  (Default value = 123)
++        param1:  (Default value = 123)
 +
 +    Returns:
 +
@@ -63,8 +63,8 @@
 +    """
 +
 +    Args:
-+      param1: 
-+      param2:  (Default value = 123)
++        param1: 
++        param2:  (Default value = 123)
 +
 +    Returns:
 +
@@ -76,9 +76,9 @@
 +    """
 +
 +    Args:
-+      param1: 
-+      param2: 
-+      param3:  (Default value = 123)
++        param1: 
++        param2: 
++        param3:  (Default value = 123)
 +
 +    Returns:
 +
@@ -90,9 +90,9 @@
 +    """
 +
 +    Args:
-+      param1: 
-+      param2:  (Default value = None)
-+      param3:  (Default value = 123)
++        param1: 
++        param2:  (Default value = None)
++        param3:  (Default value = 123)
 +
 +    Returns:
 +
@@ -104,9 +104,9 @@
 +    """
 +
 +    Args:
-+      param1:  (Default value = 123)
-+      param2:  (Default value = +456)
-+      param3:  (Default value = "!:@")
++        param1:  (Default value = 123)
++        param2:  (Default value = +456)
++        param3:  (Default value = "!:@")
 +
 +    Returns:
 +
@@ -118,8 +118,8 @@
 +    """
 +
 +    Args:
-+      param1:  (Default value = func1())
-+      param2:  (Default value = "stuff")
++        param1:  (Default value = func1())
++        param2:  (Default value = "stuff")
 +
 +    Returns:
 +
@@ -131,8 +131,8 @@
 +    """
 +
 +    Args:
-+      param1:  (Default value = func1())
-+      param2:  (Default value = "stuff")
++        param1:  (Default value = func1())
++        param2:  (Default value = "stuff")
 +
 +    Returns:
 +

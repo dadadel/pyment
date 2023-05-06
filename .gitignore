@@ -6,3 +6,6 @@ build
 # Packaging related files
 *.egg
 *.egg-info
+
+# pycharm
+.idea/
