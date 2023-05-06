@@ -49,7 +49,7 @@ class SomeClass(object):
     def method_numpy(self):
         """
         My numpydoc description of a kind
-        of very exhautive numpydoc format docstring.
+        of very exhaustive numpydoc format docstring.
 
         Parameters
         ----------

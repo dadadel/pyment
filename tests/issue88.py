@@ -12,7 +12,7 @@ async def async_func2():
 
 async def async_func3(param1, param2=None):
     """
-    somme comment
+    some comment
     :param param1: my parameter 1
     :param param2: my second param
     :return: nothing

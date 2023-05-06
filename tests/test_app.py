@@ -259,7 +259,7 @@ class AppTests(unittest.TestCase):
         The .patch and temporary files are removed at the end of the test.
 
         :param file_contents: write this into the temporary file
-        :param cmd_args: Arguments to pyment - do not put the '-w' argument here - it is trigged by overwrite_mode
+        :param cmd_args: Arguments to pyment - do not put the '-w' argument here - it is triggered by overwrite_mode
         :param overwrite_mode: set to True if in overwrite mode
         :param expected_file_contents: expected result - for a patch file ensure the filename is '-'. The '-'
             is replaced with the patch filename when overwrite_mode is False
