@@ -146,6 +146,7 @@ class DocToolsBase(object):
         self.opt = opt
         self.section_headers = section_headers
 
+
     def __iter__(self) -> Iterator[str]:
         return self.opt.__iter__()
 
@@ -1812,6 +1813,7 @@ class DocString(object):
             "hint_type_priority": True,  # priority in type hint else in docstring
             "rst_type_in_param_priority": True,  # in reST docstring priority on type present in param else on type
         }
+        self.special_signature_chars = ("/", "*")
 
         self.parse_definition()
         self.quotes = quotes
@@ -1983,17 +1985,22 @@ class DocString(object):
         return ret
 
     def _extract_signature_elements(self, txt: str) -> dict:
-        """_summary_.
+        """Extract the signature elements from the function definition.
+
+        foo(x: int, y: int, /, *, a: int, b: int) -> None:
 
         Parameters
         ----------
         txt : str
-            _description_
+            Function signature string
 
         Returns
         -------
-        _type_
-            _description_
+        dict
+            Extracted elements
+            {"parameters": elems, "return_type": return_type.strip()}
+            Where elems is dict[int, dict[str, str]]:
+            elems[elem_idx] = {"type": "", "param": "", "default": ""}
         """
         start = txt.find("(") + 1
         end_start = txt.rfind(")")
@@ -2063,7 +2070,12 @@ class DocString(object):
                 elif c == "=":
                     reading = "default"
         # strip extracted elements
-        for elem in elems:
+        # and iterate over a copy so we can delete elements that are just
+        # "*" or "/" as those do not belong in the doctring.
+        for elem in dict(elems):
+            if elems[elem]["param"] in self.special_signature_chars:
+                del elems[elem]
+                continue
             for subelem in elems[elem]:
                 if type(elems[elem][subelem]) is str:
                     elems[elem][subelem] = elems[elem][subelem].strip()
