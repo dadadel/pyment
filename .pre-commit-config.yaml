@@ -1,0 +1,64 @@
+repos:
+  - repo: 'https://github.com/pre-commit/pre-commit-hooks'
+    rev: v4.4.0
+    hooks:
+      - id: check-yaml
+        language: python
+      - id: check-json
+        language: python
+      - id: end-of-file-fixer
+        language: python
+      - id: trailing-whitespace
+        language: python
+      - id: check-docstring-first
+        language: python
+      - id: requirements-txt-fixer
+        language: python
+      - id: check-merge-conflict
+        language: python
+      - id: check-toml
+        language: python
+      - id: check-xml
+        language: python
+      - id: check-ast
+        language: python
+      - id: check-builtin-literals
+        language: python
+  - repo: 'https://github.com/charliermarsh/ruff-pre-commit'
+    rev: v0.0.291
+    hooks:
+      - id: ruff
+        args:
+          - '--fix'
+          - '--exit-non-zero-on-fix'
+  - repo: 'https://github.com/psf/black'
+    rev: 23.9.1
+    hooks:
+      - id: black
+        language: python
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.16.13
+    hooks:
+      - id: typos
+        args: []
+  - repo: local
+    hooks:
+      - id: pyright
+        name: pyright
+        entry: pyright
+        language: system
+        types: [python]
+        pass_filenames: false
+  - repo: local
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: pylint download_pdfs.py
+        language: system
+        types: [python]
+        pass_filenames: false
+        args:
+          [
+            "-rn", # Only display messages
+            "-sn", # Don't display the score
+          ]

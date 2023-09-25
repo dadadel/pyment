@@ -2713,6 +2713,7 @@ class DocString(object):
                         raw += self.docs["out"]["spaces"] + rtype + "\n"
                         if ret_elem:
                             raw += self.docs["out"]["spaces"] + spaces + with_space(str(ret_elem)).strip()
+
             # case of a unique return
             # elif self.docs['out']['return'] is not None:
             # Length exactly 1
@@ -2720,6 +2721,7 @@ class DocString(object):
             elif isinstance(self.docs["out"]["return"], list) and self.docs["out"]["return"]:
                 ret_elem = self.docs["out"]["return"][0]
                 if type(ret_elem) is tuple and len(ret_elem) == 3:
+                    rtype = ret_elem[2]
                     if rtype is None:
                         rtype = ""
                     raw += self.docs["out"]["spaces"]
