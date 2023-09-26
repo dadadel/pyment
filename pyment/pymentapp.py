@@ -69,7 +69,7 @@ def get_files_from_dir(
     return file_list
 
 
-def get_config(config_file: str) -> Dict:
+def get_config(config_file: Optional[str]) -> Dict:
     """Get the configuration from a file.
 
     Parameters
@@ -190,6 +190,9 @@ def run(  # noqa: PLR0913, PLR0912 pylint: disable=too-many-locals, too-many-bra
         if init2class:
             comment.docs_init_to_class()
 
+        list_from: List[str] = []
+        list_to: List[str] = []
+        list_changed: List[str] = []
         if overwrite:
             list_from, list_to, list_changed = comment.compute_before_after()
             if (list_from == list_to) != (len(list_changed) == 0):
