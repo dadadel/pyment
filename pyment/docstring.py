@@ -849,7 +849,7 @@ class DocsTools(object):
     # TODO: enhance style dependent separation
     # TODO: add set methods to generate style specific outputs
     # TODO: manage C style (\param)
-    def __init__(self, style_in: str = "javadoc", style_out: str = "reST", params=None):
+    def __init__(self, style_in: str = "javadoc", style_out: str = "numpydoc", params=None):
         """Choose the kind of docstring type.
 
         :param style_in: docstring input style ('javadoc', 'reST', 'groups', 'numpydoc', 'google')
@@ -2821,25 +2821,33 @@ class DocString(object):
         desc = self.docs["out"]["desc"].strip()
         if not self.first_line:
             raw += "\n" + self.docs["out"]["spaces"]
+
         self.docs["out"]["desc"] = "\n".join(lines)
         raw += with_space(self.docs["out"]["desc"] if desc else "_summary_.").strip()
+
         # sets the parameters section
         raw += self._set_raw_params(sep)
+
         # sets the return section
         raw += self._set_raw_return(sep)
+
         # sets the raises section
         raw += self._set_raw_raise(sep)
+
         # sets post specific if any
         if "post" in self.docs["out"]:
             if with_space(self.docs["out"]["post"]).rstrip():
                 raw += with_space(self.docs["out"]["post"]).rstrip()
+
         # sets the doctests if any
         if "doctests" in self.docs["out"]:
             raw += "\n" + self.docs["out"]["spaces"] + with_space(self.docs["out"]["doctests"]).strip()
+
         if raw.count(self.quotes) == 1:
             if raw.count("\n") > 0:
                 raw += "\n" + self.docs["out"]["spaces"]
             raw += self.quotes
+
         self.docs["out"]["raw"] = raw.rstrip()
 
     def generate_docs(self):

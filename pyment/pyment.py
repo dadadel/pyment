@@ -33,7 +33,7 @@ class PyComment(object):
     The changes are then provided in a patch file.
 
     """
-    def __init__(self, input_file, input_style=None, output_style='reST', quotes='"""', first_line=True,
+    def __init__(self, input_file, input_style=None, output_style='numpydoc', quotes='"""', first_line=True,
                  convert_only=False, config_file=None, ignore_private=False, **kwargs):
         """Sets the configuration including the source to proceed and options.
 
