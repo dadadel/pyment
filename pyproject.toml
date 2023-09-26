@@ -47,7 +47,7 @@ select = [
     "NPY",
     "RUF",
 ]
-ignore = []
+ignore = ["ANN101", "ANN102"]
 
 # Exclude a variety of commonly ignored directories.
 exclude = [
@@ -115,3 +115,101 @@ reportAssertAlwaysTrue             = "error"
 reportUnnecessaryTypeIgnoreComment = "error"
 reportImplicitOverride             = "none"
 reportShadowedImports              = "error"
+
+[tool.pylint.main]
+# Specify a score threshold under which the program will exit with error.
+fail-under = 10.0
+
+[tool.pylint.basic]
+# Good variable names which should always be accepted, separated by a comma.
+good-names = ["i", "j", "k", "ex", "Run", "_", "x", "y", "z", "e", "ok"]
+include-naming-hint = true
+
+[tool.pylint.design]
+# Maximum number of arguments for function / method.
+max-args = 15
+
+# Maximum number of attributes for a class (see R0902).
+# Should be lowered to 7 but got no time for that atm
+max-attributes = 20
+
+# Maximum number of boolean expressions in an if statement (see R0916).
+max-bool-expr = 5
+
+# Maximum number of branch for function / method body.
+# Same as for max-attributes
+max-branches = 30
+
+# Maximum number of locals for function / method body.
+# Same as for max-attributes
+max-locals = 25
+
+# Maximum number of public methods for a class (see R0904).
+max-public-methods = 30
+
+# Maximum number of return / yield for function / method body.
+max-returns = 6
+
+# Maximum number of statements in function / method body.
+max-statements = 100
+
+# Minimum number of public methods for a class (see R0903).
+# Same as for max-attributes
+min-public-methods = 1
+
+[tool.pylint.exceptions]
+# Exceptions that will emit a warning when caught.
+overgeneral-exceptions = ["builtins.BaseException"]
+
+[tool.pylint.format]
+# Maximum number of characters on a single line.
+max-line-length = 88
+
+# Maximum number of lines in a module.
+max-module-lines = 2000
+
+[tool.pylint."messages control"]
+# Only show warnings with the listed confidence levels. Leave empty to show all.
+# Valid levels: HIGH, CONTROL_FLOW, INFERENCE, INFERENCE_FAILURE, UNDEFINED.
+confidence = ["HIGH", "CONTROL_FLOW", "INFERENCE", "INFERENCE_FAILURE", "UNDEFINED"]
+
+# Disable the message, report, category or checker with the given id(s). You can
+# either give multiple identifiers separated by comma (,) or put this option
+# multiple times (only on the command line, not in the configuration file where
+# it should appear only once). You can also use "--disable=all" to disable
+# everything first and then re-enable specific checks. For example, if you want
+# to run only the similarities checker, you can use "--disable=all
+# --enable=similarities". If you want to run only the classes checker, but have
+# no Warning level messages displayed, use "--disable=all --enable=classes
+# --disable=W".
+disable = ["unnecessary-ellipsis"] #  but needed for pyright
+
+[tool.pylint.miscellaneous]
+# List of note tags to take in consideration, separated by a comma.
+# notes = ["FIXME", "XXX", "TODO"]
+notes = []
+
+[tool.pylint.refactoring]
+# Maximum number of nested blocks for function / method body
+max-nested-blocks = 5
+
+# Complete name of functions that never returns. When checking for inconsistent-
+# return-statements if a never returning function is called then it will be
+# considered as an explicit return statement and no message will be printed.
+never-returning-functions = ["sys.exit", "argparse.parse_error"]
+
+[tool.pylint.reports]
+# Python expression which should return a score less than or equal to 10. You
+# have access to the variables 'fatal', 'error', 'warning', 'refactor',
+# 'convention', and 'info' which contain the number of messages in each category,
+# as well as 'statement' which is the total number of statements analyzed. This
+# score is used by the global evaluation report (RP0004).
+evaluation = "max(0, 0 if fatal else 10.0 - ((float(5 * error + warning + refactor + convention) / statement) * 10))"
+
+[tool.pylint.similarities]
+# Minimum lines number of a similarity.
+min-similarity-lines = 4
+
+[tool.pylint.spelling]
+# Limits count of emitted suggestions for spelling mistakes.
+max-spelling-suggestions = 4
