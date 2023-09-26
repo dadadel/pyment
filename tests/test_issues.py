@@ -1,34 +1,61 @@
 #!/usr/bin/python
+"""Testing issues raised on github."""
 
 import os
-import pyment.pyment as pym
+
 import pytest
 
+import pyment.pyment as pym
+
 current_dir = os.path.dirname(__file__)
-absdir = lambda f: os.path.join(current_dir, f)
+
+
+def absdir(file: str) -> str:
+    """Get absolute path for file.
+
+    Parameters
+    ----------
+    file : str
+        File path
+
+    Returns
+    -------
+    str
+        Absolute path to file
+    """
+    return os.path.join(current_dir, file)
 
 
 class TestIssues:
-    def test_issue_30(self):
+    """Class for testing raised issues."""
+
+    def test_issue_30(self) -> None:
+        """Test issue 30.
+
+        https://github.com/dadadel/pyment/issues/30
+        """
         # if file starting with a function/class definition, patching the file
         # will remove the first line!
-        p = pym.PyComment(
+        comment = pym.PyComment(
             absdir("refs/issue30.py"), input_style="numpydoc", output_style="numpydoc"
         )
-        p._parse()
-        assert p.parsed
+        comment._parse()
+        assert comment.parsed
         try:
-            p.diff()
-        except Exception as e:
-            pytest.fail('Raised exception: "{0}"'.format(e))
+            comment.diff()
+        except Exception as e:  # noqa: BLE001
+            pytest.fail(f'Raised exception: "{e}"')
 
-    def test_issue_49(self):
+    def test_issue_49(self) -> None:
+        """Test issue 49.
+
+        https://github.com/dadadel/pyment/issues/49
+        """
         # Title: If already numpydoc format, will remove the Raises section
         # If the last section in a numpydoc docstring is a `Raises` section,
         # it will be removed if the output format is also set to numpydoc
-        p = pym.PyComment(absdir("refs/issue49.py"), output_style="numpydoc")
-        p._parse()
-        assert p.parsed
-        result = "".join(p.diff())
-        print(result)
+        comment = pym.PyComment(absdir("refs/issue49.py"), output_style="numpydoc")
+        comment._parse()
+        assert comment.parsed
+        result = "".join(comment.diff())
         assert result == ""
