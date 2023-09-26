@@ -1,18 +1,37 @@
 #!/usr/bin/python
+"""Some more general pyment tests."""
 
-import shutil
+
 import os
+import pathlib
+import shutil
+
 import pyment.pyment as pym
 
 CURRENT_DIR = os.path.dirname(__file__)
-def absdir(f):
-    return os.path.join(CURRENT_DIR, f)
+
+
+def absdir(file: str) -> str:
+    """Get absolute path for file.
+
+    Parameters
+    ----------
+    file : str
+        File path
+
+    Returns
+    -------
+    str
+        Absolute path to file
+    """
+    return os.path.join(CURRENT_DIR, file)
 
 
 class TestDocStrings:
+    """Test correct parsing of docstrings."""
 
-    def setup_class(self):
-
+    def setup_class(self) -> None:
+        """Set up class by setting file paths."""
         self.myelem = '    def my_method(self, first, second=None, third="value"):'
         self.mydocs = '''        """This is a description of a method.
                 It is on several lines.
@@ -32,72 +51,73 @@ class TestDocStrings:
 
                 """'''
 
-
-
-        self.inifile = absdir('refs/origin_test.py')
-        self.jvdfile = absdir('refs/javadoc_test.py')
-        self.rstfile = absdir('refs/rest_test.py')
+        self.inifile = absdir("refs/origin_test.py")
+        self.jvdfile = absdir("refs/javadoc_test.py")
+        self.rstfile = absdir("refs/rest_test.py")
         self.foo = absdir("refs/foo")
 
         # prepare test file
         txt = ""
         shutil.copyfile(self.inifile, self.jvdfile)
-        with open(self.jvdfile, 'r') as fs:
-            txt = fs.read()
+        txt = pathlib.Path(self.jvdfile).read_text()
         txt = txt.replace("@return", ":returns")
         txt = txt.replace("@raise", ":raises")
         txt = txt.replace("@", ":")
-        with open(self.rstfile, 'w') as ft:
-            ft.write(txt)
-        with open(self.foo, "w") as fooo:
+        with open(self.rstfile, "w", encoding="utf-8") as rstfile:
+            rstfile.write(txt)
+        with open(self.foo, "w", encoding="utf-8") as fooo:
             fooo.write("foo")
-        print("setup")
 
-    def teardown_class(self):
+    def teardown_class(self) -> None:
+        """Tear down class by deleting files."""
         os.remove(self.jvdfile)
         os.remove(self.rstfile)
         os.remove(self.foo)
-        print("end")
 
-    def test_parsed_javadoc(self):
-        p = pym.PyComment(self.inifile)
-        p._parse()
-        assert p.parsed
+    def test_parsed_javadoc(self) -> None:
+        """Test that javadoc comments get parsed."""
+        comment = pym.PyComment(self.inifile)
+        comment._parse()
+        assert comment.parsed
 
-    def test_same_out_javadoc_reST(self):
+    def test_same_out_javadoc_reST(self) -> None:  # noqa: N802
+        """Test that javadoc and rest comments are parsed equivalently."""
         pj = pym.PyComment(self.jvdfile)
         pr = pym.PyComment(self.rstfile)
         pj._parse()
         pr._parse()
         assert pj.get_output_docs() == pr.get_output_docs()
 
-    def test_multi_lines_elements(self):
-        p = pym.PyComment(self.inifile)
-        p._parse()
-        assert 'first' in p.get_output_docs()[1]
-        assert 'second' in p.get_output_docs()[1]
-        assert 'third' in p.get_output_docs()[1]
-        assert 'multiline' in p.get_output_docs()[1]
+    def test_multi_lines_elements(self) -> None:
+        """Test that multiline elements are parsed correctly."""
+        comment = pym.PyComment(self.inifile)
+        comment._parse()
+        assert "first" in comment.get_output_docs()[1]
+        assert "second" in comment.get_output_docs()[1]
+        assert "third" in comment.get_output_docs()[1]
+        assert "multiline" in comment.get_output_docs()[1]
 
-    def test_multi_lines_shift_elements(self):
-        p = pym.PyComment(self.inifile)
-        p._parse()
-        #TODO: improve this test
-        assert (len(p.get_output_docs()[13])-len(p.get_output_docs()[13].lstrip())) == 8
-        assert 'first' in p.get_output_docs()[13]
-        assert 'second' in p.get_output_docs()[13]
-        assert 'third' in p.get_output_docs()[13]
-        assert 'multiline' in p.get_output_docs()[13]
+    def test_multi_lines_shift_elements(self) -> None:
+        """Test that multiline elements are parsed correctly."""
+        comment = pym.PyComment(self.inifile)
+        comment._parse()
+        assert (
+            len(comment.get_output_docs()[13])
+            - len(comment.get_output_docs()[13].lstrip())
+        ) == 8
+        assert "first" in comment.get_output_docs()[13]
+        assert "second" in comment.get_output_docs()[13]
+        assert "third" in comment.get_output_docs()[13]
+        assert "multiline" in comment.get_output_docs()[13]
 
-    def test_windows_rename(self):
+    def test_windows_rename(self) -> None:
+        """Check that renaming works correctly."""
         bar = absdir("bar")
-        with open(bar, "w") as fbar:
+        with open(bar, "w", encoding="utf-8") as fbar:
             fbar.write("bar")
-        p = pym.PyComment(self.foo)
-        p._windows_rename(bar)
+        comment = pym.PyComment(self.foo)
+        comment._windows_rename(bar)
         assert not os.path.isfile(bar)
         assert os.path.isfile(self.foo)
-        with open(self.foo, "r") as fooo:
-            foo_txt = fooo.read()
+        foo_txt = pathlib.Path(self.foo).read_text()
         assert foo_txt == "bar"
-
