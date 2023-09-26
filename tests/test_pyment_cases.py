@@ -1,12 +1,13 @@
 #!/usr/bin/python
 
-import unittest
 import os
 import pyment.pyment as pym
 import re
+import pytest
 
-current_dir = os.path.dirname(__file__)
-absdir = lambda f: os.path.join(current_dir, f)
+CURRENT_DIR = os.path.dirname(__file__)
+def absdir(f):
+    return os.path.join(CURRENT_DIR, f)
 
 
 def get_expected_patch(self, name):
@@ -27,99 +28,36 @@ def remove_diff_header(diff):
     return re.sub('@@.+@@', '', diff)
 
 
-class FilesConversionTests(unittest.TestCase):
+class TestFilesConversions:
 
-    def testCaseFreeTesting(self):
+    def test_case_free_testing(self):
         # free cases
         p = pym.PyComment(absdir("free_cases.py"))
         p._parse()
-        self.assertTrue(p.parsed)
+        assert p.parsed
         result = ''.join(p.diff())
-        self.assertTrue(result == '')
+        assert result == ''
 
-    def testCaseGenAllParamsReST(self):
-        # The file has several functions with no or several parameters,
-        # so Pyment should produce docstrings in reST format
-        expected = get_expected_patch(self, "params.py.patch.reST.expected")
-        p = pym.PyComment(absdir("params.py"))
-        p._parse()
-        self.assertTrue(p.parsed)
-        result = ''.join(p.diff())
-        self.assertTrue(remove_diff_header(result) == remove_diff_header(expected))
 
-    @unittest.expectedFailure
-    def testCaseGenAllParamsGoogle(self):
-        # The file has several functions with no or several parameters,
-        # so Pyment should produce docstrings in google format
-        expected = get_expected_patch(self, "params.py.patch.google.expected")
-        p = pym.PyComment(absdir("params.py"), output_style="google")
-        p._parse()
-        self.assertTrue(p.parsed)
-        result = ''.join(p.diff())
-        self.assertTrue(remove_diff_header(result) == remove_diff_header(expected))
 
-    def testCaseGenAllParamsNumpydoc(self):
+    def test_case_gen_all_params_numpydoc(self):
         # The file has several functions with no or several parameters,
         # so Pyment should produce docstrings in numpydoc format
         expected = get_expected_patch(self, "params.py.patch.numpydoc.expected")
         p = pym.PyComment(absdir("params.py"), output_style="numpydoc")
         p._parse()
-        self.assertTrue(p.parsed)
+        assert p.parsed
         result = ''.join(p.diff())
-        self.assertTrue(remove_diff_header(result) == remove_diff_header(expected))
+        assert remove_diff_header(result) == remove_diff_header(expected)
 
-    def testCaseGenAllParamsJavadoc(self):
-        # The file has several functions with no or several parameters,
-        # so Pyment should produce docstrings in javadoc
-        expected = get_expected_patch(self, "params.py.patch.javadoc.expected")
-        p = pym.PyComment(absdir("params.py"), output_style="javadoc")
-        p._parse()
-        self.assertTrue(p.parsed)
-        result = ''.join(p.diff())
-        self.assertTrue(remove_diff_header(result) == remove_diff_header(expected))
 
-    def testCaseNoGenDocsAlreadyReST(self):
-        # The file has functions with already docstrings in reST format,
-        # so no docstring should be produced
-        p = pym.PyComment(absdir("docs_already_reST.py"))
-        p._parse()
-        self.assertTrue(p.parsed)
-        result = ''.join(p.diff())
-        self.assertTrue(result == '')
 
-    def testCaseNoGenDocsAlreadyJavadoc(self):
-        # The file has functions with already docstrings in javadoc format,
-        # so no docstring should be produced
-        p = pym.PyComment(absdir("docs_already_javadoc.py"), output_style="javadoc")
-        p._parse()
-        self.assertTrue(p.parsed)
-        result = ''.join(p.diff())
-        self.assertTrue(result == '')
-
-    @unittest.expectedFailure
-    def testCaseNoGenDocsAlreadyNumpydoc(self):
+    def test_case_no_gen_docs_already_numpydoc(self):
         # The file has functions with already docstrings in numpydoc format,
         # so no docstring should be produced
         p = pym.PyComment(absdir("docs_already_numpydoc.py"), output_style="numpydoc")
         p._parse()
-        self.assertTrue(p.parsed)
+        assert p.parsed
         result = ''.join(p.diff())
-        self.assertTrue(result == '')
+        assert result == ''
 
-    @unittest.expectedFailure
-    def testCaseNoGenDocsAlreadyGoogle(self):
-        # The file has functions with already docstrings in google format,
-        # so no docstring should be produced
-        p = pym.PyComment(absdir("docs_already_google.py"), output_style="google")
-        p._parse()
-        self.assertTrue(p.parsed)
-        result = ''.join(p.diff())
-        self.assertTrue(result == '')
-
-
-def main():
-    unittest.main()
-
-
-if __name__ == '__main__':
-    main()

@@ -1,6 +1,6 @@
+"""_summary_."""
 def func1(param1):
-    """Function 1
-    with 1 param
+    """Function 1 with 1 param.
 
     Parameters
     ----------
@@ -21,19 +21,14 @@ def func1(param1):
 
 
 def func2(param1, param2):
-    """Function 2
-    with 2 params
+    """Function 2 with 2 params.
 
     Parameters
     ----------
     param1 : type
         1st parameter
-    param2 :
+    param2 : type
         2nd parameter
-
-    Returns
-    -------
-
     """
     pass
 

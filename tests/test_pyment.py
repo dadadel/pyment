@@ -1,109 +1,103 @@
 #!/usr/bin/python
 
-import unittest
 import shutil
 import os
 import pyment.pyment as pym
 
-myelem = '    def my_method(self, first, second=None, third="value"):'
-mydocs = '''        """This is a description of a method.
-        It is on several lines.
-        Several styles exists:
-            -javadoc,
-            -reST,
-            -cstyle.
-        It uses the javadoc style.
-
-        @param first: the 1st argument.
-        with multiple lines
-        @type first: str
-        @param second: the 2nd argument.
-        @return: the result value
-        @rtype: int
-        @raise KeyError: raises exception
-
-        """'''
-
-current_dir = os.path.dirname(__file__)
-absdir = lambda f: os.path.join(current_dir, f)
-
-inifile = absdir('origin_test.py')
-jvdfile = absdir('javadoc_test.py')
-rstfile = absdir('rest_test.py')
-foo = absdir("foo")
+CURRENT_DIR = os.path.dirname(__file__)
+def absdir(f):
+    return os.path.join(CURRENT_DIR, f)
 
 
-class DocStringTests(unittest.TestCase):
+class TestDocStrings:
 
-    @classmethod
-    def setUpClass(cls):
+    def setup_class(self):
+
+        self.myelem = '    def my_method(self, first, second=None, third="value"):'
+        self.mydocs = '''        """This is a description of a method.
+                It is on several lines.
+                Several styles exists:
+                    -javadoc,
+                    -reST,
+                    -cstyle.
+                It uses the javadoc style.
+
+                @param first: the 1st argument.
+                with multiple lines
+                @type first: str
+                @param second: the 2nd argument.
+                @return: the result value
+                @rtype: int
+                @raise KeyError: raises exception
+
+                """'''
+
+
+
+        self.inifile = absdir('origin_test.py')
+        self.jvdfile = absdir('javadoc_test.py')
+        self.rstfile = absdir('rest_test.py')
+        self.foo = absdir("foo")
+
         # prepare test file
         txt = ""
-        shutil.copyfile(inifile, jvdfile)
-        with open(jvdfile, 'r') as fs:
+        shutil.copyfile(self.inifile, self.jvdfile)
+        with open(self.jvdfile, 'r') as fs:
             txt = fs.read()
         txt = txt.replace("@return", ":returns")
         txt = txt.replace("@raise", ":raises")
         txt = txt.replace("@", ":")
-        with open(rstfile, 'w') as ft:
+        with open(self.rstfile, 'w') as ft:
             ft.write(txt)
-        with open(foo, "w") as fooo:
+        with open(self.foo, "w") as fooo:
             fooo.write("foo")
         print("setup")
 
-    @classmethod
-    def tearDownClass(cls):
-        os.remove(jvdfile)
-        os.remove(rstfile)
-        os.remove(foo)
+    def teardown_class(self):
+        os.remove(self.jvdfile)
+        os.remove(self.rstfile)
+        os.remove(self.foo)
         print("end")
 
-    def testParsedJavadoc(self):
-        p = pym.PyComment(inifile)
+    def test_parsed_javadoc(self):
+        p = pym.PyComment(self.inifile)
         p._parse()
-        self.assertTrue(p.parsed)
+        assert p.parsed
 
-    def testSameOutJavadocReST(self):
-        pj = pym.PyComment(jvdfile)
-        pr = pym.PyComment(rstfile)
+    def test_same_out_javadoc_reST(self):
+        pj = pym.PyComment(self.jvdfile)
+        pr = pym.PyComment(self.rstfile)
         pj._parse()
         pr._parse()
-        self.assertEqual(pj.get_output_docs(), pr.get_output_docs())
+        assert pj.get_output_docs() == pr.get_output_docs()
 
-    def testMultiLinesElements(self):
-        p = pym.PyComment(inifile)
+    def test_multi_lines_elements(self):
+        p = pym.PyComment(self.inifile)
         p._parse()
-        self.assertTrue('first' in p.get_output_docs()[1])
-        self.assertTrue('second' in p.get_output_docs()[1])
-        self.assertTrue('third' in p.get_output_docs()[1])
-        self.assertTrue('multiline' in p.get_output_docs()[1])
+        assert 'first' in p.get_output_docs()[1]
+        assert 'second' in p.get_output_docs()[1]
+        assert 'third' in p.get_output_docs()[1]
+        assert 'multiline' in p.get_output_docs()[1]
 
-    def testMultiLinesShiftElements(self):
-        p = pym.PyComment(inifile)
+    def test_multi_lines_shift_elements(self):
+        p = pym.PyComment(self.inifile)
         p._parse()
         #TODO: improve this test
-        self.assertEqual((len(p.get_output_docs()[13])-len(p.get_output_docs()[13].lstrip())), 8)
-        self.assertTrue('first' in p.get_output_docs()[13])
-        self.assertTrue('second' in p.get_output_docs()[13])
-        self.assertTrue('third' in p.get_output_docs()[13])
-        self.assertTrue('multiline' in p.get_output_docs()[13])
+        assert (len(p.get_output_docs()[13])-len(p.get_output_docs()[13].lstrip())) == 8
+        assert 'first' in p.get_output_docs()[13]
+        assert 'second' in p.get_output_docs()[13]
+        assert 'third' in p.get_output_docs()[13]
+        assert 'multiline' in p.get_output_docs()[13]
 
-    def testWindowsRename(self):
+    def test_windows_rename(self):
         bar = absdir("bar")
         with open(bar, "w") as fbar:
             fbar.write("bar")
-        p = pym.PyComment(foo)
+        p = pym.PyComment(self.foo)
         p._windows_rename(bar)
-        self.assertFalse(os.path.isfile(bar))
-        self.assertTrue(os.path.isfile(foo))
-        with open(foo, "r") as fooo:
+        assert not os.path.isfile(bar)
+        assert os.path.isfile(self.foo)
+        with open(self.foo, "r") as fooo:
             foo_txt = fooo.read()
-        self.assertTrue(foo_txt == "bar")
+        assert foo_txt == "bar"
 
-
-def main():
-    unittest.main()
-
-
-if __name__ == '__main__':
-    main()

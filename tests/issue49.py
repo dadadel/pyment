@@ -1,5 +1,6 @@
+"""_summary_."""
 def func1(param1):
-    """Function to test issue #49
+    """Function to test issue #49.
 
     Parameters
     ----------
@@ -15,7 +16,5 @@ def func1(param1):
     ------
     AssertionError
         Raises an error if run
-
-    
     """
     assert False
