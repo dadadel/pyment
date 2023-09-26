@@ -116,7 +116,6 @@ def run(  # noqa: PLR0913, PLR0912 pylint: disable=too-many-locals, too-many-bra
     config_file: Optional[str] = None,
     ignore_private: bool = False,
     overwrite: bool = False,
-    trailing_whitespace: bool = True,
 ) -> None:
     r"""_summary_.
 
@@ -144,8 +143,6 @@ def run(  # noqa: PLR0913, PLR0912 pylint: disable=too-many-locals, too-many-bra
         _description_ (Default value = False)
     overwrite : bool
         _description_ (Default value = False)
-    trailing_whitespace : bool
-        _description_ (Default value = True)
     """
     if files is None:
         files = []
@@ -183,7 +180,6 @@ def run(  # noqa: PLR0913, PLR0912 pylint: disable=too-many-locals, too-many-bra
             first_line=first_line,
             ignore_private=ignore_private,
             convert_only=convert,
-            trailing_whitespace=trailing_whitespace,
             **config,
         )
         comment.proceed()
@@ -317,15 +313,6 @@ def main() -> None:
         "If used with path '-' won't overwrite but write "
         "to stdout the new content instead of a patch/.",
     )
-    parser.add_argument(
-        "-s",
-        "--no-trailing_space",
-        action="store_true",
-        default=False,
-        help="If set, no trailing space will be inserted in places where the user",
-    )
-    # parser.add_argument('-c', '--config', metavar='config_file',
-    #                   dest='config', help='Configuration file')
 
     args = parser.parse_args()
     source = ""
@@ -349,7 +336,6 @@ def main() -> None:
         config_file=config_file,
         ignore_private=tobool(args.ignore_private),
         overwrite=args.overwrite,
-        trailing_whitespace=not args.no_trailing_space,
     )
 
 

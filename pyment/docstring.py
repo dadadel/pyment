@@ -1728,7 +1728,7 @@ class DocString(object):
         trailing_space: bool = True,
         type_stub: bool = False,
         before_lim: str = "",
-        **kwargs,
+        indent: int = 2,
     ):
         """
         :param elem_raw: raw data of the element (def or class).
@@ -1797,7 +1797,7 @@ class DocString(object):
                 "return": None,
                 "rtype": None,
                 "raises": [],
-                "spaces": spaces + " " * kwargs.get("indent", 2),
+                "spaces": spaces + " " * indent,
             },
         }
         if "\t" in spaces:

@@ -1,10 +1,11 @@
-# -*- coding: utf-8 -*-
+"""Module for general managment of writing docstrings of multiple files."""
 
-import os
-import re
 import difflib
+import os
 import platform
+import re
 import sys
+from typing import Dict, List, Literal, Optional, Tuple
 
 from .docstring import DocString
 
@@ -14,7 +15,7 @@ __licence__ = "GPL3"
 __version__ = "0.4.0dev"
 __maintainer__ = "A. Daouzli"
 
-#TODO:
+# TODO:
 # -generate a return if return is used with argument in element
 # -generate raises if raises are used
 # -generate diagnosis/statistics
@@ -27,14 +28,25 @@ __maintainer__ = "A. Daouzli"
 # -dev a server that take sources and send back patches
 
 
-class PyComment(object):
+class PyComment:
     """This class allow to manage several python scripts docstrings.
     It is used to parse and rewrite in a Pythonic way all the functions', methods' and classes' docstrings.
     The changes are then provided in a patch file.
 
     """
-    def __init__(self, input_file, input_style=None, output_style='numpydoc', quotes='"""', first_line=True,
-                 convert_only=False, config_file=None, ignore_private=False, **kwargs):
+
+    def __init__(
+        self,
+        input_file: str,
+        input_style: Optional[str]=None,
+        output_style: str="numpydoc",
+        quotes: Literal["'''", '"""']='"""',
+        first_line: bool=True,
+        convert_only: bool=False,
+        config_file: Optional[Dict]=None,
+        ignore_private: bool=False,
+        indent: int = 2,
+    ) -> None:
         """Sets the configuration including the source to proceed and options.
 
         :param input_file: path name (file or folder)
@@ -52,7 +64,7 @@ class PyComment(object):
         :type trailing_space: boolean
 
         """
-        self.file_type = '.py'
+        self.file_type = ".py"
         self.first_line = first_line
         self.filename_list = []
         self.input_file = input_file
@@ -68,7 +80,7 @@ class PyComment(object):
         self.config_file = config_file
         self.ignore_private = ignore_private
         self.trailing_space = False
-        self.kwargs = kwargs
+        self.indent = indent
         self.module_doc_index = 0
         self.module_doc_found = False
         self.module_doc_period_missing = False
@@ -94,37 +106,38 @@ class PyComment(object):
             return True
         return False
 
-    def _parse(self):
+    def _parse(self) -> List[Dict]:
         """Parses the input file's content and generates a list of its elements/docstrings.
 
         :returns: the list of elements
 
         """
-        #TODO manage decorators
-        #TODO manage default params with strings escaping chars as (, ), ', ', #, ...
-        #TODO manage elements ending with comments like: def func(param): # blabla
+        # TODO manage decorators
+        # TODO manage default params with strings escaping chars as (, ), ', ', #, ...
+        # TODO manage elements ending with comments like: def func(param): # blabla
         elem_list = []
         reading_element = None
         reading_docs = None
         waiting_docs = False
-        elem = ''
-        raw = ''
+        elem = ""
+        raw = ""
         start = 0
         end = 0
         before_lim = ""
         try:
-            if self.input_file == '-':
-                folder = sys.stdin
-            else:
-                folder = open(self.input_file)
+            folder = sys.stdin if self.input_file == "-" else open(self.input_file)
 
             self.input_lines = folder.readlines()
 
-            if self.input_file != '-':
+            if self.input_file != "-":
                 folder.close()
 
-        except IOError as exc:
-            msg = BaseException('Failed to open file "' + self.input_file + '". Please provide a valid file.')
+        except OSError as exc:
+            msg = BaseException(
+                'Failed to open file "'
+                + self.input_file
+                + '". Please provide a valid file.'
+            )
             raise msg from exc
 
         for i, ln in enumerate(self.input_lines):
@@ -132,8 +145,8 @@ class PyComment(object):
             # Fix or add docstring to beginning of file
             if i < 3 and not self.module_doc_found:
                 if self._is_shebang_or_pragma(ln):
-                    self.module_doc_index = i+1
-                elif ln.startswith('"""') or ln.startswith("'''"):
+                    self.module_doc_index = i + 1
+                elif ln.startswith(('"""', "'''")):
                     lim = ln[0:3]
                     self.module_doc_found = True
                     self.module_doc_index = i
@@ -141,41 +154,48 @@ class PyComment(object):
                         self.module_doc_period_missing = True
             if reading_element:
                 elem += l
-                if l.endswith(':'):
-                    reading_element = 'end'
-            elif (l.startswith('async def ') or l.startswith('def ') or l.startswith('class ')) and not reading_docs:
-                if self.ignore_private and l[l.find(' '):].strip().startswith("__"):
+                if l.endswith(":"):
+                    reading_element = "end"
+            elif (
+                l.startswith(("async def ", "def ", "class "))
+            ) and not reading_docs:
+                if self.ignore_private and l[l.find(" ") :].strip().startswith("__"):
                     continue
-                reading_element = 'start'
+                reading_element = "start"
                 elem = l
-                m = re.match(r'^(\s*)[adc]', ln)  # a for async, d for def, c for class
-                if m is not None and m.group(1) is not None:
-                    spaces = m.group(1)
-                else:
-                    spaces = ''
+                m = re.match(r"^(\s*)[adc]", ln)  # a for async, d for def, c for class
+                spaces = m.group(1) if m is not None and m.group(1) is not None else ""
                 # the end of definition should be ':' and eventually a comment following
                 # FIXME: but this is missing eventually use of # inside a string value of parameter
-                if re.search(r''':(|\s*#[^'"]*)$''', l):
-                    reading_element = 'end'
-            if reading_element == 'end':
+                if re.search(r""":(|\s*#[^'"]*)$""", l):
+                    reading_element = "end"
+            if reading_element == "end":
                 reading_element = None
                 # if currently reading an element content
                 waiting_docs = True
                 # *** Creates the DocString object ***
-                e = DocString(elem.replace('\n', ' '), spaces, quotes=self.quotes,
-                              input_style=self.input_style,
-                              output_style=self.output_style,
-                              first_line=self.first_line,
-                              trailing_space=self.trailing_space,
-                              **self.kwargs)
-                elem_list.append({'docs': e, 'location': (-i, -i)})
+                e = DocString(
+                    elem.replace("\n", " "),
+                    spaces,
+                    quotes=self.quotes,
+                    input_style=self.input_style,
+                    output_style=self.output_style,
+                    first_line=self.first_line,
+                    trailing_space=self.trailing_space,
+                    indent=self.indent,
+                )
+                elem_list.append({"docs": e, "location": (-i, -i)})
             else:
                 if waiting_docs and ('"""' in l or "'''" in l):
                     # not docstring
                     if not reading_docs and not (
-                            l[:3] in ['"""', "'''"] or
-                            (l[0] in ['r', 'u', 'f'] and l[1:4] in ['"""', "'''"]) or
-                            (l[0] in ['r', 'u', 'f'] and l[1] in ['r', 'u', 'f'] and l[2:5] in ['"""', "'''"])
+                        l[:3] in ['"""', "'''"]
+                        or (l[0] in ["r", "u", "f"] and l[1:4] in ['"""', "'''"])
+                        or (
+                            l[0] in ["r", "u", "f"]
+                            and l[1] in ["r", "u", "f"]
+                            and l[2:5] in ['"""', "'''"]
+                        )
                     ):
                         waiting_docs = False
                     # start of docstring bloc
@@ -186,10 +206,7 @@ class PyComment(object):
                         idx_dc = l.find("'''")
                         lim = '"""'
                         if idx_c >= 0 and idx_dc >= 0:
-                            if idx_c < idx_dc:
-                                lim = '"""'
-                            else:
-                                lim = "'''"
+                            lim = '"""' if idx_c < idx_dc else "'''"
                         elif idx_c < 0:
                             lim = "'''"
                         reading_docs = lim
@@ -199,32 +216,32 @@ class PyComment(object):
                             idx_abs_lim = ln.find(lim)
                             # remove and keep the prefix r|f|u
                             before_lim = l[:idx_strip_lim]
-                            ln = ln[:idx_abs_lim-idx_strip_lim]+ln[idx_abs_lim:]
+                            ln = ln[: idx_abs_lim - idx_strip_lim] + ln[idx_abs_lim:]
                         raw = ln
                         # one line docstring
                         if l.count(lim) == 2:
                             end = i
-                            elem_list[-1]['docs'].parse_docs(raw, before_lim)
-                            elem_list[-1]['location'] = (start, end)
+                            elem_list[-1]["docs"].parse_docs(raw, before_lim)
+                            elem_list[-1]["location"] = (start, end)
                             reading_docs = None
                             waiting_docs = False
                             reading_element = False
-                            raw = ''
+                            raw = ""
                     # end of docstring bloc
                     elif waiting_docs and lim in l:
                         end = i
                         raw += ln
-                        elem_list[-1]['docs'].parse_docs(raw, before_lim)
-                        elem_list[-1]['location'] = (start, end)
+                        elem_list[-1]["docs"].parse_docs(raw, before_lim)
+                        elem_list[-1]["location"] = (start, end)
                         reading_docs = None
                         waiting_docs = False
                         reading_element = False
-                        raw = ''
+                        raw = ""
                     # inside a docstring bloc
                     elif waiting_docs:
                         raw += ln
                 # no docstring found for current element
-                elif waiting_docs and l != '' and reading_docs is None:
+                elif waiting_docs and l != "" and reading_docs is None:
                     waiting_docs = False
                 else:
                     if reading_docs is not None:
@@ -232,7 +249,7 @@ class PyComment(object):
         if self.convert_only:
             i = 0
             while i < len(elem_list):
-                if elem_list[i]['docs'].get_input_docstring() is None:
+                if elem_list[i]["docs"].get_input_docstring() is None:
                     elem_list.pop(i)
                 else:
                     i += 1
@@ -240,7 +257,7 @@ class PyComment(object):
         self.parsed = True
         return elem_list
 
-    def docs_init_to_class(self):
+    def docs_init_to_class(self) -> bool:
         """If found a __init__ method's docstring and the class
         without any docstring, so set the class docstring with __init__one,
         and let __init__ without docstring.
@@ -255,27 +272,30 @@ class PyComment(object):
         einit = []
         eclass = []
         for e in self.docs_list:
-            if len(eclass) == len(einit) + 1 and e['docs'].element['name'] == '__init__':
+            if (
+                len(eclass) == len(einit) + 1
+                and e["docs"].element["name"] == "__init__"
+            ):
                 einit.append(e)
-            elif not eclass and e['docs'].element['deftype'] == 'class':
+            elif not eclass and e["docs"].element["deftype"] == "class":
                 eclass.append(e)
         for c, i in zip(eclass, einit):
-            start, _ = c['location']
+            start, _ = c["location"]
             if start < 0:
-                start, _ = i['location']
+                start, _ = i["location"]
                 if start > 0:
                     result = True
-                    cspaces = c['docs'].get_spaces()
-                    ispaces = i['docs'].get_spaces()
-                    c['docs'].set_spaces(ispaces)
-                    i['docs'].set_spaces(cspaces)
-                    c['docs'].generate_docs()
-                    i['docs'].generate_docs()
-                    c['docs'], i['docs'] = i['docs'], c['docs']
+                    cspaces = c["docs"].get_spaces()
+                    ispaces = i["docs"].get_spaces()
+                    c["docs"].set_spaces(ispaces)
+                    i["docs"].set_spaces(cspaces)
+                    c["docs"].generate_docs()
+                    i["docs"].generate_docs()
+                    c["docs"], i["docs"] = i["docs"], c["docs"]
         return result
 
-    def get_output_docs(self):
-        """Return the output docstrings once formatted
+    def get_output_docs(self) -> List:
+        """Return the output docstrings once formatted.
 
         :returns: the formatted docstrings
         :rtype: list
@@ -285,10 +305,10 @@ class PyComment(object):
             self._parse()
         lst = []
         for e in self.docs_list:
-            lst.append(e['docs'].get_raw_docs())
+            lst.append(e["docs"].get_raw_docs())
         return lst
 
-    def compute_before_after(self):
+    def compute_before_after(self) -> Tuple[List[str], List[str], List[str]]:
         """Compute the list of lines before and after the proposed docstring changes.
 
         :return: tuple of before,after where each is a list of lines of python code.
@@ -301,18 +321,20 @@ class PyComment(object):
         last = 0
         for e in self.docs_list:
             elem_name = e["docs"].element["name"]
-            in_docstring = e['docs'].docs["in"]["pure_raw"]
-            out_docstring = self.get_stripped_out_docstring(e['docs'].docs["out"]["raw"])
+            in_docstring = e["docs"].docs["in"]["pure_raw"]
+            out_docstring = self.get_stripped_out_docstring(
+                e["docs"].docs["out"]["raw"]
+            )
             if in_docstring != out_docstring:
                 list_changed.append(elem_name)
-            start, end = e['location']
+            start, end = e["location"]
             if start <= 0:
                 start, end = -start, -end
-                list_to.extend(list_from[last:start + 1])
+                list_to.extend(list_from[last : start + 1])
             else:
                 list_to.extend(list_from[last:start])
-            docs = e['docs'].get_raw_docs()
-            list_docs = [l + '\n' for l in docs.splitlines()]
+            docs = e["docs"].get_raw_docs()
+            list_docs = [l + "\n" for l in docs.splitlines()]
             list_to.extend(list_docs)
             last = end + 1
         if last < len(list_from):
@@ -323,11 +345,12 @@ class PyComment(object):
         elif self.module_doc_period_missing:
             module_doc_first_line = list_to[self.module_doc_index]
             lim = module_doc_first_line[0:3]
-            list_to[self.module_doc_index] = lim + module_doc_first_line.strip().replace(lim, "") + "." + lim + "\n"
+            list_to[self.module_doc_index] = (
+                lim + module_doc_first_line.strip().replace(lim, "") + "." + lim + "\n"
+            )
             list_changed.insert(0, "Module")
 
         return list_from, list_to, list_changed
-
 
     def get_stripped_out_docstring(self, doc_string: str) -> str:
         """Strip and remove docstring quotes from docstring.
@@ -346,13 +369,13 @@ class PyComment(object):
             Stripped docstring
         """
         doc_string = doc_string.strip()
-        if doc_string.startswith('"""') or doc_string.startswith("'''"):
+        if doc_string.startswith(('"""', "'''")):
             doc_string = doc_string[3:]
-        if doc_string.endswith('"""') or doc_string.endswith("'''"):
+        if doc_string.endswith(('"""', "'''")):
             doc_string = doc_string[:-3]
         return doc_string
 
-    def diff(self, source_path='', target_path='', which=-1):
+    def diff(self, source_path: str="", target_path: str="") -> List[str]:
         """Build the diff between original docstring and proposed docstring.
 
         :type which: int
@@ -374,13 +397,13 @@ class PyComment(object):
         if target_path and not target_path.endswith(os.sep):
             target_path += os.sep
 
-        fromfile = 'a/' + source_path + os.path.basename(self.input_file)
-        tofile = 'b/' + target_path + os.path.basename(self.input_file)
+        fromfile = "a/" + source_path + os.path.basename(self.input_file)
+        tofile = "b/" + target_path + os.path.basename(self.input_file)
         diff_list = difflib.unified_diff(list_from, list_to, fromfile, tofile)
-        return [d for d in diff_list]
+        return list(diff_list)
 
-    def get_patch_lines(self, source_path, target_path):
-        """Return the diff between source_path and target_path
+    def get_patch_lines(self, source_path: str, target_path: str) -> List[str]:
+        """Return the diff between source_path and target_path.
 
         :param source_path: name of the original file (Default value = '')
         :param target_path: name of the final file (Default value = '')
@@ -390,10 +413,10 @@ class PyComment(object):
         """
         diff = self.diff(source_path, target_path)
 
-        return ["# Patch generated by Pyment v{0}\n\n".format(__version__)] + diff
+        return [f"# Patch generated by Pyment v{__version__}\n\n", *diff]
 
-    def write_patch_file(self, patch_file, lines_to_write):
-        """Write lines_to_write to a the file called patch_file
+    def write_patch_file(self, patch_file: str, lines_to_write: List[str]) -> None:
+        """Write lines_to_write to a the file called patch_file.
 
         :param patch_file: file name of the patch to generate
         :param lines_to_write: lines to write to the file - they should be \n terminated
@@ -401,43 +424,42 @@ class PyComment(object):
 
         :return: None
         """
-        with open(patch_file, 'w') as f:
+        with open(patch_file, "w", encoding="utf-8") as f:
             f.writelines(lines_to_write)
 
-    def overwrite_source_file(self, lines_to_write):
-        """overwrite the file with line_to_write
+    def overwrite_source_file(self, lines_to_write: List[str]) -> None:
+        """Overwrite the file with line_to_write.
 
         :param lines_to_write: lines to write to the file - they should be \n terminated
         :type lines_to_write: List[str]
 
         :return: None
         """
-        tmp_filename = '{0}.writing'.format(self.input_file)
+        tmp_filename = f"{self.input_file}.writing"
         ok = False
         try:
-            with open(tmp_filename, 'w') as fh:
+            with open(tmp_filename, "w") as fh:
                 fh.writelines(lines_to_write)
             ok = True
         finally:
             if ok:
-                if platform.system() == 'Windows':
+                if platform.system() == "Windows":
                     self._windows_rename(tmp_filename)
                 else:
                     os.rename(tmp_filename, self.input_file)
             else:
                 os.unlink(tmp_filename)
 
-    def _windows_rename(self, tmp_filename):
-        """ Workaround the fact that os.rename raises an OSError on Windows
+    def _windows_rename(self, tmp_filename: str) -> None:
+        """Workaround the fact that os.rename raises an OSError on Windows.
 
         :param tmp_filename: The file to rename
 
         """
-
         os.remove(self.input_file) if os.path.isfile(self.input_file) else None
         os.rename(tmp_filename, self.input_file)
 
-    def proceed(self):
+    def proceed(self) -> List[Dict]:
         """Parses the input file and generates/converts the docstrings.
 
         :return: the list of docstrings
@@ -446,5 +468,5 @@ class PyComment(object):
         """
         self._parse()
         for e in self.docs_list:
-            e['docs'].generate_docs()
+            e["docs"].generate_docs()
         return self.docs_list

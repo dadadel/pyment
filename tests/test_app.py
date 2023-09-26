@@ -260,7 +260,7 @@ class TestApp:
             expected_stderr=re.compile(
                 r"usage: pymentapp.py \[-h\] \[-i style\] \[-o style\] \[-q quotes\] "
                 r"\[-f status\] \[-t\].?.?\s{20}\[-c config\] \[-d\] \[-p status\] "
-                r"\[-v\] \[-w\] \[-s\].?.?\s{20}path \[path \.\.\.\].?.?"
+                r"\[-v\] \[-w\].?.?\s{20}path \[path \.\.\.\].?.?"
                 r"pymentapp\.py: error: the following arguments are required: path",
                 re.DOTALL,
             ),
