@@ -86,7 +86,7 @@ target-version = "py38"
 
 [tool.ruff.per-file-ignores]
 # "__init__.py" = ["E402", "F401"]
-"tests/test_*.py" = ["S101", "SLF001"] # ["ANN201", "S101", "PLR2004"]
+"tests/test_*.py" = ["S101", "SLF001", "ANN101", "ANN102"] # ["ANN201", "PLR2004"]
 
 [tool.ruff.pydocstyle]
 convention = "numpy" # Accepts: "google", "numpy", or "pep257".
