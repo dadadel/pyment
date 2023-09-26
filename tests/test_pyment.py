@@ -34,10 +34,10 @@ class TestDocStrings:
 
 
 
-        self.inifile = absdir('origin_test.py')
-        self.jvdfile = absdir('javadoc_test.py')
-        self.rstfile = absdir('rest_test.py')
-        self.foo = absdir("foo")
+        self.inifile = absdir('refs/origin_test.py')
+        self.jvdfile = absdir('refs/javadoc_test.py')
+        self.rstfile = absdir('refs/rest_test.py')
+        self.foo = absdir("refs/foo")
 
         # prepare test file
         txt = ""

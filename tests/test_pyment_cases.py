@@ -13,7 +13,7 @@ def absdir(f):
 def get_expected_patch(self, name):
     """Open a patch file, and if found Pyment signature remove the 2 first lines"""
     try:
-        f = open(absdir(name))
+        f = open(absdir(f"refs/{name}"))
         expected = f.readlines()
         if expected[0].startswith("# Patch"):
             expected = expected[2:]
@@ -32,7 +32,7 @@ class TestFilesConversions:
 
     def test_case_free_testing(self):
         # free cases
-        p = pym.PyComment(absdir("free_cases.py"))
+        p = pym.PyComment(absdir("refs/free_cases.py"))
         p._parse()
         assert p.parsed
         result = ''.join(p.diff())
@@ -44,7 +44,7 @@ class TestFilesConversions:
         # The file has several functions with no or several parameters,
         # so Pyment should produce docstrings in numpydoc format
         expected = get_expected_patch(self, "params.py.patch.numpydoc.expected")
-        p = pym.PyComment(absdir("params.py"), output_style="numpydoc")
+        p = pym.PyComment(absdir("refs/params.py"), output_style="numpydoc")
         p._parse()
         assert p.parsed
         result = ''.join(p.diff())
@@ -55,7 +55,7 @@ class TestFilesConversions:
     def test_case_no_gen_docs_already_numpydoc(self):
         # The file has functions with already docstrings in numpydoc format,
         # so no docstring should be produced
-        p = pym.PyComment(absdir("docs_already_numpydoc.py"), output_style="numpydoc")
+        p = pym.PyComment(absdir("refs/docs_already_numpydoc.py"), output_style="numpydoc")
         p._parse()
         assert p.parsed
         result = ''.join(p.diff())
