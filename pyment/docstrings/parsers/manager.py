@@ -30,8 +30,8 @@ class TagstyleOptions(TypedDict):
 InputDocString = TypedDict(
     "InputDocString",
     {
-        "raw": Optional[str],
-        "pure_raw": Optional[str],
+        "raw": str,
+        "pure_raw": str,
         "doctests": str,
         "desc": Optional[str],
         # (name, description, type) # noqa: ERA001
@@ -54,7 +54,7 @@ InputDocString = TypedDict(
 OutputDocString = TypedDict(
     "OutputDocString",
     {
-        "raw": Optional[str],
+        "raw": str,
         "desc": Optional[str],
         # (name, description, type, default) # noqa: ERA001
         "params": List[

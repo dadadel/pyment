@@ -1,7 +1,7 @@
 """Module for generating numpy docstrings."""
 
 import re
-from typing import Dict, Optional, TypedDict
+from typing import Dict, List, Optional, TypedDict
 
 from pyment.docstrings.parsers import Docs, DocsTools
 from pyment.docstrings.parsers.manager import Params
@@ -29,6 +29,18 @@ class Signatures(TypedDict):
 
     parameters: Dict[int, Params]
     return_type: str
+
+
+class DocStringElement(TypedDict):
+    """Typeddict for docstring elements."""
+
+    raw: str
+    name: Optional[str]
+    deftype: Optional[str]
+    type: Optional[str]
+    params: List[Params]
+    spaces: str
+    rtype: Optional[str]
 
 
 class DocString:
@@ -71,14 +83,16 @@ class DocString:
             self.dst.autodetect_style(docs_raw)
         elif input_style:
             self.set_input_style(input_style)
-        self.element = {
+        self.element: DocStringElement = {
             "raw": elem_raw,
             "name": None,
+            "deftype": None,
             "type": None,
             "params": [],
             "spaces": spaces,
             "rtype": None,
         }
+        docs_raw = docs_raw or ""
         if docs_raw:
             docs_raw = docs_raw.strip()
             if docs_raw.startswith(('"""', "'''")):
@@ -356,7 +370,7 @@ class DocString:
         elem_idx = 0
         # Make this an enum: TODO
         reading = "param"
-        elems = {elem_idx: {"type": "", "param": "", "default": ""}}
+        elems: Dict[int, Params] = {elem_idx: {"type": "", "param": "", "default": ""}}
         inside: list[str] = []  # Represents the bracket type we are in
         end_inside = {"(": ")", "{": "}", "[": "]", "'": "'", '"': '"'}
         for char in txt[start:end_start]:
@@ -792,7 +806,7 @@ class DocString:
         self.before_lim = before_lim
         if raw is not None:
             self._clean_and_set_raw(raw)
-        if self.docs["in"]["raw"] is None:
+        if not self.docs["in"]["raw"]:
             return
         self.dst.set_known_parameters(self.element["params"])
         self._extract_docs_doctest()
@@ -886,7 +900,7 @@ class DocString:
         """Set other specific sections."""
         # manage not setting if not mandatory for numpy
         if self.dst.style == "numpydoc":
-            if self.docs["in"]["raw"] is not None:
+            if self.docs["in"]["raw"]:
                 self.docs["out"]["post"] = self.dst.numpydoc.get_raw_not_managed(
                     self.docs["in"]["raw"]
                 )
