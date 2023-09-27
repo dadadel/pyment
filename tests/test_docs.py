@@ -2,7 +2,7 @@
 """Tests for docstring module."""
 
 
-import pyment.docstring as docs
+import pyment.docstrings.generators as docs
 
 
 def torest(docstring: str) -> str:

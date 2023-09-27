@@ -7,7 +7,7 @@ import re
 import sys
 from typing import Dict, List, Optional, Tuple, TypedDict, overload
 
-from .docstring import DocString
+from .docstrings.generators import DocString
 
 __author__ = "A. Daouzli"
 __copyright__ = "Copyright 2012-2021"

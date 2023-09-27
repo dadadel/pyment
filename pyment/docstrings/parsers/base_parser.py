@@ -2,7 +2,7 @@
 
 from typing import Dict, Iterator, List, Optional, Tuple
 
-from pyment.docstringssssss.helpers import get_leading_spaces
+from pyment.docstrings.helpers import get_leading_spaces
 
 
 class DocToolsBase:

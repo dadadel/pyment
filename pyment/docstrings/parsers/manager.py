@@ -4,7 +4,7 @@ import re
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple, TypedDict, Union
 
-from pyment.docstringssssss.helpers import isin, isin_alone, isin_start
+from pyment.docstrings.helpers import isin, isin_alone, isin_start
 
 from .google_parser import GoogledocTools
 from .numpy_parser import NumpydocTools

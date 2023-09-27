@@ -1,8 +1,10 @@
+"""Module for generating numpy docstrings."""
+
 """Module for actually parsing and producing docstrings."""
 import re
 from typing import Optional
 
-from .docstringssssss.parsers import Docs, DocsTools
+from pyment.docstrings.parsers import Docs, DocsTools
 
 __author__ = "J. Nitschke"
 __copyright__ = "Copyright 2012-2018, A. Daouzli"
