@@ -1,10 +1,10 @@
 """Module for generating numpy docstrings."""
 
-"""Module for actually parsing and producing docstrings."""
 import re
-from typing import Optional
+from typing import Dict, Optional, TypedDict
 
 from pyment.docstrings.parsers import Docs, DocsTools
+from pyment.docstrings.parsers.manager import Params
 
 __author__ = "J. Nitschke"
 __copyright__ = "Copyright 2012-2018, A. Daouzli"
@@ -24,8 +24,15 @@ Formats supported at the time:
 """
 
 
+class Signatures(TypedDict):
+    """Typedict for function signatures."""
+
+    parameters: Dict[int, Params]
+    return_type: str
+
+
 class DocString:
-    """This class represents the docstring."""
+    """Represents the docstring."""
 
     def __init__(  # noqa: PLR0913
         self,
@@ -35,7 +42,6 @@ class DocString:
         quotes: str = "'''",
         input_style: Optional[str] = None,
         *,
-        type_stub: bool = False,
         before_lim: str = "",
         indent: int = 2,
     ) -> None:
@@ -53,16 +59,14 @@ class DocString:
             the type of quotes to use for output: ' ' ' or " " " (Default value = "'''")
         input_style : Optional[str]
             _description_ (Default value = None)
-        type_stub : bool
-            if set, an empty stub will be created for a parameter type (Default value = False)
         before_lim : str
-            specify raw or unicode or format docstring type (ie. "r" for r'''... or "fu" for fu'''...) (Default value = "")
+            specify raw or unicode or format docstring type
+            (ie. "r" for r'''... or "fu" for fu'''...) (Default value = "")
         indent : int
             _description_ (Default value = 2)
         """
         self.dst = DocsTools()
         self.before_lim = before_lim
-        self.type_stub = type_stub
         if docs_raw and not input_style:
             self.dst.autodetect_style(docs_raw)
         elif input_style:
@@ -106,7 +110,7 @@ class DocString:
         }
         if "\t" in spaces:
             self.docs["out"]["spaces"] = spaces + "\t"
-        elif (len(spaces) % 4) == 0 or spaces == "":
+        elif (len(spaces) % 4) == 0 or not spaces:
             # FIXME: should bug if tabs for class or function (as spaces=='')
             self.docs["out"]["spaces"] = spaces + " " * 4
         self.parsed_elem = False
@@ -115,7 +119,8 @@ class DocString:
         self._options = {
             "hint_rtype_priority": True,  # priority in type hint else in docstring
             "hint_type_priority": True,  # priority in type hint else in docstring
-            "rst_type_in_param_priority": True,  # in reST docstring priority on type present in param else on type
+            # in reST docstring priority on type present in param else on type
+            "rst_type_in_param_priority": True,
         }
         self.special_signature_chars = ("/", "*")
 
@@ -128,9 +133,8 @@ class DocString:
         Returns
         -------
         str
-            _description_
+            String representation of DocString class.
         """
-        # for debuging
         txt = "\n\n** " + str(self.element["name"])
         txt += " of type " + str(self.element["deftype"]) + ":"
         txt += str(self.docs["in"]["desc"]) + "\n"
@@ -144,7 +148,7 @@ class DocString:
         Returns
         -------
         str
-            _description_
+            String representation of DocString class.
         """
         return self.__str__()
 
@@ -169,8 +173,8 @@ class DocString:
         # TODO: use a getter
         return self.dst.style
 
-    def set_input_style(self, style: str):
-        """Sets the input docstring style.
+    def set_input_style(self, style: str) -> None:
+        """Set input docstring style.
 
         Parameters
         ----------
@@ -190,7 +194,7 @@ class DocString:
         """
         return self.docs["out"]["spaces"]
 
-    def set_spaces(self, spaces: str):
+    def set_spaces(self, spaces: str) -> None:
         """Set for output docstring the initial spaces.
 
         Parameters
@@ -224,8 +228,9 @@ class DocString:
             ]
         )
 
-    def parse_definition(self, raw: Optional[str] = None):
-        """Parses the element's elements (type, name and parameters) :).
+    def parse_definition(self, raw: Optional[str] = None) -> None:
+        """Parse the element's elements (type, name and parameters).
+
         e.g.: def methode(param1, param2='default')
         def                      -> type
         methode                  -> name
@@ -234,42 +239,58 @@ class DocString:
         Parameters
         ----------
         raw : Optional[str]
-            raw data of the element (def or class). If None will use `self.element['raw']` (Default value = None)
+            raw data of the element (def or class).
+            If None will use `self.element['raw']` (Default value = None)
         """
         # TODO: retrieve return from element external code (in parameter)
-        l = self.element["raw"].strip() if raw is None else raw.strip()
+        line = self.element["raw"].strip() if raw is None else raw.strip()
         is_class = False
-        if l.startswith(("async def ", "def ", "class ")):
+        if line.startswith(("async def ", "def ", "class ")):
             # retrieves the type
-            if l.startswith("def"):
+            if line.startswith("def"):
                 self.element["deftype"] = "def"
-                l = l.replace("def ", "")
-            elif l.startswith("async"):
+                line = line.replace("def ", "")
+            elif line.startswith("async"):
                 self.element["deftype"] = "def"
-                l = l.replace("async def ", "")
+                line = line.replace("async def ", "")
             else:
                 self.element["deftype"] = "class"
-                l = l.replace("class ", "")
+                line = line.replace("class ", "")
                 is_class = True
             # retrieves the name
-            self.element["name"] = l[: l.find("(")].strip()
+            self.element["name"] = line[: line.find("(")].strip()
             if not is_class:
-                extracted = self._extract_signature_elements(
-                    self._remove_signature_comment(l)
-                )
-                # remove self and cls parameters if any and also empty params (if no param)
-                remove_keys = []
-                for key in extracted["parameters"]:
-                    if extracted["parameters"][key]["param"] in ["self", "cls"]:
-                        remove_keys.append(key)
-                    elif not extracted["parameters"][key]["param"]:
-                        remove_keys.append(key)
-                for key in remove_keys:
-                    del extracted["parameters"][key]
-                if extracted["return_type"]:
-                    self.element["rtype"] = extracted["return_type"]  # TODO manage this
-                self.element["params"].extend(extracted["parameters"].values())
+                self._parse_function_definition(line)
         self.parsed_elem = True
+
+    # TODO Rename this here and in `parse_definition`
+    def _parse_function_definition(self, line: str) -> None:
+        """Parse the element's elements (type, name and parameters).
+
+        e.g.: def methode(param1, param2='default')
+        def                      -> type
+        methode                  -> name
+        param1, param2='default' -> parameters.
+
+        Parameters
+        ----------
+        raw : Optional[str]
+            raw data of the element (def or class).
+            If None will use `self.element['raw']` (Default value = None)
+        """
+        extracted = self._extract_signature_elements(
+            self._remove_signature_comment(line)
+        )
+        remove_keys = [
+            key
+            for key in extracted["parameters"]
+            if extracted["parameters"][key]["param"] in ["self", "cls", ""]
+        ]
+        for key in remove_keys:
+            del extracted["parameters"][key]
+        if extracted["return_type"]:
+            self.element["rtype"] = extracted["return_type"]  # TODO manage this
+        self.element["params"].extend(extracted["parameters"].values())
 
     def _remove_signature_comment(self, txt: str) -> str:
         """If there is a comment at the end of the signature statement, remove it.
@@ -277,33 +298,40 @@ class DocString:
         Parameters
         ----------
         txt : str
-            _description_
+            Signature line
 
         Returns
         -------
         str
-            _description_
+            Cleaned signature line
         """
         ret = ""
+        # This should be a list like in _extract_signature_elements
+        # Otherwise in a situation like (((() the one closing parenthesis would
+        # break us out of everything
         inside = None
         end_inside = {"(": ")", "{": "}", "[": "]", "'": "'", '"': '"'}
-        for c in txt:
-            if (inside and end_inside[inside] != c) or (not inside and c in end_inside):
+        for char in txt:
+            if (inside and end_inside[inside] != char) or (
+                not inside and char in end_inside
+            ):
                 if not inside:
-                    inside = c
-                ret += c
+                    inside = char
+                ret += char
                 continue
-            if inside and c == end_inside[inside]:
+            if inside and char == end_inside[inside]:
                 inside = None
-                ret += c
+                ret += char
                 continue
-            if not inside and c == "#":
+            if not inside and char == "#":
                 # found a comment so signature is finished we stop parsing
                 break
-            ret += c
+            ret += char
         return ret
 
-    def _extract_signature_elements(self, txt: str) -> dict:
+    def _extract_signature_elements(  # noqa: PLR0912, PLR0915
+        self, txt: str
+    ) -> Signatures:
         """Extract the signature elements from the function definition.
 
         foo(x: int, y: int, /, *, a: int, b: int) -> None:
@@ -315,7 +343,7 @@ class DocString:
 
         Returns
         -------
-        dict
+        Signatures
             Extracted elements
             {"parameters": elems, "return_type": return_type.strip()}
             Where elems is dict[int, dict[str, str]]:
@@ -325,73 +353,73 @@ class DocString:
         end_start = txt.rfind(")")
         end_end = txt.rfind(":")
         return_type = txt[end_start + 1 : end_end].replace("->", "").strip()
-        elems = {}
         elem_idx = 0
+        # Make this an enum: TODO
         reading = "param"
-        elems[elem_idx] = {"type": "", "param": "", "default": ""}
+        elems = {elem_idx: {"type": "", "param": "", "default": ""}}
         inside: list[str] = []  # Represents the bracket type we are in
         end_inside = {"(": ")", "{": "}", "[": "]", "'": "'", '"': '"'}
-        for c in txt[start:end_start]:
+        for char in txt[start:end_start]:
             # We are in a block and we are not ending that block
             # or we are not in a block and we are starting a block
-            if (inside) or (c in end_inside):
+            if inside or (char in end_inside):
                 # We are in the second condition and thus starting a block
-                if c in end_inside:
-                    inside.append(c)
-                if c == end_inside[inside[-1]]:
+                if char in end_inside:
+                    inside.append(char)
+                # Pretty sure something is broken here with quotes
+                # They get added in the lines above and then instantly removed
+                if char == end_inside[inside[-1]]:
                     inside.pop()
                 # We are in the first block
                 # If we are reading the type then the current char is appended
                 if reading == "type":
-                    elems[elem_idx]["type"] += c
+                    elems[elem_idx]["type"] += char
                 # If we are reading the default then append the char there
                 elif reading == "default":
-                    elems[elem_idx]["default"] += c
+                    elems[elem_idx]["default"] += char
                 else:
                     # FIXME: this should not happen!
-                    raise Exception(
-                        "unexpected nested element after "
-                        + str(inside)
-                        + " while reading "
-                        + reading
+                    msg = (
+                        "unexpected nested element "
+                        f"after {inside} while reading {reading}"
                     )
+                    raise ValueError(msg)
                 continue
             # We are currently reading a parameter (name?)
             if reading == "param":
                 # We are not at a delimiter
                 # So add it to the param name
-                if c not in ": ,=":
-                    elems[elem_idx]["param"] += c
+                if char not in ": ,=":
+                    elems[elem_idx]["param"] += char
                 # We are at a delimiter
-                else:
-                    # If we are at a space and our current param is empty or we are
-                    # not at a space then we are finished with the param
-                    if c == " " and elems[elem_idx]["param"] or c != " ":
-                        reading = "after_param"
+                # If we are at a space and our current param is empty or we are
+                # not at a space then we are finished with the param
+                elif char == " " and elems[elem_idx]["param"] or char != " ":
+                    reading = "after_param"
             # If we are reading the type
             elif reading == "type":
                 # If we are not reading , or = we are adding to our type
-                if c not in ",=":
-                    elems[elem_idx]["type"] += c
+                if char not in ",=":
+                    elems[elem_idx]["type"] += char
                 # We are reading , or = and finished our type
                 else:
                     reading = "after_type"
             elif reading == "default":
-                if c != ",":
-                    elems[elem_idx]["default"] += c
+                if char != ",":
+                    elems[elem_idx]["default"] += char
                 else:
                     reading = "after_default"
             # If we are after param then ':' indicates now comes the type
             if reading.startswith("after_"):
-                if reading == "after_param" and c == ":":
+                if reading == "after_param" and char == ":":
                     reading = "type"
                 # Otherwise ',' indicates a new parameter
-                elif c == ",":
+                elif char == ",":
                     elem_idx += 1
                     elems[elem_idx] = {"type": "", "param": "", "default": ""}
                     reading = "param"
                 # and '=' indicates a default value
-                elif c == "=":
+                elif char == "=":
                     reading = "default"
         # strip extracted elements
         # and iterate over a copy so we can delete elements that are just
@@ -401,12 +429,12 @@ class DocString:
                 del elems[elem]
                 continue
             for subelem in elems[elem]:
-                if type(elems[elem][subelem]) is str:
-                    elems[elem][subelem] = elems[elem][subelem].strip()
+                elems[elem][subelem] = elems[elem][subelem].strip()
         return {"parameters": elems, "return_type": return_type.strip()}
 
     def _extract_docs_doctest(self) -> bool:
         """Extract the doctests if found.
+
         If there are doctests, they are removed from the input data and set on
         a specific buffer as they won't be altered.
 
@@ -481,25 +509,22 @@ class DocString:
             data = data.splitlines()[idx + 1 :]
             end = self.dst.get_group_line("\n".join(data))
             end = end if end != -1 else len(data)
+            ptype = ""
             for i in range(end):
                 # FIXME: see how retrieve multiline param description and how get type
                 line = data[i]
                 param = None
                 desc = ""
-                ptype = ""
-                m = re.match(r"^\W*(\w+)[\W\s]+(\w[\s\w]+)", line.strip())
-                if m:
-                    param = m.group(1).strip()
-                    desc = m.group(2).strip()
-                else:
-                    m = re.match(r"^\W*(\w+)\W*", line.strip())
-                    if m:
-                        param = m.group(1).strip()
+                if matches := re.match(r"^\W*(\w+)[\W\s]+(\w[\s\w]+)", line.strip()):
+                    param = matches[1].strip()
+                    desc = matches[2].strip()
+                elif matches := re.match(r"^\W*(\w+)\W*", line.strip()):
+                    param = matches[1].strip()
                 if param:
                     self.docs["in"]["params"].append((param, desc, ptype))
 
-    def _extract_tagstyle_docs_params(self):
-        """_summary_."""
+    def _extract_tagstyle_docs_params(self) -> None:
+        """Extract tagstyle parameters."""
         data = "\n".join(
             [
                 d.rstrip().replace(self.docs["out"]["spaces"], "", 1)
@@ -511,11 +536,11 @@ class DocString:
             param_type = param["type"]
             if self._options["rst_type_in_param_priority"] and param["type_in_param"]:
                 param_type = param["type_in_param"]
-            desc = param["description"] if param["description"] else ""
+            desc = param["description"] or ""
             self.docs["in"]["params"].append((param_name, desc, param_type))
 
-    def _old_extract_tagstyle_docs_params(self):
-        """_summary_."""
+    def _old_extract_tagstyle_docs_params(self) -> None:
+        """Extract tagstlye parameters manually, the old way."""
         data = "\n".join(
             [
                 d.rstrip().replace(self.docs["out"]["spaces"], "", 1)
@@ -554,11 +579,14 @@ class DocString:
                 loop = False
         if i > maxi:
             print(
-                "WARNING: an infinite loop was reached while extracting docstring parameters (>10000). This should never happen!!!"
+                "WARNING: an infinite loop was reached while extracting "
+                "docstring parameters (>10000). This should never happen!!!"
             )
 
-    def _extract_docs_params(self):
-        """Extract parameters description and type from docstring. The internal computed parameters list is.
+    def _extract_docs_params(self) -> None:
+        """Extract parameters description and type from docstring.
+
+        The internal computed parameters list is
         composed by tuples (parameter, description, type).
         """
         if self.dst.style == "numpydoc":
@@ -582,8 +610,8 @@ class DocString:
         elif self.dst.style in ["javadoc", "reST"]:
             self._extract_tagstyle_docs_params()
 
-    def _extract_groupstyle_docs_raises(self):
-        """_summary_."""
+    def _extract_groupstyle_docs_raises(self) -> None:
+        """Extract raises section from group style docstrings."""
         data = "\n".join(
             [
                 d.rstrip().replace(self.docs["out"]["spaces"], "", 1)
@@ -600,19 +628,16 @@ class DocString:
                 line = data[i]
                 param = None
                 desc = ""
-                m = re.match(r"^\W*([\w.]+)[\W\s]+(\w[\s\w]+)", line.strip())
-                if m:
-                    param = m.group(1).strip()
-                    desc = m.group(2).strip()
-                else:
-                    m = re.match(r"^\W*(\w+)\W*", line.strip())
-                    if m:
-                        param = m.group(1).strip()
+                if matches := re.match(r"^\W*([\w.]+)[\W\s]+(\w[\s\w]+)", line.strip()):
+                    param = matches[1].strip()
+                    desc = matches[2].strip()
+                elif matches := re.match(r"^\W*(\w+)\W*", line.strip()):
+                    param = matches[1].strip()
                 if param:
                     self.docs["in"]["raises"].append((param, desc))
 
-    def _extract_tagstyle_docs_raises(self):
-        """_summary_."""
+    def _extract_tagstyle_docs_raises(self) -> None:
+        """Extract raises section from tagstyle docstrings."""
         data = "\n".join(
             [
                 d.rstrip().replace(self.docs["out"]["spaces"], "", 1)
@@ -642,12 +667,14 @@ class DocString:
                 loop = False
         if i > maxi:
             print(
-                "WARNING: an infinite loop was reached while extracting docstring parameters (>10000). This should never happen!!!"
+                "WARNING: an infinite loop was reached while extracting "
+                "docstring parameters (>10000). This should never happen!!!"
             )
 
-    def _extract_docs_raises(self):
-        """Extract raises description from docstring. The internal computed raises list is.
-        composed by tuples (raise, description).
+    def _extract_docs_raises(self) -> None:
+        """Extract raises description from docstring.
+
+        The internal computed raises list is composed by tuples (raise, description).
         """
         if self.dst.style == "numpydoc":
             data = "\n".join(
@@ -670,8 +697,8 @@ class DocString:
         elif self.dst.style in ["javadoc", "reST"]:
             self._extract_tagstyle_docs_raises()
 
-    def _extract_groupstyle_docs_return(self):
-        """_summary_."""
+    def _extract_groupstyle_docs_return(self) -> None:
+        """Extract return section from groupstyle docstrings."""
         # TODO: manage rtype
         data = "\n".join(
             [
@@ -687,8 +714,8 @@ class DocString:
             data = "\n".join(data[:end]).strip()
             self.docs["in"]["return"] = data.rstrip()
 
-    def _extract_tagstyle_docs_return(self):
-        """_summary_."""
+    def _extract_tagstyle_docs_return(self) -> None:
+        """Extract return section from tagstyle docstrings."""
         data = "\n".join(
             [
                 d.rstrip().replace(self.docs["out"]["spaces"], "", 1)
@@ -708,7 +735,7 @@ class DocString:
             else:
                 self.docs["in"]["rtype"] = data[start:].rstrip()
 
-    def _extract_docs_return(self):
+    def _extract_docs_return(self) -> None:
         """Extract return description and type."""
         if self.dst.style == "numpydoc":
             data = "\n".join(
@@ -734,7 +761,7 @@ class DocString:
         elif self.dst.style in ["javadoc", "reST"]:
             self._extract_tagstyle_docs_return()
 
-    def _extract_docs_other(self):
+    def _extract_docs_other(self) -> None:
         """Extract other specific sections."""
         if self.dst.style == "numpydoc":
             data = "\n".join(
@@ -751,26 +778,20 @@ class DocString:
             self.dst.numpydoc.get_list_key(data, "attr")
             # TODO do something with this?
 
-    def parse_docs(self, raw: Optional[str] = None, before_lim: str = ""):
-        """Parses the docstring.
+    def parse_docs(self, raw: Optional[str] = None, before_lim: str = "") -> None:
+        """Parse the docstring.
 
         Parameters
         ----------
         raw : Optional[str]
             the data to parse if not internally provided (Default value = None)
         before_lim : str
-            specify raw or unicode or format docstring type (ie. "r" for r'''... or "fu" for fu'''...) (Default value = "")
+            specify raw or unicode or format docstring type
+            (ie. "r" for r'''... or "fu" for fu'''...) (Default value = "")
         """
         self.before_lim = before_lim
         if raw is not None:
-            raw = raw.strip()
-            if raw.startswith(('"""', "'''")):
-                raw = raw[3:]
-            if raw.endswith(('"""', "'''")):
-                raw = raw[:-3]
-            self.docs["in"]["raw"] = raw
-            self.docs["in"]["pure_raw"] = raw
-            self.dst.autodetect_style(raw)
+            self._clean_and_set_raw(raw)
         if self.docs["in"]["raw"] is None:
             return
         self.dst.set_known_parameters(self.element["params"])
@@ -782,25 +803,39 @@ class DocString:
         self._extract_docs_other()
         self.parsed_docs = True
 
-    def _set_desc(self):
-        """Sets the global description if any."""
-        # TODO: manage different in/out styles
-        if self.docs["in"]["desc"]:
-            self.docs["out"]["desc"] = self.docs["in"]["desc"]
-        else:
-            self.docs["out"]["desc"] = ""
+    def _clean_and_set_raw(self, raw: str) -> None:
+        """Clean raw string and set raw input sections.
 
-    def _set_params(self):
-        """Sets the parameters with types, descriptions and default value if any.
-        taken from the input docstring and the signature parameters.
+        Also call autodetect_style.
+        """
+        raw = raw.strip()
+        if raw.startswith(('"""', "'''")):
+            raw = raw[3:]
+        if raw.endswith(('"""', "'''")):
+            raw = raw[:-3]
+        self.docs["in"]["raw"] = raw
+        self.docs["in"]["pure_raw"] = raw
+        self.dst.autodetect_style(raw)
+
+    def _set_desc(self) -> None:
+        """Set the global description if any."""
+        # TODO: manage different in/out styles
+        self.docs["out"]["desc"] = self.docs["in"]["desc"] or ""
+
+    def _set_params(self) -> None:
+        """Set the parameters with types, descriptions and default value if any.
+
+        Taken from the input docstring and the signature parameters.
         """
         # TODO: manage different in/out styles
-        # convert the list of signature's extracted params into a dict with the names of param as keys
+        # convert the list of signature's extracted params
+        # into a dict with the names of param as keys
         sig_params = {
             e["param"]: {"type": e["type"], "default": e["default"]}
             for e in self.element["params"]
         }
-        # convert the list of docsting's extracted params into a dict with the names of param as keys
+        # convert the list of docsting's extracted params
+        # into a dict with the names of param as keys
         docs_params = {
             name: {
                 "description": desc,
@@ -809,14 +844,15 @@ class DocString:
             for name, desc, param_type in self.docs["in"]["params"]
         }
         for name in sig_params:
-            # WARNING: Note that if a param in docstring isn't in the signature params, it will be dropped
+            # WARNING: Note that if a param in docstring isn't in the signature params,
+            # it will be dropped
             sig_type, sig_default = (
                 sig_params[name]["type"],
                 sig_params[name]["default"],
             )
             out_description = ""
-            out_type = sig_type if sig_type else None
-            out_default = sig_default if sig_default else None
+            out_type = sig_type or None
+            out_default = sig_default or None
             if name in docs_params:
                 out_description = docs_params[name]["description"]
                 if not out_type or (
@@ -857,12 +893,12 @@ class DocString:
             elif "post" not in self.docs["out"] or self.docs["out"]["post"] is None:
                 self.docs["out"]["post"] = ""
 
-    def _set_raw_params(self, sep):
+    def _set_raw_params(self, _sep: str) -> None:
         """Set the output raw parameters section.
 
         Parameters
         ----------
-        sep : _type_
+        sep : str
             the separator of current style
         """
         if not self.docs["out"]["params"]:
@@ -873,28 +909,28 @@ class DocString:
         raw += self.dst.numpydoc.get_key_section_header(
             "param", self.docs["out"]["spaces"]
         )
-        for i, p in enumerate(self.docs["out"]["params"]):
-            raw += self.docs["out"]["spaces"] + p[0] + " :"
-            if p[2] is not None and len(p[2]) > 0:
-                raw += " " + p[2]
+        for i, param in enumerate(self.docs["out"]["params"]):
+            raw += self.docs["out"]["spaces"] + param[0] + " :"
+            if param[2] is not None and len(param[2]) > 0:
+                raw += f" {param[2]}"
             else:
-                raw += " " + "_type_"
+                raw += " _type_"
             raw += "\n"
             description = (
-                spaces
-                + self.with_space(p[1] if p[1] else "_description_", spaces).strip()
+                spaces + self.with_space(param[1] or "_description_", spaces).strip()
             )
             raw += self.docs["out"]["spaces"] + description
-            if len(p) > 2 and (
-                "default" not in p[1].lower() and len(p) > 3 and p[3] is not None
-            ):
+            # Where does the 4th element come from?
+            # I guess like name, description, type, default?
+
+            if "default" not in param[1].lower() and param[3] is not None:
                 raw += (
-                    " (Default value = " + str(p[3]) + ")"
+                    " (Default value = " + str(param[3]) + ")"
                     if description
                     else (
                         self.docs["out"]["spaces"] * 2
                         + "(Default value = "
-                        + str(p[3])
+                        + str(param[3])
                         + ")"
                     )
                 )
@@ -903,36 +939,38 @@ class DocString:
 
         return raw
 
-    def _set_raw_raise(self, sep):
+    def _set_raw_raise(self, _sep: str) -> None:
         """Set the output raw exception section.
 
         Parameters
         ----------
-        sep : _type_
+        sep : str
             the separator of current style
         """
         raw = ""
-        if "raise" not in self.dst.numpydoc.get_excluded_sections():
-            if "raise" in self.dst.numpydoc.get_mandatory_sections() or (
+        if "raise" not in self.dst.numpydoc.get_excluded_sections() and (
+            "raise" in self.dst.numpydoc.get_mandatory_sections()
+            or (
                 self.docs["out"]["raises"]
                 and "raise" in self.dst.numpydoc.get_optional_sections()
-            ):
-                raw += "\n\n"
+            )
+        ):
+            raw += "\n\n"
+            raw += self.dst.numpydoc.get_key_section_header(
+                "raise", self.docs["out"]["spaces"]
+            )
+            if self.docs["out"]["raises"]:
                 spaces = " " * 4
 
-                raw += self.dst.numpydoc.get_key_section_header(
-                    "raise", self.docs["out"]["spaces"]
-                )
-                if len(self.docs["out"]["raises"]):
-                    for i, p in enumerate(self.docs["out"]["raises"]):
-                        raw += self.docs["out"]["spaces"] + p[0] + "\n"
-                        raw += (
-                            self.docs["out"]["spaces"]
-                            + spaces
-                            + self.with_space(p[1], spaces).strip()
-                        )
-                        if i != len(self.docs["out"]["raises"]) - 1:
-                            raw += "\n"
+                for i, entry in enumerate(self.docs["out"]["raises"]):
+                    raw += self.docs["out"]["spaces"] + entry[0] + "\n"
+                    raw += (
+                        self.docs["out"]["spaces"]
+                        + spaces
+                        + self.with_space(entry[1], spaces).strip()
+                    )
+                    if i != len(self.docs["out"]["raises"]) - 1:
+                        raw += "\n"
         return raw
 
     def _none_return(self, return_value: Optional[str]) -> bool:
@@ -950,15 +988,16 @@ class DocString:
         """
         return return_value is None or return_value == "None"
 
-    def _set_raw_return(self, sep):
+    def _set_raw_return(self, _sep: str) -> None:
         """Set the output raw return section.
 
         Parameters
         ----------
-        sep : _type_
+        sep : str
             the separator of current style
         """
         raw = ""
+        returned_values = self.docs["out"]["return"]
         # If there is a docstring but no return section
         # Then do not create one just to specify it as none
         if (
@@ -973,58 +1012,19 @@ class DocString:
         raw += self.dst.numpydoc.get_key_section_header(
             "return", self.docs["out"]["spaces"]
         )
-        rtype = self.docs["out"]["rtype"] if self.docs["out"]["rtype"] else "_type_"
+        rtype = self.docs["out"]["rtype"]
+        type_placeholder = "_type_"
         # case of several returns
         # Here an existing docstring takes precedence over the type hint.
         # As the type hint could just be tuple[A, B, C] but the docstring
         # Could already be specifying each entry individually.
-        if (
-            isinstance(self.docs["out"]["return"], list)
-            and len(self.docs["out"]["return"]) > 1
-        ):
-            for i, ret_elem in enumerate(self.docs["out"]["return"]):
+        if isinstance(returned_values, list) and len(returned_values) > 1:
+            for i, ret_elem in enumerate(returned_values):
                 # if tuple (name, desc, rtype) else string desc
-                if isinstance(ret_elem, tuple) and len(ret_elem) == 3:
-                    rtype = ret_elem[2]
-                    if rtype is None:
-                        rtype = ""
-                    raw += self.docs["out"]["spaces"]
-                    if ret_elem[0]:
-                        raw += ret_elem[0] + " : "
-                    if ret_elem[1]:
-                        raw += (
-                            rtype
-                            + "\n"
-                            + self.docs["out"]["spaces"]
-                            + spaces
-                            + self.with_space(ret_elem[1], spaces).strip()
-                        )
-                    if i != len(self.docs["out"]["return"]) - 1:
-                        raw += "\n"
-                else:
-                    # There can be a problem
-                    raw += self.docs["out"]["spaces"] + rtype + "\n"
-                    if ret_elem:
-                        raw += (
-                            self.docs["out"]["spaces"]
-                            + spaces
-                            + self.with_space(str(ret_elem), spaces).strip()
-                        )
-
-        # case of a unique return
-        # Length exactly 1
-        # Here the type hint has precedence again
-        elif (
-            isinstance(self.docs["out"]["return"], list) and self.docs["out"]["return"]
-        ):
-            ret_elem = self.docs["out"]["return"][0]
-            if type(ret_elem) is tuple and len(ret_elem) == 3:
-                rtype = ret_elem[2]
-                if rtype is None:
-                    rtype = ""
+                rtype = ret_elem[2] or type_placeholder
                 raw += self.docs["out"]["spaces"]
                 if ret_elem[0]:
-                    raw += ret_elem[0] + " : "
+                    raw += f"{ret_elem[0]} : "
                 if ret_elem[1]:
                     raw += (
                         rtype
@@ -1033,34 +1033,45 @@ class DocString:
                         + spaces
                         + self.with_space(ret_elem[1], spaces).strip()
                     )
-            else:
-                # There can be a problem
-                raw += self.docs["out"]["spaces"] + rtype + "\n"
-                if ret_elem:
-                    raw += (
-                        self.docs["out"]["spaces"]
-                        + spaces
-                        + self.with_space(str(ret_elem), spaces).strip()
-                    )
+                if i != len(returned_values) - 1:
+                    raw += "\n"
+
+        # case of a unique return
+        # Length exactly 1
+        # Here the type hint has precedence again
+        elif isinstance(returned_values, list) and returned_values:
+            ret_elem = returned_values[0]  # pylint: disable=unsubscriptable-object
+            rtype = rtype or ret_elem[2] or type_placeholder
+            raw += self.docs["out"]["spaces"]
+            if ret_elem[0]:
+                raw += f"{ret_elem[0]} : "
+            if ret_elem[1]:
+                raw += (
+                    rtype
+                    + "\n"
+                    + self.docs["out"]["spaces"]
+                    + spaces
+                    + self.with_space(ret_elem[1], spaces).strip()
+                )
+        # Just a string, usually when the section is missing completely.
         else:
+            rtype = rtype or type_placeholder
             raw += self.docs["out"]["spaces"] + rtype
             raw += (
                 "\n"
                 + self.docs["out"]["spaces"]
                 + spaces
                 + self.with_space(
-                    self.docs["out"]["return"]
-                    if self.docs["out"]["return"]
-                    else "_description_",
+                    returned_values or "_description_",
                     spaces,
                 ).strip()
             )
         return raw
 
-    def _set_raw(self):
-        """Sets the output raw docstring."""
+    def _set_raw(self) -> None:
+        """Set the output raw docstring."""
         sep = self.dst.get_sep(target="out")
-        sep = sep + " " if sep != " " else sep
+        sep = f"{sep} " if sep != " " else sep
 
         # sets the description section
         raw = self.docs["out"]["spaces"] + self.before_lim + self.quotes

@@ -459,7 +459,7 @@ class TestDocStrings:
     def test_generating_docs_params_type_stubs(self) -> None:
         """Check that params are correctly generated from type stubs in rest."""
         doc = self.mydocs
-        docstring = docs.DocString(self.myelem, "    ", doc, type_stub=True)
+        docstring = docs.DocString(self.myelem, "    ", doc)
         docstring.parse_docs()
         docstring.generate_docs()
         assert "second : _type_" in docstring.docs["out"]["raw"]
@@ -468,7 +468,7 @@ class TestDocStrings:
     def test_generating_google_docs_params_type_stubs(self) -> None:
         """Check that params are correctly generated from type stubs in google style."""
         doc = self.googledocs
-        docstring = docs.DocString(self.myelem, "    ", doc, type_stub=True)
+        docstring = docs.DocString(self.myelem, "    ", doc)
         docstring.parse_docs()
         docstring.generate_docs()
         assert "second : _type_" in docstring.docs["out"]["raw"]
@@ -476,7 +476,7 @@ class TestDocStrings:
     def test_generating_groups_docs_params_type_stubs(self) -> None:
         """Check that params are correctly generated from type stubs in group style."""
         doc = self.mygrpdocs
-        docstring = docs.DocString(self.myelem, "    ", doc, type_stub=True)
+        docstring = docs.DocString(self.myelem, "    ", doc)
         docstring.parse_docs()
         docstring.generate_docs()
         assert "first : _type_" in docstring.docs["out"]["raw"]
@@ -486,7 +486,7 @@ class TestDocStrings:
     def test_generating_groups2_docs_params_type_stubs(self) -> None:
         """Check that params are correctly generated from type stubs in group style."""
         doc = self.mygrpdocs2
-        docstring = docs.DocString(self.myelem, "    ", doc, type_stub=True)
+        docstring = docs.DocString(self.myelem, "    ", doc)
         docstring.parse_docs()
         docstring.generate_docs()
         assert "first : _type_" in docstring.docs["out"]["raw"]
@@ -496,7 +496,7 @@ class TestDocStrings:
     def test_generating_numpy_docs_params_type_stubs(self) -> None:
         """Check that params are correctly generated from type stubs in numpy style."""
         doc = self.mynumpydocs
-        docstring = docs.DocString(self.myelem, "    ", doc, type_stub=True)
+        docstring = docs.DocString(self.myelem, "    ", doc)
         docstring.parse_docs()
         docstring.generate_docs()
         assert "second : _type_" in docstring.docs["out"]["raw"]

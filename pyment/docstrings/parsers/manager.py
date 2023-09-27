@@ -10,6 +10,23 @@ from .google_parser import GoogledocTools
 from .numpy_parser import NumpydocTools
 
 RAISES_NAME_REGEX = r"^([\w.]+)"
+
+
+class Params(TypedDict):
+    """Typedict for parameter info."""
+
+    type: str
+    param: str
+    default: str
+
+
+class TagstyleOptions(TypedDict):
+    """Typeddict for tagstyle options."""
+
+    keys: List[str]
+    styles: Dict[str, Tuple[str, str]]
+
+
 InputDocString = TypedDict(
     "InputDocString",
     {
@@ -34,29 +51,15 @@ InputDocString = TypedDict(
     },
 )
 
-
-class Params(TypedDict):
-    """Typedict for parameter info."""
-
-    type: str
-    param: str
-    default: str
-
-
-class TagstyleOptions(TypedDict):
-    """Typeddict for tagstyle options."""
-
-    keys: List[str]
-    styles: Dict[str, Tuple[str, str]]
-
-
 OutputDocString = TypedDict(
     "OutputDocString",
     {
         "raw": Optional[str],
         "desc": Optional[str],
-        # (name, description, type) # noqa: ERA001
-        "params": List[Tuple[Optional[str], Optional[str], Optional[str]]],
+        # (name, description, type, default) # noqa: ERA001
+        "params": List[
+            Tuple[Optional[str], Optional[str], Optional[str], Optional[str]]
+        ],
         "types": List[str],
         # The list contains tuples (name=None, desc, type=None)
         # If the input is named then we have for numpy style
@@ -585,7 +588,7 @@ class DocsTools:
                 res = re.split(r"\s+", param_part.strip())
                 if len(res) == 1:
                     param_name = res[0].strip()
-                elif len(res) == 2:  # noqa: PLR2004
+                elif len(res) == 2:
                     param_type, param_name = res[0].strip(), res[1].strip()
                 else:
                     print("WARNING: malformed docstring parameter")

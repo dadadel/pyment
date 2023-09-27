@@ -269,7 +269,7 @@ class PyComment:
                     raw = full_line
                     # one line docstring
                     # Both/Two delimiting quotes on one line
-                    if line.count(lim) == 2:  # noqa: PLR2004
+                    if line.count(lim) == 2:
                         end = i
                         elem_list[-1]["docs"].parse_docs(raw, before_lim)
                         elem_list[-1]["location"] = (start, end)
