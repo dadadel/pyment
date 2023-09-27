@@ -48,9 +48,7 @@ class PyComment:
         input_file: str,
         *,
         input_style: Optional[str] = None,
-        output_style: str = "numpydoc",
         quotes: str = '"""',
-        first_line: bool = True,
         convert_only: bool = False,
         config_file: Optional[Dict] = None,
         ignore_private: bool = False,
@@ -63,14 +61,9 @@ class PyComment:
         input_file : str
             path name (file or folder)
         input_style : Optional[str]
-            the type of doctrings format of the output. By default, it will
-        output_style : str
-            the docstring docstyle to generate "numpydoc".
+            the type of doctrings format of the input. By default, it will autodetect
         quotes : Literal["'''", '\"\"\"']
             the type of quotes to use for output: ''' or \"\"\" (default \"\"\")
-        first_line : bool
-            Indicate if description should start on first or second line.
-            By default it is True
         convert_only : bool
             If set only existing docstring will be converted.
             No missing docstring will be created. (Default value = False)
@@ -83,12 +76,10 @@ class PyComment:
             How much each level should be indented. (Default value = 2)
         """
         self.file_type = ".py"
-        self.first_line = first_line
         self.filename_list = []
         self.input_file = input_file
         self.input_lines = []  # Need to remember the file when reading off stdin
         self.input_style = input_style
-        self.output_style = output_style
         self.doc_index = -1
         self.file_index = 0
         self.docs_list = []
@@ -245,9 +236,6 @@ class PyComment:
                     spaces,
                     quotes=self.quotes,
                     input_style=self.input_style,
-                    output_style=self.output_style,
-                    first_line=self.first_line,
-                    trailing_space=self.trailing_space,
                     indent=self.indent,
                 )
                 elem_list.append({"docs": doc_string, "location": (-i, -i)})

@@ -36,9 +36,7 @@ class TestIssues:
         """
         # if file starting with a function/class definition, patching the file
         # will remove the first line!
-        comment = pym.PyComment(
-            absdir("refs/issue30.py"), input_style="numpydoc", output_style="numpydoc"
-        )
+        comment = pym.PyComment(absdir("refs/issue30.py"), input_style="numpydoc")
         comment._parse()
         assert comment.parsed
         try:
@@ -54,7 +52,7 @@ class TestIssues:
         # Title: If already numpydoc format, will remove the Raises section
         # If the last section in a numpydoc docstring is a `Raises` section,
         # it will be removed if the output format is also set to numpydoc
-        comment = pym.PyComment(absdir("refs/issue49.py"), output_style="numpydoc")
+        comment = pym.PyComment(absdir("refs/issue49.py"))
         comment._parse()
         assert comment.parsed
         result = "".join(comment.diff())

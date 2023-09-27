@@ -90,8 +90,6 @@ class TestApp:
         '''
         )
 
-        # The format which will turn INPUT into EXPECTED_PATCH and EXPECTED_OUTPUT
-        self.OUTPUT_FORMAT = "numpydoc"
 
     @classmethod
     def normalise_empty_lines(cls, lines: str) -> str:
@@ -165,7 +163,6 @@ class TestApp:
         expected_stdout: Union[str, Pattern[str]] = "",
         expected_stderr: Union[str, Pattern[str]] = "",
         expected_returncode: int = 0,
-        output_format: Optional[str] = None,
     ) -> None:
         """Run pyment and assert it's output matches the arguments.
 
@@ -187,9 +184,6 @@ class TestApp:
             Expected string to see on stderr (Default value = "")
         expected_returncode : int
             Expected returncode after running pyment (Default value = 0)
-        output_format : Optional[str]
-            The output format - it adds the --output option,
-            use None if auto is required (Default value = None)
 
         Raises
         ------
@@ -243,9 +237,6 @@ class TestApp:
 
         cmd_to_run = self.CMD_PREFIX.format(cmd_args)
 
-        if output_format:
-            cmd_to_run = f"{cmd_to_run} --output {output_format} "
-
         stdout, stderr, returncode = self.run_command(cmd_to_run, write_to_stdin)
 
         assert_output(cmd_to_run, "stderr", stderr, expected_stderr)
@@ -258,9 +249,7 @@ class TestApp:
             cmd_args="",
             write_to_stdin=None,
             expected_stderr=re.compile(
-                r"usage: pymentapp.py \[-h\] \[-i style\] \[-o style\] \[-q quotes\] "
-                r"\[-f status\] \[-t\].?.?\s{20}\[-c config\] \[-d\] \[-p status\] "
-                r"\[-v\] \[-w\].?.?\s{20}path \[path \.\.\.\].?.?"
+                r"usage: pymentapp.py .*"
                 r"pymentapp\.py: error: the following arguments are required: path",
                 re.DOTALL,
             ),
@@ -276,7 +265,6 @@ class TestApp:
             cmd_args="-",
             write_to_stdin=self.INPUT,
             expected_stdout=self.EXPECTED_PATCH,
-            output_format=self.OUTPUT_FORMAT,
         )
 
     def test_run_on_stdin_overwrite(self) -> None:
@@ -288,7 +276,6 @@ class TestApp:
             cmd_args="-w -",
             write_to_stdin=self.INPUT,
             expected_stdout=self.EXPECTED_OUTPUT,
-            output_format=self.OUTPUT_FORMAT,
         )
 
     def run_pyment_app_with_a_file_and_assert_is_expected(  # noqa: PLR0913
@@ -301,7 +288,6 @@ class TestApp:
         expected_stderr: Union[str, Pattern[str]] = "",
         expected_stdout: Union[str, Pattern[str]] = "",
         expected_returncode: int = 0,
-        output_format: Optional[str] = None,
     ) -> None:
         """
         Run the pyment app with a file - not stdin.
@@ -359,7 +345,6 @@ class TestApp:
                 expected_returncode=expected_returncode,
                 expected_stdout=expected_stdout,
                 write_to_stdin=file_contents,
-                output_format=output_format,
             )
 
             if overwrite_mode:
@@ -402,7 +387,6 @@ class TestApp:
         self.run_pyment_app_with_a_file_and_assert_is_expected(
             file_contents=self.EXPECTED_OUTPUT,
             expected_file_contents=self.EXPECTED_OUTPUT,
-            output_format=self.OUTPUT_FORMAT,
             overwrite_mode=True,
         )
 
@@ -414,7 +398,6 @@ class TestApp:
             expected_stdout=re.compile(
                 r"Modified docstrings of elements \(Module, func\) in file.*", re.DOTALL
             ),
-            output_format=self.OUTPUT_FORMAT,
             overwrite_mode=True,
         )
 
@@ -423,7 +406,6 @@ class TestApp:
         self.run_pyment_app_with_a_file_and_assert_is_expected(
             file_contents=self.EXPECTED_OUTPUT,
             expected_file_contents=self.PATCH_PREFIX + "\n",
-            output_format=self.OUTPUT_FORMAT,
         )
 
     def test_patch_files_different(self) -> None:
@@ -431,5 +413,4 @@ class TestApp:
         self.run_pyment_app_with_a_file_and_assert_is_expected(
             file_contents=self.INPUT,
             expected_file_contents=self.EXPECTED_PATCH,
-            output_format=self.OUTPUT_FORMAT,
         )

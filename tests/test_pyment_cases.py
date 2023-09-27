@@ -86,7 +86,7 @@ class TestFilesConversions:
         so Pyment should produce docstrings in numpydoc format.
         """
         expected = get_expected_patch("params.py.patch.numpydoc.expected")
-        comment = pym.PyComment(absdir("refs/params.py"), output_style="numpydoc")
+        comment = pym.PyComment(absdir("refs/params.py"))
         comment._parse()
         assert comment.parsed
         result = "".join(comment.diff())
@@ -98,9 +98,7 @@ class TestFilesConversions:
         The file has functions with already docstrings in numpydoc format,
         so no docstring should be produced.
         """
-        comment = pym.PyComment(
-            absdir("refs/docs_already_numpydoc.py"), output_style="numpydoc"
-        )
+        comment = pym.PyComment(absdir("refs/docs_already_numpydoc.py"))
         comment._parse()
         assert comment.parsed
         result = "".join(comment.diff())

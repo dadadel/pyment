@@ -95,7 +95,7 @@ def get_config(config_file: Optional[str]) -> Dict:
                 if len(line.strip()):
                     key, value = line.split("=", 1)
                     key, value = key.strip(), value.strip()
-                    if key in ["init2class", "first_line", "convert_only"]:
+                    if key in ["init2class", "convert_only"]:
                         value = tobool(value)
                     if key == "indent":
                         value = int(value)
@@ -107,9 +107,7 @@ def run(  # noqa: PLR0913, PLR0912 pylint: disable=too-many-locals, too-many-bra
     source: str,
     files: Optional[List[str]] = None,
     input_style: Optional[str] = "auto",
-    output_style: str = "numpydoc",
     *,
-    first_line: bool = True,
     quotes: str = '"""',
     init2class: bool = False,
     convert: bool = False,
@@ -127,10 +125,6 @@ def run(  # noqa: PLR0913, PLR0912 pylint: disable=too-many-locals, too-many-bra
         _description_ (Default value = [])
     input_style : Optional[str]
         _description_ (Default value = 'auto')
-    output_style : str
-        _description_ (Default value = 'reST')
-    first_line : bool
-        _description_ (Default value = True)
     quotes : str
         _description_ (Default value = '\"\"\"')
     init2class : bool
@@ -158,10 +152,6 @@ def run(  # noqa: PLR0913, PLR0912 pylint: disable=too-many-locals, too-many-bra
         quotes = config.pop("quotes")
     if "input_style" in config:
         input_style = config.pop("input_style")
-    if "output_style" in config:
-        output_style = config.pop("output_style")
-    if "first_line" in config:
-        first_line = config.pop("first_line")
     for file in files:
         if os.path.isdir(source):
             path = (
@@ -176,8 +166,6 @@ def run(  # noqa: PLR0913, PLR0912 pylint: disable=too-many-locals, too-many-bra
             file,
             quotes=quotes,
             input_style=input_style,
-            output_style=output_style,
-            first_line=first_line,
             ignore_private=ignore_private,
             convert_only=convert,
             **config,
@@ -243,16 +231,6 @@ def main() -> None:
         " (default autodetected)",
     )
     parser.add_argument(
-        "-o",
-        "--output",
-        metavar="style",
-        default="numpydoc",
-        dest="output",
-        help="Output docstring style in "
-        "['javadoc', 'reST', 'numpydoc', 'google'] "
-        "(default 'numpydoc')",
-    )
-    parser.add_argument(
         "-q",
         "--quotes",
         metavar="quotes",
@@ -261,15 +239,6 @@ def main() -> None:
         help='Type of docstring delimiter quotes: \'\'\' or """ (default """). '
         "Note that you may escape the characters using \\ like \\'\\'\\', "
         "or surround it with the opposite quotes like \"'''\"",
-    )
-    parser.add_argument(
-        "-f",
-        "--first-line",
-        metavar="status",
-        default="True",
-        dest="first_line",
-        help="Does the comment starts on the first line after the quotes "
-        "(default 'True')",
     )
     parser.add_argument(
         "-t",
@@ -328,8 +297,6 @@ def main() -> None:
         source,
         files,
         args.input,
-        args.output,
-        first_line=tobool(args.first_line),
         quotes=args.quotes,
         init2class=args.init2class,
         convert=args.convert,

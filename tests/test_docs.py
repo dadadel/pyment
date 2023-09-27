@@ -414,7 +414,6 @@ class TestDocStrings:
         docstring = docs.DocString(self.myelem, "    ", doc)
         docstring.parse_docs()
         assert docstring.docs["in"]["return"][0][1] == "a value in a string"
-        docstring.set_output_style("numpydoc")
 
     def test_generating_docs_desc(self) -> None:
         """Check that description output is correctly generated."""
@@ -452,7 +451,7 @@ class TestDocStrings:
         docstring.parse_docs()
         docstring.generate_docs()
         assert len(docstring.docs["out"]["params"]) == 3
-        assert isinstance(docstring.docs["out"]["params"][2],tuple)
+        assert isinstance(docstring.docs["out"]["params"][2], tuple)
         assert docstring.docs["out"]["params"][2] == ("third", "", None, '"value"')
         # param's description
         assert docstring.docs["out"]["params"][1][1].startswith("the 2")
@@ -460,57 +459,47 @@ class TestDocStrings:
     def test_generating_docs_params_type_stubs(self) -> None:
         """Check that params are correctly generated from type stubs in rest."""
         doc = self.mydocs
-        docstring = docs.DocString(
-            self.myelem, "    ", doc, type_stub=True, output_style="reST"
-        )
+        docstring = docs.DocString(self.myelem, "    ", doc, type_stub=True)
         docstring.parse_docs()
         docstring.generate_docs()
-        assert ":type second: " in docstring.docs["out"]["raw"]
-        assert ":type third: " in docstring.docs["out"]["raw"]
+        assert "second : _type_" in docstring.docs["out"]["raw"]
+        assert "third : _type_" in docstring.docs["out"]["raw"]
 
     def test_generating_google_docs_params_type_stubs(self) -> None:
         """Check that params are correctly generated from type stubs in google style."""
         doc = self.googledocs
-        docstring = docs.DocString(
-            self.myelem, "    ", doc, type_stub=True, output_style="reST"
-        )
+        docstring = docs.DocString(self.myelem, "    ", doc, type_stub=True)
         docstring.parse_docs()
         docstring.generate_docs()
-        assert ":type second: " in docstring.docs["out"]["raw"]
+        assert "second : _type_" in docstring.docs["out"]["raw"]
 
     def test_generating_groups_docs_params_type_stubs(self) -> None:
         """Check that params are correctly generated from type stubs in group style."""
         doc = self.mygrpdocs
-        docstring = docs.DocString(
-            self.myelem, "    ", doc, type_stub=True, output_style="reST"
-        )
+        docstring = docs.DocString(self.myelem, "    ", doc, type_stub=True)
         docstring.parse_docs()
         docstring.generate_docs()
-        assert ":type first: " in docstring.docs["out"]["raw"]
-        assert ":type second: " in docstring.docs["out"]["raw"]
-        assert ":type third: " in docstring.docs["out"]["raw"]
+        assert "first : _type_" in docstring.docs["out"]["raw"]
+        assert "second : _type_" in docstring.docs["out"]["raw"]
+        assert "third : _type_" in docstring.docs["out"]["raw"]
 
     def test_generating_groups2_docs_params_type_stubs(self) -> None:
         """Check that params are correctly generated from type stubs in group style."""
         doc = self.mygrpdocs2
-        docstring = docs.DocString(
-            self.myelem, "    ", doc, type_stub=True, output_style="reST"
-        )
+        docstring = docs.DocString(self.myelem, "    ", doc, type_stub=True)
         docstring.parse_docs()
         docstring.generate_docs()
-        assert ":type first: " in docstring.docs["out"]["raw"]
-        assert ":type second: " in docstring.docs["out"]["raw"]
-        assert ":type third: " in docstring.docs["out"]["raw"]
+        assert "first : _type_" in docstring.docs["out"]["raw"]
+        assert "second : _type_" in docstring.docs["out"]["raw"]
+        assert "third : _type_" in docstring.docs["out"]["raw"]
 
     def test_generating_numpy_docs_params_type_stubs(self) -> None:
         """Check that params are correctly generated from type stubs in numpy style."""
         doc = self.mynumpydocs
-        docstring = docs.DocString(
-            self.myelem, "    ", doc, type_stub=True, output_style="reST"
-        )
+        docstring = docs.DocString(self.myelem, "    ", doc, type_stub=True)
         docstring.parse_docs()
         docstring.generate_docs()
-        assert ":type second: " in docstring.docs["out"]["raw"]
+        assert "second : _type_" in docstring.docs["out"]["raw"]
 
     def test_no_param(self) -> None:
         """Check that params section is correctly generated in no param case."""
@@ -527,9 +516,7 @@ class TestDocStrings:
         elem = "    def oneline(self):"
         doc = """        '''the one line docstring
         '''"""
-        docstring = docs.DocString(
-            elem, "    ", doc, input_style="javadoc", first_line=True
-        )
+        docstring = docs.DocString(elem, "    ", doc, input_style="javadoc")
         docstring.parse_docs()
         docstring.generate_docs()
         assert docstring.docs["out"]["raw"].count("\n") == 0
