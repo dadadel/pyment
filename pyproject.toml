@@ -103,6 +103,13 @@ line-length    = 88
 target-version = ['py38']
 extend-exclude = '''/tests/refs|/doc'''
 
+[tool.coverage.run]
+branch = true
+source = ["pyment"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
 [tool.pyright]
 include                            = ["pyment"]
 exclude                            = ["tests"]
