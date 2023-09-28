@@ -1,4 +1,3 @@
-#!/usr/bin/python
 """Some more general pyment tests."""
 
 

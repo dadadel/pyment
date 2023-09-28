@@ -35,7 +35,7 @@ InputDocString = TypedDict(
         "doctests": str,
         "desc": Optional[str],
         # (name, description, type) # noqa: ERA001
-        "params": List[Tuple[Optional[str], Optional[str], Optional[str]]],
+        "params": List[Tuple[str, str, Optional[str]]],
         "types": List[str],
         # The list contains tuples (name=None, desc, type=None)
         # If the input is named then we have for numpy style
@@ -55,11 +55,9 @@ OutputDocString = TypedDict(
     "OutputDocString",
     {
         "raw": str,
-        "desc": Optional[str],
+        "desc": str,
         # (name, description, type, default) # noqa: ERA001
-        "params": List[
-            Tuple[Optional[str], Optional[str], Optional[str], Optional[str]]
-        ],
+        "params": List[Tuple[str, str, Optional[str], Optional[str]]],
         "types": List[str],
         # The list contains tuples (name=None, desc, type=None)
         # If the input is named then we have for numpy style
@@ -73,6 +71,8 @@ OutputDocString = TypedDict(
         "rtype": Optional[str],
         "raises": List[Tuple[str, str]],
         "spaces": str,
+        "doctests": str,
+        "post": str,
     },
 )
 

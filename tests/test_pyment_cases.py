@@ -1,4 +1,3 @@
-#!/usr/bin/python
 """Module to test general pyment functionality."""
 
 
@@ -72,7 +71,7 @@ class TestFilesConversions:
     """Test patch files."""
 
     def test_case_free_testing(self) -> None:
-        """Test correct handling for case where input style in ambigous."""
+        """Test correct handling for case where input style in ambiguous."""
         comment = pym.PyComment(absdir("refs/free_cases.py"))
         comment._parse()
         assert comment.parsed

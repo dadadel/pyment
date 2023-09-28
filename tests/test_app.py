@@ -90,7 +90,6 @@ class TestApp:
         '''
         )
 
-
     @classmethod
     def normalise_empty_lines(cls, lines: str) -> str:
         r"""Replace any lines that are only whitespace with a single '\n'.
@@ -302,7 +301,7 @@ class TestApp:
             write this into the temporary file
         cmd_args : str
             Arguments to pyment - do not put the '-w' argument here -
-            it is trigged by overwrite_mode (Default value = "")
+            it is triggered by overwrite_mode (Default value = "")
         overwrite_mode : bool
             set to True if in overwrite mode (Default value = False)
         expected_file_contents : str | Pattern[str]

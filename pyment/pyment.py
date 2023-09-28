@@ -1,4 +1,4 @@
-"""Module for general managment of writing docstrings of multiple files."""
+"""Module for general management of writing docstrings of multiple files."""
 
 import difflib
 import os
@@ -114,7 +114,7 @@ class PyComment:
         return re.search(pragma_regex, line) is not None
 
     def _starts_with_delimiter(self, line: str) -> bool:
-        """Check if line starts with docstring delimeter.
+        """Check if line starts with docstring delimiter.
 
         Parameters
         ----------
@@ -124,15 +124,15 @@ class PyComment:
         Returns
         -------
         bool
-            Whether the line starts with a delimeter
+            Whether the line starts with a delimiter
         """
-        delimeters = ['"""', "'''"]
+        delimiters = ['"""', "'''"]
         modifiers = ["r", "u", "f"]
-        if line[:3] in delimeters:
+        if line[:3] in delimiters:
             return True
-        if line[0] in modifiers and line[1:4] in delimeters:
+        if line[0] in modifiers and line[1:4] in delimiters:
             return True
-        return line[0] in modifiers and line[1] in modifiers and line[2:5] in delimeters
+        return line[0] in modifiers and line[1] in modifiers and line[2:5] in delimiters
 
     def _parse(self) -> List[Element]:  # noqa: PLR0912, PLR0915
         """Parse input file's content and generates a list of its elements/docstrings.
@@ -178,7 +178,7 @@ class PyComment:
         end = 0
         # Modifier for the docstring ['r', 'u', 'f', '']
         before_lim = ""
-        # Delimeter used for this docstring ['"""', "'''"]
+        # delimiter used for this docstring ['"""', "'''"]
         lim = '"""'
         # Current list of found elements in this file
         elem_list: List[Element] = []

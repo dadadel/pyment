@@ -1,4 +1,13 @@
-"""Module for generating numpy docstrings."""
+"""Module for generating numpy docstrings.
+
+Formats supported at the time:
+ - javadoc, reST (restructured text, Sphinx):
+ managed  -> description, param, type, return, rtype, raise
+ - google:
+ managed  -> description, parameters, return, raises
+ - numpydoc:
+ managed  -> description, parameters, return (first of list only), raises
+"""
 
 import re
 from typing import Dict, List, Optional, TypedDict
@@ -12,23 +21,19 @@ __licence__ = "GPL3"
 __version__ = "0.3.18"
 __maintainer__ = "J. Nitschke"
 
-"""
-Formats supported at the time:
- - javadoc, reST (restructured text, Sphinx):
- managed  -> description, param, type, return, rtype, raise
- - google:
- managed  -> description, parameters, return, raises
- - numpydoc:
- managed  -> description, parameters, return (first of list only), raises
-
-"""
-
 
 class Signatures(TypedDict):
     """Typedict for function signatures."""
 
     parameters: Dict[int, Params]
     return_type: str
+
+
+class DocsParam(TypedDict):
+    """Typeddict for content of docs_params in _set_params."""
+
+    description: str
+    type: Optional[str]
 
 
 class DocStringElement(TypedDict):
@@ -113,13 +118,15 @@ class DocString:
             },
             "out": {
                 "raw": "",
-                "desc": None,
+                "desc": "",
                 "params": [],
                 "types": [],
                 "return": None,
                 "rtype": None,
                 "raises": [],
                 "spaces": spaces + " " * indent,
+                "doctests": "",
+                "post": "",
             },
         }
         if "\t" in spaces:
@@ -245,9 +252,9 @@ class DocString:
     def parse_definition(self, raw: Optional[str] = None) -> None:
         """Parse the element's elements (type, name and parameters).
 
-        e.g.: def methode(param1, param2='default')
+        e.g.: def method(param1, param2='default')
         def                      -> type
-        methode                  -> name
+        method                   -> name
         param1, param2='default' -> parameters.
 
         Parameters
@@ -281,9 +288,9 @@ class DocString:
     def _parse_function_definition(self, line: str) -> None:
         """Parse the element's elements (type, name and parameters).
 
-        e.g.: def methode(param1, param2='default')
+        e.g.: def method(param1, param2='default')
         def                      -> type
-        methode                  -> name
+        method                   -> name
         param1, param2='default' -> parameters.
 
         Parameters
@@ -850,7 +857,7 @@ class DocString:
         }
         # convert the list of docsting's extracted params
         # into a dict with the names of param as keys
-        docs_params = {
+        docs_params: Dict[str, DocsParam] = {
             name: {
                 "description": desc,
                 "type": param_type,
@@ -899,15 +906,12 @@ class DocString:
     def _set_other(self) -> None:
         """Set other specific sections."""
         # manage not setting if not mandatory for numpy
-        if self.dst.style == "numpydoc":
-            if self.docs["in"]["raw"]:
-                self.docs["out"]["post"] = self.dst.numpydoc.get_raw_not_managed(
-                    self.docs["in"]["raw"]
-                )
-            elif "post" not in self.docs["out"] or self.docs["out"]["post"] is None:
-                self.docs["out"]["post"] = ""
+        if self.dst.style == "numpydoc" and self.docs["in"]["raw"]:
+            self.docs["out"]["post"] = self.dst.numpydoc.get_raw_not_managed(
+                self.docs["in"]["raw"]
+            )
 
-    def _set_raw_params(self, _sep: str) -> None:
+    def _set_raw_params(self, _sep: str) -> str:
         """Set the output raw parameters section.
 
         Parameters
@@ -936,8 +940,9 @@ class DocString:
             raw += self.docs["out"]["spaces"] + description
             # Where does the 4th element come from?
             # I guess like name, description, type, default?
-
-            if "default" not in param[1].lower() and param[3] is not None:
+            if param[3] is not None and (
+                not param[1] or "default" not in param[1].lower()
+            ):
                 raw += (
                     " (Default value = " + str(param[3]) + ")"
                     if description
@@ -953,7 +958,7 @@ class DocString:
 
         return raw
 
-    def _set_raw_raise(self, _sep: str) -> None:
+    def _set_raw_raise(self, _sep: str) -> str:
         """Set the output raw exception section.
 
         Parameters
@@ -1002,7 +1007,7 @@ class DocString:
         """
         return return_value is None or return_value == "None"
 
-    def _set_raw_return(self, _sep: str) -> None:
+    def _set_raw_return(self, _sep: str) -> str:
         """Set the output raw return section.
 
         Parameters
@@ -1069,6 +1074,8 @@ class DocString:
                 )
         # Just a string, usually when the section is missing completely.
         else:
+            if isinstance(returned_values, list) or not returned_values:
+                returned_values = "_description_"
             rtype = rtype or type_placeholder
             raw += self.docs["out"]["spaces"] + rtype
             raw += (
@@ -1076,7 +1083,7 @@ class DocString:
                 + self.docs["out"]["spaces"]
                 + spaces
                 + self.with_space(
-                    returned_values or "_description_",
+                    returned_values,
                     spaces,
                 ).strip()
             )
@@ -1110,19 +1117,16 @@ class DocString:
         raw += self._set_raw_raise(sep)
 
         # sets post specific if any
-        if (
-            "post" in self.docs["out"]
-            and self.with_space(self.docs["out"]["post"], "").rstrip()
+        if "post" in self.docs["out"] and (
+            post_section := self.with_space(self.docs["out"]["post"], "").rstrip()
         ):
-            raw += self.with_space(self.docs["out"]["post"], "").rstrip()
+            raw += post_section
 
         # sets the doctests if any
-        if "doctests" in self.docs["out"]:
-            raw += (
-                "\n"
-                + self.docs["out"]["spaces"]
-                + self.with_space(self.docs["out"]["doctests"], "").strip()
-            )
+        if "doctests" in self.docs["out"] and (
+            doctest_section := self.with_space(self.docs["out"]["doctests"], "").strip()
+        ):
+            raw += "\n" + self.docs["out"]["spaces"] + doctest_section
 
         if raw.count(self.quotes) == 1:
             if raw.count("\n") > 0:

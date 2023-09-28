@@ -1,4 +1,4 @@
-exclude: tests/refs
+exclude: tests/refs|doc
 repos:
   - repo: 'https://github.com/pre-commit/pre-commit-hooks'
     rev: v4.4.0
@@ -54,7 +54,7 @@ repos:
     hooks:
       - id: pylint
         name: pylint
-        entry: pylint download_pdfs.py
+        entry: pylint pyment
         language: system
         types: [python]
         pass_filenames: false

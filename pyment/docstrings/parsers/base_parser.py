@@ -197,7 +197,7 @@ class DocToolsBase:
             List of returned values.
         """
         result_list = []
-        for name, desc, rtype in  self.get_list_key(data, "return"):
+        for name, desc, rtype in self.get_list_key(data, "return"):
             # If the input is named then we have for numpy style
             #   description
             # If not it is

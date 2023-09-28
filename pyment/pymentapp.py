@@ -292,7 +292,6 @@ def main() -> None:
         raise msg
     config_file = args.config_file or ""
 
-
     run(
         source,
         files,

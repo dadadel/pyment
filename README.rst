@@ -17,7 +17,7 @@ Windows: |appveyor|
 
 .. |travis| image:: https://travis-ci.org/dadadel/pyment.svg?branch=master
     :target: https://travis-ci.org/dadadel/pyment.svg?branch=master
-    :alt: Linux tests (TravisCI)                                   
+    :alt: Linux tests (TravisCI)
 
 .. |appveyor| image:: https://ci.appveyor.com/api/projects/status/f9d4jps5fkf4m42h?svg=true
     :target: https://ci.appveyor.com/api/projects/status/f9d4jps5fkf4m42h?svg=true
@@ -25,10 +25,10 @@ Windows: |appveyor|
 
 |
 
-**Supported Versions**  
+**Supported Versions**
 
 .. image:: https://img.shields.io/badge/python-3.6-blue.svg
-    :target: https://img.shields.io/badge/python-3.6-blue.svg  
+    :target: https://img.shields.io/badge/python-3.6-blue.svg
     :alt: Supports Python36
 .. image:: https://img.shields.io/badge/python-3.7-blue.svg
     :target: https://img.shields.io/badge/python-3.7-blue.svg
@@ -60,7 +60,7 @@ It will parse one or several python scripts and retrieve existing docstrings.
 Then, for all found functions/methods/classes, it will generate formatted docstrings with parameters, default values,...
 
 At the end, patches can be generated for each file. Then, man can apply the patches to the initial scripts.
-It is also possible to update the files directly without generating patches, or to output on *stdout*. 
+It is also possible to update the files directly without generating patches, or to output on *stdout*.
 It is also possible to generate the python file with the new docstrings, or to retrieve only the docstrings...
 
 Currently, the managed styles in input/output are javadoc, one variant of reST (re-Structured Text, used by Sphinx), numpydoc, google docstrings, groups (other grouped style).
@@ -198,13 +198,13 @@ So the previous command has generated the file *test.py.patch* with following co
         +
         +    """
              pass
-         
+
          class A:
         +    """ """
              def method(self, param1, param2=None) -> int:
         +        """
         +
-        +        :param param1: 
+        +        :param param1:
         +        :param param2:  (Default value = None)
         +        :rtype: int
         +
@@ -239,7 +239,7 @@ Now the original *test.py* was updated and its content is now:
             def method(self, param1, param2=None) -> int:
                 """
 
-                :param param1: 
+                :param param1:
                 :param param2:  (Default value = None)
                 :rtype: int
 
@@ -256,4 +256,3 @@ If you enjoyed this free software, and want to thank me, you can offer me some
 bitcoins for a coffee, a beer, or more, I would be happy :)
 
 Here's my address for bitcoins : 1Kz5bu4HuRtwbjzopN6xWSVsmtTDK6Kb89
-

@@ -1,4 +1,3 @@
-#!/usr/bin/python
 """Testing issues raised on github."""
 
 import os
