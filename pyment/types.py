@@ -85,6 +85,7 @@ class ReturnValue:
 
     type_info: Optional[str]
 
+
 @dataclass
 class ReturnValueDoc(ReturnValue):
     """Info about return value from docstring."""
