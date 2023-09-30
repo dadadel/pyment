@@ -3,11 +3,15 @@
 import difflib
 import os
 import platform
-import re
-import sys
-from typing import Dict, List, Optional, Tuple, TypedDict, overload
+from pathlib import Path
+from typing import TYPE_CHECKING, List, Optional, Tuple, overload
 
-from .docstrings.generators import DocString
+from .file_parser import AstAnalyzer
+from .types import ElementDocstring, Style
+
+if TYPE_CHECKING:
+    from .docstrings.generators import DocString
+    from .docstrings.parsers import DocToolsBase
 
 __author__ = "A. Daouzli"
 __copyright__ = "Copyright 2012-2021"
@@ -28,13 +32,6 @@ __maintainer__ = "A. Daouzli"
 # -dev a server that take sources and send back patches
 
 
-class Element(TypedDict):
-    """TypedDict for docstring elements."""
-
-    docs: DocString
-    location: Tuple[int, int]
-
-
 class PyComment:
     """Manage several python scripts docstrings.
 
@@ -46,10 +43,6 @@ class PyComment:
     def __init__(
         self,
         input_file: str,
-        *,
-        input_style: Optional[str] = None,
-        config_file: Optional[Dict] = None,
-        indent: int = 2,
     ) -> None:
         r"""Set the configuration including the source to proceed and options.
 
@@ -57,46 +50,14 @@ class PyComment:
         ----------
         input_file : str
             path name (file or folder)
-        input_style : Optional[str]
-            the type of doctrings format of the input. By default, it will autodetect
-        config_file : Optional[Dict]
-            If given configuration file for Pyment (Default value = None)
-        indent : int
-            How much each level should be indented. (Default value = 2)
         """
-        self.file_type = ".py"
-        self.filename_list = []
         self.input_file = input_file
-        self.input_lines = []  # Need to remember the file when reading off stdin
-        self.input_style = input_style
-        self.doc_index = -1
-        self.file_index = 0
+        self.input_lines = Path(self.input_file).read_text(encoding="utf-8")
+        self.input_style = Style.UNKNOWN
+        self.docstring_parser: Optional[DocToolsBase] = None
+        self.docstring_generator: Optional[DocString] = None
         self.docs_list = []
         self.parsed = False
-        self.config_file = config_file
-        self.indent = indent
-        self.module_doc_index = 0
-        self.module_doc_found = False
-        self.module_doc_period_missing = False
-
-    def _is_shebang_or_pragma(self, line: str) -> bool:
-        """Check if a given line contains encoding or shebang.
-
-        Parameters
-        ----------
-        line : str
-            Line to check
-
-        Returns
-        -------
-        bool
-            Whether the given line contains encoding or shebang
-        """
-        shebang_regex = r"^#!(.*)"
-        if re.search(shebang_regex, line) is not None:
-            return True
-        pragma_regex = r"^#.*coding[=:]\s*([-\w.]+)"
-        return re.search(pragma_regex, line) is not None
 
     def _starts_with_delimiter(self, line: str) -> bool:
         """Check if line starts with docstring delimiter.
@@ -119,163 +80,18 @@ class PyComment:
             return True
         return line[0] in modifiers and line[1] in modifiers and line[2:5] in delimiters
 
-    def _parse(self) -> List[Element]:  # noqa: PLR0912, PLR0915
+    def _parse(self) -> List[ElementDocstring]:
         """Parse input file's content and generates a list of its elements/docstrings.
 
         Returns
         -------
-        List[Dict]
-            the list of elements
+        List[ElementDocstring]
+            List of information about module, classes and functions.
         """
         # TODO manage decorators
-        # TODO manage default params with strings escaping chars as (, ), ', ', #, ...
-        # TODO manage elements ending with comments like: def func(param): # blabla
-
-        try:
-            if self.input_file == "-":
-                self.input_lines = sys.stdin.readlines()
-            else:
-                with open(self.input_file, encoding="utf-8") as folder:
-                    self.input_lines = folder.readlines()
-
-        except OSError as exc:
-            msg = BaseException(
-                f'Failed to open file "{self.input_file}". Please provide a valid file.'
-            )
-            raise msg from exc
-
-        # Status variables
-        # Currently reading a docstring
-        reading_docs = None
-        # Currently waiting to start the docstring
-        waiting_docs = False
-        # Currently reading an element and where we are within it
-        reading_element = None
-        # The (partial) element we are currently reading
-        elem = ""
-        # How many spaces there are at the start of the docstring (its indentation)
-        spaces = ""
-        # The raw content of the current docstring
-        raw = ""
-        # Starting line number of the current docstring
-        start = 0
-        # Ending line number of the current docstring
-        end = 0
-        # Modifier for the docstring ['r', 'u', 'f', '']
-        before_lim = ""
-        # delimiter used for this docstring ['"""', "'''"]
-        lim = '"""'
-        # Current list of found elements in this file
-        elem_list: List[Element] = []
-        # The module docstring has to be within the first three lines
-        # Other lines allowed before it are shebang and encoding.
-        shebang_encoding_module_doc_string_lines = 3
-        for i, full_line in enumerate(self.input_lines):
-            line = full_line.strip()
-            # Fix or add docstring to beginning of file
-            if (
-                i < shebang_encoding_module_doc_string_lines
-                and not self.module_doc_found
-            ):
-                if self._is_shebang_or_pragma(full_line):
-                    self.module_doc_index = i + 1
-                elif full_line.startswith(('"""', "'''")):
-                    lim = full_line[:3]
-                    self.module_doc_found = True
-                    self.module_doc_index = i
-                    if line.endswith(lim) and not line.replace(lim, "").endswith("."):
-                        self.module_doc_period_missing = True
-            if reading_element:
-                elem += line
-                if line.endswith(":"):
-                    reading_element = "end"
-            elif (
-                line.startswith(("async def ", "def ", "class "))
-            ) and not reading_docs:
-                elem = line
-                matched = re.match(
-                    r"^(\s*)[adc]", full_line
-                )  # a for async, d for def, c for class
-                spaces = (
-                    matched[1] if matched is not None and matched[1] is not None else ""
-                )
-                # the end of definition should be ':' and eventually a comment following
-                # FIXME: but this is missing eventual use
-                # of '#' inside a string value of parameter
-                reading_element = (
-                    "end" if re.search(r""":(|\s*#[^'"]*)$""", line) else "start"
-                )
-            if reading_element == "end":
-                reading_element = None
-                # if currently reading an element content
-                waiting_docs = True
-                # *** Creates the DocString object ***
-                doc_string = DocString(
-                    elem.replace("\n", " "),
-                    spaces,
-                    input_style=self.input_style,
-                    indent=self.indent,
-                )
-                elem_list.append({"docs": doc_string, "location": (-i, -i)})
-            elif waiting_docs and ('"""' in line or "'''" in line):
-                # not docstring
-                if not reading_docs and not self._starts_with_delimiter(line):
-                    waiting_docs = False
-                # start of docstring bloc
-                elif not reading_docs:
-                    start = i
-                    # determine which delimiter
-                    idx_c = line.find('"""')
-                    idx_dc = line.find("'''")
-                    lim = '"""'
-                    if idx_c >= 0 and idx_dc >= 0:
-                        lim = '"""' if idx_c < idx_dc else "'''"
-                    elif idx_c < 0:
-                        lim = "'''"
-                    reading_docs = lim
-                    # check if the docstring starts with 'r', 'u', or 'f'
-                    # or combination thus extract it
-                    if not line.startswith(lim):
-                        idx_strip_lim = line.find(lim)
-                        idx_abs_lim = full_line.find(lim)
-                        # remove and keep the prefix r|f|u
-                        before_lim = line[:idx_strip_lim]
-                        full_line = (  # noqa: PLW2901
-                            full_line[: idx_abs_lim - idx_strip_lim]
-                            + full_line[idx_abs_lim:]
-                        )
-                    raw = full_line
-                    # one line docstring
-                    # Both/Two delimiting quotes on one line
-                    if line.count(lim) == 2:
-                        end = i
-                        elem_list[-1]["docs"].parse_docs(raw, before_lim)
-                        elem_list[-1]["location"] = (start, end)
-                        reading_docs = None
-                        waiting_docs = False
-                        reading_element = False
-                        raw = ""
-                # end of docstring bloc
-                elif waiting_docs and lim in line:
-                    end = i
-                    raw += full_line
-                    elem_list[-1]["docs"].parse_docs(raw, before_lim)
-                    elem_list[-1]["location"] = (start, end)
-                    reading_docs = None
-                    waiting_docs = False
-                    reading_element = False
-                    raw = ""
-                # inside a docstring bloc
-                elif waiting_docs:
-                    raw += full_line
-            # no docstring found for current element
-            elif waiting_docs and line != "" and reading_docs is None:
-                waiting_docs = False
-            elif reading_docs is not None:
-                raw += full_line
-        self.docs_list = elem_list
-        self.parsed = True
-        return elem_list
+        ast_parser = AstAnalyzer(self.input_lines)
+        self.docs_list = ast_parser.parse_from_ast()
+        return self.docs_list
 
     def get_output_docs(self) -> List:
         """Return the output docstrings once formatted.
@@ -326,16 +142,8 @@ class PyComment:
             last = end + 1
         if last < len(list_from):
             list_to.extend(list_from[last:])
-        if not self.module_doc_found:
-            list_to.insert(self.module_doc_index, '"""_summary_."""\n')
-            list_changed.insert(0, "Module")
-        elif self.module_doc_period_missing:
-            module_doc_first_line = list_to[self.module_doc_index]
-            lim = module_doc_first_line[:3]
-            list_to[self.module_doc_index] = (
-                lim + module_doc_first_line.strip().replace(lim, "") + "." + lim + "\n"
-            )
-            list_changed.insert(0, "Module")
+        # if not self.module_doc_found:
+        #     list_to[self.module_doc_index] = (
 
         return list_from, list_to, list_changed
 
@@ -470,7 +278,7 @@ class PyComment:
             os.remove(self.input_file)
         os.rename(tmp_filename, self.input_file)
 
-    def proceed(self) -> List[Element]:
+    def proceed(self) -> None:
         """Parse file and generates/converts the docstrings.
 
         Returns
@@ -479,6 +287,11 @@ class PyComment:
             the list of docstrings
         """
         self._parse()
-        for e in self.docs_list:
-            e["docs"].generate_docs()
-        return self.docs_list
+        for element in self.docs_list:
+            print(element)
+            print(element.docstring)
+            element.parse_docstring()
+            print(element.produce_output_docstring())
+        import sys
+
+        sys.exit()
