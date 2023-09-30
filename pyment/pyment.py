@@ -277,49 +277,6 @@ class PyComment:
         self.parsed = True
         return elem_list
 
-    def docs_init_to_class(self) -> bool:
-        """Move docstring from __init__ to class when sensible.
-
-        If found a __init__ method's docstring and the class.
-        without any docstring, so set the class docstring with __init__one,
-        and let __init__ without docstring.
-
-        Returns
-        -------
-        bool
-            True if done
-        """
-        result = False
-        if not self.parsed:
-            self._parse()
-        einit: List[Element] = []
-        eclass: List[Element] = []
-        for e in self.docs_list:
-            if (
-                len(eclass) == len(einit) + 1
-                and e["docs"].element["name"] == "__init__"
-            ):
-                einit.append(e)
-            elif not eclass and e["docs"].element["deftype"] == "class":
-                eclass.append(e)
-        for class_element, init_element in zip(eclass, einit):
-            start, _ = class_element["location"]
-            if start < 0:
-                start, _ = init_element["location"]
-                if start > 0:
-                    result = True
-                    cspaces = class_element["docs"].get_spaces()
-                    ispaces = init_element["docs"].get_spaces()
-                    class_element["docs"].set_spaces(ispaces)
-                    init_element["docs"].set_spaces(cspaces)
-                    class_element["docs"].generate_docs()
-                    init_element["docs"].generate_docs()
-                    class_element["docs"], init_element["docs"] = (
-                        init_element["docs"],
-                        class_element["docs"],
-                    )
-        return result
-
     def get_output_docs(self) -> List:
         """Return the output docstrings once formatted.
 

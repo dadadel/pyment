@@ -98,3 +98,7 @@ class TestNumpyOutput:
     def test_starstar_kwargs(self) -> None:
         """Make sure that **kwargs are treated correctly."""
         check_expected_diff("star_star_kwargs")
+
+    def test_module_doc_dot(self) -> None:
+        """Make sure missing '.' are added to the first line of module docstring."""
+        check_expected_diff("module_dot_missing")
