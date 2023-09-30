@@ -56,7 +56,6 @@ class DocString:
         elem_raw: str,
         spaces: str = "",
         docs_raw: Optional[str] = None,
-        quotes: str = "'''",
         input_style: Optional[str] = None,
         *,
         before_lim: str = "",
@@ -72,8 +71,6 @@ class DocString:
             the leading whitespaces before the element (Default value = "")
         docs_raw : Optional[str]
             the raw data of the docstring part if any. (Default value = None)
-        quotes : str
-            the type of quotes to use for output: ' ' ' or " " " (Default value = "'''")
         input_style : Optional[str]
             _description_ (Default value = None)
         before_lim : str
@@ -146,7 +143,7 @@ class DocString:
         self.special_signature_chars = ("/", "*")
 
         self.parse_definition()
-        self.quotes = quotes
+        self.quotes = '"""'
 
     def __str__(self) -> str:
         """Verbose, for debugging.

@@ -43,15 +43,12 @@ class PyComment:
     The changes are then provided in a patch file.
     """
 
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         input_file: str,
         *,
         input_style: Optional[str] = None,
-        quotes: str = '"""',
-        convert_only: bool = False,
         config_file: Optional[Dict] = None,
-        ignore_private: bool = False,
         indent: int = 2,
     ) -> None:
         r"""Set the configuration including the source to proceed and options.
@@ -62,16 +59,8 @@ class PyComment:
             path name (file or folder)
         input_style : Optional[str]
             the type of doctrings format of the input. By default, it will autodetect
-        quotes : Literal["'''", '\"\"\"']
-            the type of quotes to use for output: ''' or \"\"\" (default \"\"\")
-        convert_only : bool
-            If set only existing docstring will be converted.
-            No missing docstring will be created. (Default value = False)
         config_file : Optional[Dict]
             If given configuration file for Pyment (Default value = None)
-        ignore_private : bool
-            Don't process the private methods/functions
-            starting with __ (two underscores) (Default value = False)
         indent : int
             How much each level should be indented. (Default value = 2)
         """
@@ -84,10 +73,7 @@ class PyComment:
         self.file_index = 0
         self.docs_list = []
         self.parsed = False
-        self.quotes = quotes
-        self.convert_only = convert_only
         self.config_file = config_file
-        self.ignore_private = ignore_private
         self.trailing_space = False
         self.indent = indent
         self.module_doc_index = 0
@@ -207,16 +193,12 @@ class PyComment:
             elif (
                 line.startswith(("async def ", "def ", "class "))
             ) and not reading_docs:
-                if self.ignore_private and line[line.find(" ") :].strip().startswith(
-                    "__"
-                ):
-                    continue
                 elem = line
                 matched = re.match(
                     r"^(\s*)[adc]", full_line
                 )  # a for async, d for def, c for class
                 spaces = (
-                    matched.group(1)
+                    matched[1]
                     if matched is not None and matched.group(1) is not None
                     else ""
                 )
@@ -234,7 +216,6 @@ class PyComment:
                 doc_string = DocString(
                     elem.replace("\n", " "),
                     spaces,
-                    quotes=self.quotes,
                     input_style=self.input_style,
                     indent=self.indent,
                 )
@@ -295,13 +276,6 @@ class PyComment:
                 waiting_docs = False
             elif reading_docs is not None:
                 raw += full_line
-        if self.convert_only:
-            i = 0
-            while i < len(elem_list):
-                if elem_list[i]["docs"].get_input_docstring() is None:
-                    elem_list.pop(i)
-                else:
-                    i += 1
         self.docs_list = elem_list
         self.parsed = True
         return elem_list
