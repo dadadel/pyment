@@ -74,7 +74,6 @@ class PyComment:
         self.docs_list = []
         self.parsed = False
         self.config_file = config_file
-        self.trailing_space = False
         self.indent = indent
         self.module_doc_index = 0
         self.module_doc_found = False
@@ -198,9 +197,7 @@ class PyComment:
                     r"^(\s*)[adc]", full_line
                 )  # a for async, d for def, c for class
                 spaces = (
-                    matched[1]
-                    if matched is not None and matched.group(1) is not None
-                    else ""
+                    matched[1] if matched is not None and matched[1] is not None else ""
                 )
                 # the end of definition should be ':' and eventually a comment following
                 # FIXME: but this is missing eventual use
