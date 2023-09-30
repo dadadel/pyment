@@ -73,10 +73,9 @@ class Parameter:
 
 
 @dataclass
-class ParameterDoc:
+class ParameterDoc(Parameter):
     """Info for parameter from docstring."""
 
-    param: Parameter
     description: str
 
 
@@ -85,6 +84,13 @@ class ReturnValue:
     """Info about return value from signature."""
 
     type_info: Optional[str]
+
+@dataclass
+class ReturnValueDoc(ReturnValue):
+    """Info about return value from docstring."""
+
+    name: Optional[str]
+    description: str
 
 
 @dataclass
