@@ -162,7 +162,7 @@ class AstAnalyzer:
     ) -> ReturnValue:
         """Get information about return value from signature."""
         return_node = func.returns
-        return ReturnValue(type_info=self.get_expr_as_string(return_node))
+        return ReturnValue(type_name=self.get_expr_as_string(return_node))
 
     def handle_function_signature(
         self,
@@ -170,7 +170,7 @@ class AstAnalyzer:
     ) -> FunctionSignature:
         """Extract information about the signature of the function."""
         parameters = self.get_parameters_sig(func)
-        if parameters and parameters[0].name == "self":
+        if parameters and parameters[0].arg_name == "self":
             parameters.pop(0)
         return_value = self.get_return_value_sig(func)
         return FunctionSignature(parameters, return_value)

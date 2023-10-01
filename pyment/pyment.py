@@ -3,15 +3,12 @@
 import difflib
 import os
 import platform
+import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional, Tuple, overload
+from typing import List, Tuple
 
 from .file_parser import AstAnalyzer
-from .types import ElementDocstring, Style
-
-if TYPE_CHECKING:
-    from .docstrings.generators import DocString
-    from .docstrings.parsers import DocToolsBase
+from .types import ElementDocstring
 
 __author__ = "A. Daouzli"
 __copyright__ = "Copyright 2012-2021"
@@ -52,33 +49,12 @@ class PyComment:
             path name (file or folder)
         """
         self.input_file = input_file
-        self.input_lines = Path(self.input_file).read_text(encoding="utf-8")
-        self.input_style = Style.UNKNOWN
-        self.docstring_parser: Optional[DocToolsBase] = None
-        self.docstring_generator: Optional[DocString] = None
+        if self.input_file == "-":
+            self.input_lines = sys.stdin.read()
+        else:
+            self.input_lines = Path(self.input_file).read_text(encoding="utf-8")
         self.docs_list = []
         self.parsed = False
-
-    def _starts_with_delimiter(self, line: str) -> bool:
-        """Check if line starts with docstring delimiter.
-
-        Parameters
-        ----------
-        line : str
-            Line to check
-
-        Returns
-        -------
-        bool
-            Whether the line starts with a delimiter
-        """
-        delimiters = ['"""', "'''"]
-        modifiers = ["r", "u", "f"]
-        if line[:3] in delimiters:
-            return True
-        if line[0] in modifiers and line[1:4] in delimiters:
-            return True
-        return line[0] in modifiers and line[1] in modifiers and line[2:5] in delimiters
 
     def _parse(self) -> List[ElementDocstring]:
         """Parse input file's content and generates a list of its elements/docstrings.
@@ -91,24 +67,37 @@ class PyComment:
         # TODO manage decorators
         ast_parser = AstAnalyzer(self.input_lines)
         self.docs_list = ast_parser.parse_from_ast()
+        self.parsed = True
         return self.docs_list
 
-    def get_output_docs(self) -> List:
-        """Return the output docstrings once formatted.
+    def _get_modifier(self, line: str) -> str:
+        """Get the string modifier from the start of a docstring.
+
+        Parameters
+        ----------
+        line : str
+            Line to check
 
         Returns
         -------
-        List
-            the formatted docstrings
+        str
+            Modifier(s) of the string.
         """
-        if not self.parsed:
-            self._parse()
-        return [e["docs"].get_raw_docs() for e in self.docs_list]
+        line = line.strip()
+        delimiters = ['"""', "'''"]
+        modifiers = ["r", "u", "f"]
+        if not line:
+            return ""
+        if line[:3] in delimiters:
+            return ""
+        if line[0] in modifiers and line[1:4] in delimiters:
+            return line[0]
+        if line[0] in modifiers and line[1] in modifiers and line[2:5] in delimiters:
+            return line[:2]
+        return ""
 
     def compute_before_after(self) -> Tuple[List[str], List[str], List[str]]:
         """Compute the list of lines before and after the proposed docstring changes.
-
-        :return: tuple of before,after where each is a list of lines of python code.
 
         Returns
         -------
@@ -118,67 +107,53 @@ class PyComment:
         """
         if not self.parsed:
             self._parse()
-        list_from = self.input_lines
+        list_from = self.input_lines.splitlines(keepends=True)
         list_to = []
         list_changed = []
         last = 0
         for e in self.docs_list:
-            elem_name = e["docs"].element["name"]
-            in_docstring = e["docs"].docs["in"]["pure_raw"]
-            out_docstring = self.get_stripped_out_docstring(
-                e["docs"].docs["out"]["raw"]
+            start, end = e.lines
+            if end is None:
+                msg = "End of docstring is None. Not sure what to do with this yet."
+                raise ValueError(msg)
+            start, end = start - 1, end - 1
+            in_docstring = e.docstring
+            old_line = list_from[start]
+            leading_whitespace = old_line[: -len(old_line.lstrip())]
+            modifier = self._get_modifier(old_line)
+            out_docstring = self._add_quotes_indentation_modifier(
+                e.output_docstring(), indentation=leading_whitespace, modifier=modifier
             )
-            if in_docstring != out_docstring:
-                list_changed.append(elem_name)
-            start, end = e["location"]
-            if start <= 0:
-                start, end = -start, -end
-                list_to.extend(list_from[last : start + 1])
-            else:
-                list_to.extend(list_from[last:start])
-            docs = e["docs"].get_raw_docs() or ""
-            list_docs = [line + "\n" for line in docs.splitlines()]
-            list_to.extend(list_docs)
+            if in_docstring != out_docstring.strip()[3:-3]:
+                list_changed.append(e.name)
+            list_to.extend(list_from[last:start])
+            list_to.extend(out_docstring.splitlines(keepends=True))
+            if not in_docstring:
+                list_to.append(old_line)
             last = end + 1
         if last < len(list_from):
             list_to.extend(list_from[last:])
-        # if not self.module_doc_found:
-        #     list_to[self.module_doc_index] = (
 
         return list_from, list_to, list_changed
 
-    @overload
-    def get_stripped_out_docstring(self, doc_string: str) -> str:
-        ...
-
-    @overload
-    def get_stripped_out_docstring(self, doc_string: None) -> None:
-        ...
-
-    def get_stripped_out_docstring(self, doc_string: Optional[str]) -> Optional[str]:
-        """Strip and remove docstring quotes from docstring.
-
-        This is the same that is done with the input docstring.
-        So do this to be able to directly compare input and output docstrings.
-
-        Parameters
-        ----------
-        doc_string : str
-            Docstring to strip
-
-        Returns
-        -------
-        str
-            Stripped docstring
-        """
-        if doc_string is None:
-            return None
-        doc_string = doc_string.strip()
-        if doc_string.startswith(('"""', "'''")):
-            doc_string = doc_string[3:]
-        if doc_string.endswith(('"""', "'''")):
-            doc_string = doc_string[:-3]
-        return doc_string
+    def _add_quotes_indentation_modifier(
+        self,
+        docstring: str,
+        quotes: str = '"""',
+        indentation: str = "    ",
+        modifier: str = "",
+    ) -> str:
+        split = f"{modifier}{quotes}{docstring}".splitlines()
+        # One line docstring get the quotes on the same line
+        if len(split) > 1:
+            split.append(quotes)
+        # Multi-line get them on the next
+        else:
+            split[0] += quotes
+        for index, line in enumerate(split):
+            if line.strip():
+                split[index] = indentation + line
+        return "\n".join(split) + "\n"
 
     def diff(self, source_path: str = "", target_path: str = "") -> List[str]:
         """Build the diff between original docstring and proposed docstring.
@@ -287,11 +262,3 @@ class PyComment:
             the list of docstrings
         """
         self._parse()
-        for element in self.docs_list:
-            print(element)
-            print(element.docstring)
-            element.parse_docstring()
-            print(element.produce_output_docstring())
-        import sys
-
-        sys.exit()

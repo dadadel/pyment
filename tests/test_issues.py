@@ -35,7 +35,7 @@ class TestIssues:
         """
         # if file starting with a function/class definition, patching the file
         # will remove the first line!
-        comment = pym.PyComment(absdir("refs/issue30.py"), input_style="numpydoc")
+        comment = pym.PyComment(absdir("refs/issue30.py"))
         comment._parse()
         assert comment.parsed
         try:

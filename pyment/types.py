@@ -2,10 +2,9 @@
 
 import ast
 from dataclasses import dataclass
-from enum import Enum
 from typing import List, Optional, Tuple, TypeAlias
 
-Style = Enum("Style", ["UNKNOWN", "GOOGLE", "NUMPY", "GROUP", "JAVADOC", "REST"])
+import docstring_parser as dsp
 
 
 @dataclass
@@ -16,41 +15,59 @@ class DocstringInfo:
     docstring: str
     lines: Tuple[int, Optional[int]]
 
-    def parse_docstring(self) -> None:
-        """Perform some parsing of the docstring and store the result.
+    def _fix_short_description(self, docstring: dsp.Docstring) -> None:
+        """Set default summary."""
+        docstring.short_description = docstring.short_description or "_summary_."
 
-        Default is to do nothing.
+    def _fix_long_description(self, docstring: dsp.Docstring) -> None:
+        """Add '.' to end of description if missing."""
+        if (
+            docstring.short_description
+            and not docstring.short_description.rstrip().endswith(".")
+        ):
+            docstring.short_description = f"{docstring.short_description.rstrip()}."
+
+    def _fix_blank_lines(self, docstring: dsp.Docstring) -> None:
+        """Set blank lines after short and long description."""
+        # Set blank line after short description if a long one follows
+        # If nothing follows we do not want one and other sections bring their own.
+        docstring.blank_after_short_description = bool(docstring.long_description)
+        # Set blank line after long description of something follows
+        # If there is a section after the long description then that already
+        # introduces a newline. If not, we do not want one at all.
+        docstring.blank_after_long_description = False
+
+    def _fix_descriptions(self, docstring: dsp.Docstring) -> None:
+        """Everything should have a description."""
+        for ele in docstring.meta:
+            ele.description = ele.description or "_description_"
+
+    def _fix_types(self, docstring: dsp.Docstring) -> None:
+        """Set empty types for parameters and returns."""
+        for param in docstring.params:
+            param.type_name = param.type_name or "_type_"
+        for returned in docstring.many_returns:
+            returned.type_name = returned.type_name or "_type_"
+
+    def fix_docstring(self, docstring: dsp.Docstring) -> None:
+        """Fix docstrings.
+
+        Default are to add missing dots, blank lines and give defaults for
+        descriptions and types.
         """
-        return
+        self._fix_short_description(docstring)
+        self._fix_long_description(docstring)
+        self._fix_blank_lines(docstring)
+        self._fix_descriptions(docstring)
+        self._fix_types(docstring)
 
-    def produce_output_docstring(self, _style: Style = Style.NUMPY) -> str:
-        """Produce the output docstring for the element.
-
-        Default is to:
-            Add a missing '.' to the first line
-            Insert a missing blank line after the first
-            Remove trailing blank lines
-
-        Parameters
-        ----------
-        _style : Style
-            The docstring style to use, by default Style.NUMPY
-
-        Returns
-        -------
-        str
-            The optionally reformatted docstring.
-        """
-        lines = [line.rstrip() for line in self.docstring.splitlines()]
-        if not lines:
-            return "_summary_."
-        if not lines[0].endswith("."):
-            lines[0] += "."
-        if len(lines) >= 2 and lines[1].strip() != "":
-            lines.insert(1, "")
-        while lines and lines[-1].strip() == "":
-            lines.pop()
-        return "\n".join(lines)
+    def output_docstring(
+        self, style: dsp.DocstringStyle = dsp.DocstringStyle.NUMPYDOC
+    ) -> str:
+        """Parse and fix input docstrings, then compose output docstring."""
+        parsed = dsp.parse(self.docstring)
+        self.fix_docstring(parsed)
+        return dsp.compose(parsed, style)
 
 
 @dataclass
@@ -67,40 +84,16 @@ class ClassDocstring(DocstringInfo):
 class Parameter:
     """Info for parameter from signature."""
 
-    name: str
-    type_info: Optional[str]
+    arg_name: str
+    type_name: Optional[str]
     default: Optional[str]
-
-
-@dataclass
-class ParameterDoc(Parameter):
-    """Info for parameter from docstring."""
-
-    description: str
 
 
 @dataclass
 class ReturnValue:
     """Info about return value from signature."""
 
-    type_info: Optional[str]
-
-
-@dataclass
-class ReturnValueDoc(ReturnValue):
-    """Info about return value from docstring."""
-
-    name: Optional[str]
-    description: str
-
-
-@dataclass
-class ReturnValueDoc:
-    """Info about return value from docstring."""
-
-    type_info: str
-    name: Optional[str]
-    description: str
+    type_name: Optional[str] = None
 
 
 @dataclass
@@ -108,7 +101,7 @@ class FunctionSignature:
     """Information about a function signature."""
 
     params: List[Parameter]
-    return_value: ReturnValue
+    returns: ReturnValue
 
 
 @dataclass
@@ -116,7 +109,88 @@ class FunctionDocstring(DocstringInfo):
     """Information about a function from docstring."""
 
     signature: FunctionSignature
-    # TODO: other sections
+
+    def _adjust_parameters_from_sig(self, docstring: dsp.Docstring) -> None:
+        """Overwrite or create param docstring entries based on signature.
+
+        If an entry already exists update the type description if one exists
+        in the signature. Same for the default value.
+
+        If no entry exists then create one with name, type and default from the
+        signature and place holder description.
+        """
+        params_from_doc = {param.arg_name: param for param in docstring.params}
+        params_from_sig = {param.arg_name: param for param in self.signature.params}
+        for name, param_sig in params_from_sig.items():
+            if name in params_from_doc:
+                param_doc = params_from_doc[name]
+                param_doc.type_name = param_sig.type_name or param_doc.type_name
+                param_doc.is_optional = False
+                if param_sig.default:
+                    param_doc.default = param_sig.default
+            else:
+                docstring.meta.append(
+                    dsp.DocstringParam(
+                        args=["param", name],
+                        description="_description_",
+                        arg_name=name,
+                        type_name=param_sig.type_name or "_type_",
+                        is_optional=False,
+                        default=param_sig.default,
+                    )
+                )
+
+    def _add_single_return(self, docstring: dsp.Docstring) -> bool:
+        """Whether to add a return value if none was specified in the docstring."""
+        if docstring.many_returns:
+            return False
+        if self.signature.returns.type_name in (None, "None"):
+            return not self.docstring
+        return True
+
+    def _adjust_returns_from_sig(self, docstring: dsp.Docstring) -> None:
+        """Overwrite or create return docstring entries based on signature.
+
+        If no return value was parsed from the docstring:
+        Add one based on the signature with a dummy description except
+        if the return type was not specified or specified to be None AND there
+        was an existing docstring.
+
+        If one return value is specified overwrite the type with the signature
+        if one was present there.
+
+        If multiple were  specified then leave them as is.
+        They might very well be expanding on a return type like:
+        Tuple[int, str, whatever]
+        """
+        doc_returns = docstring.many_returns
+        sig_return = self.signature.returns
+        # If only one return value is specified take the type from the signature
+        # as that is more likely to be correct
+        # TODO: Handle generators
+        if self._add_single_return(docstring):
+            docstring.meta.append(
+                dsp.DocstringReturns(
+                    args=["returns"],
+                    description="_description_",
+                    type_name=sig_return.type_name or "_type_",
+                    is_generator=False,
+                    return_name=None,
+                )
+            )
+        elif len(doc_returns) == 1:
+            doc_return = doc_returns[0]
+            doc_return.type_name = sig_return.type_name or doc_return.type_name
+
+    def fix_docstring(self, docstring: dsp.Docstring) -> None:
+        """Fix docstrings.
+
+        Default are to add missing dots, blank lines and give defaults for
+        descriptions and types.
+        """
+        super().fix_docstring(docstring)
+        self._adjust_parameters_from_sig(docstring)
+        self._adjust_returns_from_sig(docstring)
 
 
 ElementDocstring: TypeAlias = ModuleDocstring | ClassDocstring | FunctionDocstring

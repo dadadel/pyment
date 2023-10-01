@@ -148,10 +148,8 @@ class TestApp:
 
         stdout, stderr = process.communicate(write_to_stdin)
 
-        if isinstance(stdout, bytes):
-            # Python 3 compatibility - output will be bytes
-            stdout = stdout.decode()
-            stderr = stderr.decode()
+        stdout = stdout.decode()
+        stderr = stderr.decode()
 
         return stdout, stderr, process.returncode
 
@@ -366,10 +364,9 @@ class TestApp:
                 expected_file_contents
             )
 
-            assert (
-                normalised_output == normalised_expected_output
-            ), "Output from cmd: {} was:\n{!r}\nnot the expected:\n{!r}".format(
-                cmd_args, normalised_output, normalised_expected_output
+            assert normalised_output == normalised_expected_output, (
+                f"Output from cmd: {cmd_args} was:\n{normalised_output!r}\nnot "
+                f"the expected:\n{normalised_expected_output!r}"
             )
 
         finally:

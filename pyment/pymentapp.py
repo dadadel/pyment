@@ -64,7 +64,9 @@ def run(  # pylint: disable=too-many-locals, too-many-branches
                     f"was {list(set(list_from) ^ set(lines_to_write))}!"
                 )
                 raise AssertionError(msg)
-            if list_from != lines_to_write:
+            if file == "-":
+                sys.stdout.writelines(lines_to_write)
+            elif list_from != lines_to_write:
                 print(
                     "Modified docstrings of element"
                     f'{"s" if len(list_changed) > 1 else ""} '
