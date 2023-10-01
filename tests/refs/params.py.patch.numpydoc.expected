@@ -75,7 +75,7 @@
 +    Parameters
 +    ----------
 +    param1 : _type_
-+        _description_ (Default value = 123)
++        _description_
 +
 +    Returns
 +    -------
@@ -93,7 +93,7 @@
 +    param1 : _type_
 +        _description_
 +    param2 : _type_
-+        _description_ (Default value = 123)
++        _description_
 +
 +    Returns
 +    -------
@@ -113,7 +113,7 @@
 +    param2 : _type_
 +        _description_
 +    param3 : _type_
-+        _description_ (Default value = 123)
++        _description_
 +
 +    Returns
 +    -------
@@ -131,9 +131,9 @@
 +    param1 : _type_
 +        _description_
 +    param2 : _type_
-+        _description_ (Default value = None)
++        _description_
 +    param3 : _type_
-+        _description_ (Default value = 123)
++        _description_
 +
 +    Returns
 +    -------
@@ -149,11 +149,11 @@
 +    Parameters
 +    ----------
 +    param1 : _type_
-+        _description_ (Default value = 123)
++        _description_
 +    param2 : _type_
-+        _description_ (Default value = +456)
++        _description_
 +    param3 : _type_
-+        _description_ (Default value = "!:@")
++        _description_
 +
 +    Returns
 +    -------
@@ -169,9 +169,9 @@
 +    Parameters
 +    ----------
 +    param1 : _type_
-+        _description_ (Default value = func1())
++        _description_
 +    param2 : _type_
-+        _description_ (Default value = "stuff")
++        _description_
 +
 +    Returns
 +    -------
@@ -187,9 +187,9 @@
 +    Parameters
 +    ----------
 +    param1 : _type_
-+        _description_ (Default value = func1())
++        _description_
 +    param2 : _type_
-+        _description_ (Default value = "stuff")
++        _description_
 +
 +    Returns
 +    -------

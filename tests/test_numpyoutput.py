@@ -102,3 +102,7 @@ class TestNumpyOutput:
     def test_module_doc_dot(self) -> None:
         """Make sure missing '.' are added to the first line of module docstring."""
         check_expected_diff("module_dot_missing")
+
+    def test_ast_ref(self) -> None:
+        """Bunch of different stuff."""
+        check_expected_diff("ast_ref")

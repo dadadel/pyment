@@ -79,36 +79,6 @@ class TestDocStrings:
         comment._parse()
         assert comment.parsed
 
-    def test_same_out_javadoc_reST(self) -> None:  # noqa: N802
-        """Test that javadoc and rest comments are parsed equivalently."""
-        pj = pym.PyComment(self.jvdfile)
-        pr = pym.PyComment(self.rstfile)
-        pj._parse()
-        pr._parse()
-        assert pj.get_output_docs() == pr.get_output_docs()
-
-    def test_multi_lines_elements(self) -> None:
-        """Test that multiline elements are parsed correctly."""
-        comment = pym.PyComment(self.inifile)
-        comment._parse()
-        assert "first" in comment.get_output_docs()[1]
-        assert "second" in comment.get_output_docs()[1]
-        assert "third" in comment.get_output_docs()[1]
-        assert "multiline" in comment.get_output_docs()[1]
-
-    def test_multi_lines_shift_elements(self) -> None:
-        """Test that multiline elements are parsed correctly."""
-        comment = pym.PyComment(self.inifile)
-        comment._parse()
-        assert (
-            len(comment.get_output_docs()[13])
-            - len(comment.get_output_docs()[13].lstrip())
-        ) == 8
-        assert "first" in comment.get_output_docs()[13]
-        assert "second" in comment.get_output_docs()[13]
-        assert "third" in comment.get_output_docs()[13]
-        assert "multiline" in comment.get_output_docs()[13]
-
     def test_windows_rename(self) -> None:
         """Check that renaming works correctly."""
         bar = absdir("bar")

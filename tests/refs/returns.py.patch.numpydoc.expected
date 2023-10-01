@@ -34,31 +34,21 @@
          Wrong
      """
      pass
-@@ -33,26 +39,30 @@
+@@ -44,6 +50,13 @@
  
  
- def my_single_return_func3():
-+    """_summary_."""
-+    pass
+ def my_single_return_func4():
++    """_summary_.
 +
-+
-+def my_single_return_func4():
-     """_summary_.
- 
-     Returns
-     -------
--
--        test
++    Returns
++    -------
 +    _type_
 +        _description_
-     """
--    pass
--
--
--def my_single_return_func4():
++    """
      pass
  
- 
+ def my_single_return_func5():
+@@ -57,9 +70,12 @@
  def my_func1(param0, param01: int):
      """_summary_.
  
@@ -74,7 +64,7 @@
      """
      pass
  
-@@ -62,7 +72,7 @@
+@@ -69,7 +85,7 @@
  
      Returns
      -------
