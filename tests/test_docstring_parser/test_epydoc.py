@@ -352,10 +352,11 @@ def test_yields() -> None:
         @yield: description
         """
     )
-    assert docstring.returns is not None
-    assert docstring.returns.type_name is None
-    assert docstring.returns.description == "description"
-    assert docstring.returns.is_generator
+    assert docstring.returns is None
+    assert docstring.yields is not None
+    assert docstring.yields.type_name is None
+    assert docstring.yields.description == "description"
+    assert docstring.yields.is_generator
 
     docstring = parse(
         """
@@ -364,10 +365,29 @@ def test_yields() -> None:
         @ytype: int
         """
     )
+    assert docstring.returns is None
+    assert docstring.yields is not None
+    assert docstring.yields.type_name == "int"
+    assert docstring.yields.description == "description"
+    assert docstring.yields.is_generator
+
+    docstring = parse(
+        """
+        Short description
+        @return: description
+        @rtype: str
+        @yield: description
+        @ytype: int
+        """
+    )
     assert docstring.returns is not None
-    assert docstring.returns.type_name == "int"
+    assert docstring.returns.type_name == "str"
     assert docstring.returns.description == "description"
-    assert docstring.returns.is_generator
+    assert not docstring.returns.is_generator
+    assert docstring.yields is not None
+    assert docstring.yields.type_name == "int"
+    assert docstring.yields.description == "description"
+    assert docstring.yields.is_generator
 
 
 def test_raises() -> None:
@@ -605,6 +625,26 @@ def test_broken_meta() -> None:
             """,
             "Short description\n@raise ValueError: description",
         ),
+        (
+            """
+            Short description
+            @return: description
+            @rtype: int
+            """,
+            "Short description\n"
+            "@rtype: int\n"
+            "@return: description"
+        ),
+        (
+            """
+            Short description
+            @yield: description
+            @ytype: int
+            """,
+            "Short description\n"
+            "@ytype: int\n"
+            "@yield: description"
+        )
     ],
 )
 def test_compose(source: str, expected: str) -> None:

@@ -1,5 +1,5 @@
 """Tests for Google-style docstring routines."""
-import typing as T
+from typing import Optional
 
 import pytest
 
@@ -14,9 +14,7 @@ from pyment.docstring_parser.google import (
 
 
 def test_google_parser_unknown_section() -> None:
-    """Test parsing an unknown section with default GoogleParser
-    configuration.
-    """
+    """Test parsing an unknown section with default GoogleParser."""
     parser = GoogleParser()
     docstring = parser.parse(
         """
@@ -30,9 +28,7 @@ def test_google_parser_unknown_section() -> None:
 
 
 def test_google_parser_custom_sections() -> None:
-    """Test parsing an unknown section with custom GoogleParser
-    configuration.
-    """
+    """Test parsing an unknown section with custom GoogleParser."""
     parser = GoogleParser(
         [
             Section("DESCRIPTION", "desc", SectionType.SINGULAR),
@@ -79,8 +75,9 @@ def test_google_parser_custom_sections() -> None:
 
 
 def test_google_parser_custom_sections_after() -> None:
-    """Test parsing an unknown section with custom GoogleParser configuration
-    that was set at a runtime.
+    """Test parsing an unknown section with custom GoogleParser configuration.
+
+    Configuration set at a runtime.
     """
     parser = GoogleParser(title_colon=False)
     parser.add_section(Section("Note", "note", SectionType.SINGULAR))
@@ -301,8 +298,8 @@ def test_long_description(
 )
 def test_meta_newlines(
     source: str,
-    expected_short_desc: T.Optional[str],
-    expected_long_desc: T.Optional[str],
+    expected_short_desc: Optional[str],
+    expected_long_desc: Optional[str],
     expected_blank_short_desc: bool,
     expected_blank_long_desc: bool,
 ) -> None:
@@ -1011,6 +1008,48 @@ def test_empty_example() -> None:
                 ValueError: description
             """,
             "Short description\nRaises:\n    ValueError: description",
+        ),
+        (
+            """
+            Short description
+
+            Returns:
+                int: description
+            """,
+            "Short description\n"
+            "\n"
+            "Returns:\n"
+            "    int: description"
+        ),
+        (
+            """
+            Short description
+
+            Yields:
+                int: description
+            """,
+            "Short description\n"
+            "\n"
+            "Yields:\n"
+            "    int: description"
+        ),
+        (
+        """
+        Short description
+
+        Yields:
+            Optional[Mapping[str, List[int]]]: A description: with a colon
+
+        Returns:
+            int: description with return last
+        """,
+        "Short description\n"
+        "\n"
+        "Returns:\n"
+        "    int: description with return last\n"
+        "\n"
+        "Yields:\n"
+        "    Optional[Mapping[str, List[int]]]: A description: with a colon"
         ),
     ],
 )

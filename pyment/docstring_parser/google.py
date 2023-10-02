@@ -2,9 +2,9 @@
 
 import inspect
 import re
-import typing as T
-from collections import OrderedDict, namedtuple
+from collections import OrderedDict
 from enum import IntEnum
+from typing import Any, List, Mapping, NamedTuple, Optional, Union
 
 from .common import (
     EXAMPLES_KEYWORDS,
@@ -38,8 +38,12 @@ class SectionType(IntEnum):
     """For sections like returns or yields."""
 
 
-class Section(namedtuple("SectionBase", "title key type")):
+class Section(NamedTuple):
     """A docstring section."""
+
+    title: str
+    key: str
+    type_info: SectionType
 
 
 GOOGLE_TYPED_ARG_REGEX = re.compile(r"\s*(.+?)\s*\(\s*(.*[^\s]+)\s*\)")
@@ -68,12 +72,16 @@ class GoogleParser:
     """Parser for Google-style docstrings."""
 
     def __init__(
-        self, sections: T.Optional[T.List[Section]] = None, title_colon=True
+        self, sections: Optional[List[Section]] = None, *, title_colon: bool = True
     ) -> None:
-        """Setup sections.
+        """Set up sections.
 
-        :param sections: Recognized sections or None to defaults.
-        :param title_colon: require colon after section title.
+        Parameters
+        ----------
+        sections : Optional[List[Section]]
+            Recognized sections or None to defaults.
+        title_colon : _type_
+            require colon after section title. (Default value = True)
         """
         if not sections:
             sections = DEFAULT_SECTIONS
@@ -81,7 +89,7 @@ class GoogleParser:
         self.title_colon = title_colon
         self._setup()
 
-    def _setup(self):
+    def _setup(self) -> None:
         colon = ":" if self.title_colon else ""
         self.titles_re = re.compile(
             "^("
@@ -95,20 +103,34 @@ class GoogleParser:
     def _build_meta(self, text: str, title: str) -> DocstringMeta:
         """Build docstring element.
 
-        :param text: docstring element text
-        :param title: title of section containing element
-        :return:
+        Parameters
+        ----------
+        text : str
+            docstring element text
+        title : str
+            title of section containing element
+
+        Returns
+        -------
+        DocstringMeta
+            docstring meta element
+
+        Raises
+        ------
+        ParseError
+            If the text lacks a colon ':'
         """
         section = self.sections[title]
 
         if (
-            section.type == SectionType.SINGULAR_OR_MULTIPLE
+            section.type_info == SectionType.SINGULAR_OR_MULTIPLE
             and not MULTIPLE_PATTERN.match(text)
-        ) or section.type == SectionType.SINGULAR:
+        ) or section.type_info == SectionType.SINGULAR:
             return self._build_single_meta(section, text)
 
         if ":" not in text:
-            raise ParseError(f"Expected a colon in {text!r}.")
+            msg = f"Expected a colon in {text!r}."
+            raise ParseError(msg)
 
         # Split spec and description
         before, desc = text.split(":", 1)
@@ -142,7 +164,8 @@ class GoogleParser:
         if section.key in EXAMPLES_KEYWORDS:
             return DocstringExample(args=[section.key], snippet=None, description=desc)
         if section.key in PARAM_KEYWORDS:
-            raise ParseError("Expected paramenter name.")
+            msg = "Expected paramenter name."
+            raise ParseError(msg)
         return DocstringMeta(args=[section.key], description=desc)
 
     @staticmethod
@@ -194,7 +217,7 @@ class GoogleParser:
             )
         return DocstringMeta(args=[section.key, before], description=desc)
 
-    def add_section(self, section: Section):
+    def add_section(self, section: Section) -> None:
         """Add or replace a section.
 
         :param section: The new section.
@@ -202,10 +225,18 @@ class GoogleParser:
         self.sections[section.title] = section
         self._setup()
 
-    def parse(self, text: str) -> Docstring:
+    def parse(self, text: str) -> Docstring:  # noqa: PLR0912
         """Parse the Google-style docstring into its components.
 
-        :returns: parsed docstring
+        Parameters
+        ----------
+        text : str
+            docstring text
+
+        Returns
+        -------
+        Docstring
+            parsed docstring
         """
         ret = Docstring(style=DocstringStyle.GOOGLE)
         if not text:
@@ -214,9 +245,7 @@ class GoogleParser:
         # Clean according to PEP-0257
         text = inspect.cleandoc(text)
 
-        # Find first title and split on its position
-        match = self.titles_re.search(text)
-        if match:
+        if match := self.titles_re.search(text):
             desc_chunk = text[: match.start()]
             meta_chunk = text[match.start() :]
         else:
@@ -236,12 +265,12 @@ class GoogleParser:
         matches = list(self.titles_re.finditer(meta_chunk))
         if not matches:
             return ret
-        splits = []
-        for j in range(len(matches) - 1):
-            splits.append((matches[j].end(), matches[j + 1].start()))
+        splits = [
+            (matches[j].end(), matches[j + 1].start()) for j in range(len(matches) - 1)
+        ]
         splits.append((matches[-1].end(), len(meta_chunk)))
 
-        chunks = OrderedDict()  # type: T.Mapping[str,str]
+        chunks: Mapping[str, str] = OrderedDict()
         for j, (start, end) in enumerate(splits):
             title = matches[j].group(1)
             if title not in self.sections:
@@ -263,11 +292,12 @@ class GoogleParser:
             # Determine indent
             indent_match = re.search(r"^\s*", chunk)
             if not indent_match:
-                raise ParseError(f'Can\'t infer indent from "{chunk}"')
+                msg = f'Can\'t infer indent from "{chunk}"'
+                raise ParseError(msg)
             indent = indent_match.group()
 
             # Check for singular elements
-            if self.sections[title].type in [
+            if self.sections[title].type_info in [
                 SectionType.SINGULAR,
                 SectionType.SINGULAR_OR_MULTIPLE,
             ]:
@@ -276,15 +306,17 @@ class GoogleParser:
                 continue
 
             # Split based on lines which have exactly that indent
-            _re = "^" + indent + r"(?=\S)"
+            _re = rf"^{indent}(?=\S)"
             c_matches = list(re.finditer(_re, chunk, flags=re.M))
             if not c_matches:
-                raise ParseError(f'No specification for "{title}": "{chunk}"')
-            c_splits = []
-            for j in range(len(c_matches) - 1):
-                c_splits.append((c_matches[j].end(), c_matches[j + 1].start()))
+                msg = f'No specification for "{title}": "{chunk}"'
+                raise ParseError(msg)
+            c_splits = [
+                (c_cur.end(), c_next.start())
+                for c_cur, c_next in zip(c_matches, c_matches[1:], strict=False)
+            ]
             c_splits.append((c_matches[-1].end(), len(chunk)))
-            for j, (start, end) in enumerate(c_splits):
+            for start, end in c_splits:
                 part = chunk[start:end].strip("\n")
                 ret.meta.append(self._build_meta(part, title))
 
@@ -299,26 +331,40 @@ def parse(text: str) -> Docstring:
     return GoogleParser().parse(text)
 
 
-def compose(
+def compose(  # noqa: PLR0915
     docstring: Docstring,
     rendering_style: RenderingStyle = RenderingStyle.COMPACT,
     indent: str = "    ",
 ) -> str:
     """Render a parsed docstring into docstring text.
 
-    :param docstring: parsed docstring representation
-    :param rendering_style: the style to render docstrings
-    :param indent: the characters used as indentation in the docstring string
-    :returns: docstring text
+    Parameters
+    ----------
+    docstring : Docstring
+        parsed docstring representation
+    rendering_style : RenderingStyle
+        the style to render docstrings (Default value = RenderingStyle.COMPACT)
+    indent : str
+        the characters used as indentation in the
+        docstring string (Default value = '    ')
+
+    Returns
+    -------
+    str
+        docstring text
     """
 
-    def process_one(one: T.Union[DocstringParam, DocstringReturns, DocstringRaises]):
+    def process_one(
+        one: Union[DocstringParam, DocstringReturns, DocstringRaises, DocstringYields]
+    ) -> None:
         head = ""
 
         if isinstance(one, DocstringParam):
             head += one.arg_name or ""
         elif isinstance(one, DocstringReturns):
             head += one.return_name or ""
+        elif isinstance(one, DocstringYields):
+            head += one.yield_name or ""
 
         if isinstance(one, DocstringParam) and one.is_optional:
             optional = (
@@ -340,19 +386,19 @@ def compose(
             parts.append(body)
         elif one.description:
             (first, *rest) = one.description.splitlines()
-            body = f"\n{indent}{indent}".join([head + " " + first, *rest])
+            body = f"\n{indent}{indent}".join([f"{head} {first}", *rest])
             parts.append(body)
         else:
             parts.append(head)
 
-    def process_sect(name: str, args: T.List[T.Any]):
+    def process_sect(name: str, args: List[Any]) -> None:
         if args:
             parts.append(name)
             for arg in args:
                 process_one(arg)
             parts.append("")
 
-    parts: T.List[str] = []
+    parts: List[str] = []
     if docstring.short_description:
         parts.append(docstring.short_description)
     if docstring.blank_after_short_description:
@@ -372,10 +418,10 @@ def compose(
 
     process_sect(
         "Returns:",
-        [p for p in docstring.many_returns or [] if not p.is_generator],
+        docstring.many_returns,
     )
 
-    process_sect("Yields:", [p for p in docstring.many_returns or [] if p.is_generator])
+    process_sect("Yields:", docstring.many_yields)
 
     process_sect("Raises:", docstring.raises or [])
 
@@ -386,11 +432,13 @@ def compose(
         process_one(ret)
 
     for meta in docstring.meta:
-        if isinstance(meta, (DocstringParam, DocstringReturns, DocstringRaises)):
+        if isinstance(
+            meta, (DocstringParam, DocstringReturns, DocstringRaises, DocstringYields)
+        ):
             continue  # Already handled
         parts.append(meta.args[0].replace("_", "").title() + ":")
         if meta.description:
-            lines = [indent + l for l in meta.description.splitlines()]
+            lines = [indent + line for line in meta.description.splitlines()]
             parts.append("\n".join(lines))
         parts.append("")
 
