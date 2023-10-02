@@ -47,7 +47,7 @@ def test_combine_docstrings() -> None:
         assert arg_f
 
     assert decorated1.__doc__ == (
-        "short_description: fun2\n"
+        "short_description: fun2.\n"
         "\n"
         "long_description: fun2\n"
         "\n"
@@ -69,7 +69,7 @@ def test_combine_docstrings() -> None:
         assert arg_f
 
     assert decorated2.__doc__ == (
-        "short_description: fun2\n"
+        "short_description: fun2.\n"
         "\n"
         "long_description: fun2\n"
         "\n"

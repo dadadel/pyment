@@ -99,6 +99,9 @@ target-version = "py38"
 [tool.ruff.pydocstyle]
 convention = "numpy" # Accepts: "google", "numpy", or "pep257".
 
+[tool.ruff.pylint]
+max-args = 10
+
 [tool.black]
 line-length    = 88
 target-version = ['py38']

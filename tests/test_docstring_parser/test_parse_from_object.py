@@ -36,7 +36,7 @@ def test_from_class_attribute_docstrings() -> None:
     docstring = parse_from_object(StandardCase)
 
     assert docstring.short_description == "Short description"
-    assert docstring.long_description == "Long description"
+    assert docstring.long_description == "Long description."
     assert len(docstring.params) == 2
     assert docstring.params[0].arg_name == "attr_one"
     assert docstring.params[0].type_name == "str"
@@ -75,7 +75,7 @@ def test_from_class_without_source() -> None:
     with patch("inspect.getsource", side_effect=OSError("could not get source code")):
         docstring = parse_from_object(WithoutSource)
 
-    assert docstring.short_description == "Short description"
+    assert docstring.short_description == "Short description."
     assert len(docstring.params) == 0
 
 
@@ -99,4 +99,4 @@ def test_from_function() -> None:
     assert docstring.params[0].description == "Description for param1"
     assert docstring.params[1].arg_name == "param2"
     assert docstring.params[1].type_name is None
-    assert docstring.params[1].description == "Description for param2"
+    assert docstring.params[1].description == "Description for param2."

@@ -70,7 +70,9 @@ class PyComment:
         """
         # TODO manage decorators
         ast_parser = AstAnalyzer(self.input_lines)
-        self.docs_list = ast_parser.parse_from_ast()
+        self.docs_list = sorted(
+            ast_parser.parse_from_ast(), key=lambda element: element.lines
+        )
         self.parsed = True
         return self.docs_list
 
@@ -127,8 +129,9 @@ class PyComment:
             old_line = list_from[start]
             leading_whitespace = old_line[: -len(old_line.lstrip())]
             modifier = self._get_modifier(old_line)
+            raw_out = e.output_docstring(style=self.output_style)
             out_docstring = self._add_quotes_indentation_modifier(
-                e.output_docstring(style=self.output_style),
+                raw_out,
                 indentation=leading_whitespace,
                 modifier=modifier,
             )

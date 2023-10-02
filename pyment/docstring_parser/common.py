@@ -1,6 +1,7 @@
 """Common methods for parsing."""
 import enum
-import typing as T
+from typing import List, Optional
+from dataclasses import dataclass
 
 PARAM_KEYWORDS = {
     "param",
@@ -39,127 +40,68 @@ class RenderingStyle(enum.Enum):
     CLEAN = 2
     EXPANDED = 3
 
-
+@dataclass
 class DocstringMeta:
     """Docstring meta information.
 
     Symbolizes lines in form of
 
-        :param arg: description
-        :raises ValueError: if something happens
+    Parameters
+    ----------
+    args : List[str]
+        list of arguments. The exact content of this variable is
+        dependent on the kind of docstring; it's used to distinguish
+        between custom docstring meta information items.
+    description : Optional[str]
+        associated docstring description.
     """
 
-    def __init__(self, args: T.List[str], description: T.Optional[str]) -> None:
-        """Initialize self.
+    args: List[str]
+    description: Optional[str]
 
-        :param args: list of arguments. The exact content of this variable is
-            dependent on the kind of docstring; it's used to distinguish
-            between custom docstring meta information items.
-        :param description: associated docstring description.
-        """
-        self.args = args
-        self.description = description
-
-
+@dataclass
 class DocstringParam(DocstringMeta):
     """DocstringMeta symbolizing :param metadata."""
 
-    def __init__(
-        self,
-        args: T.List[str],
-        description: T.Optional[str],
-        arg_name: str,
-        type_name: T.Optional[str],
-        is_optional: T.Optional[bool],
-        default: T.Optional[str],
-    ) -> None:
-        """Initialize self."""
-        super().__init__(args, description)
-        self.arg_name = arg_name
-        self.type_name = type_name
-        self.is_optional = is_optional
-        self.default = default
+    arg_name: str
+    type_name: Optional[str]
+    is_optional: Optional[bool]
+    default: Optional[str]
 
-
+@dataclass
 class DocstringReturns(DocstringMeta):
     """DocstringMeta symbolizing :returns metadata."""
 
-    def __init__(
-        self,
-        args: T.List[str],
-        description: T.Optional[str],
-        type_name: T.Optional[str],
-        is_generator: bool,
-        return_name: T.Optional[str] = None,
-    ) -> None:
-        """Initialize self."""
-        super().__init__(args, description)
-        self.type_name = type_name
-        self.is_generator = is_generator
-        self.return_name = return_name
+    type_name: Optional[str]
+    is_generator: bool
+    return_name: Optional[str] = None
 
-
+@dataclass
 class DocstringYields(DocstringMeta):
     """DocstringMeta symbolizing :yields metadata."""
 
-    def __init__(
-        self,
-        args: T.List[str],
-        description: T.Optional[str],
-        type_name: T.Optional[str],
-        is_generator: bool,
-        yield_name: T.Optional[str] = None,
-    ) -> None:
-        """Initialize self."""
-        super().__init__(args, description)
-        self.type_name = type_name
-        self.is_generator = is_generator
-        self.yield_name = yield_name
+    type_name: Optional[str]
+    is_generator: bool
+    yield_name: Optional[str] = None
 
-
+@dataclass
 class DocstringRaises(DocstringMeta):
     """DocstringMeta symbolizing :raises metadata."""
 
-    def __init__(
-        self,
-        args: T.List[str],
-        description: T.Optional[str],
-        type_name: T.Optional[str],
-    ) -> None:
-        """Initialize self."""
-        super().__init__(args, description)
-        self.type_name = type_name
-        self.description = description
+    type_name: Optional[str]
+    description: Optional[str]
 
-
+@dataclass
 class DocstringDeprecated(DocstringMeta):
     """DocstringMeta symbolizing deprecation metadata."""
 
-    def __init__(
-        self,
-        args: T.List[str],
-        description: T.Optional[str],
-        version: T.Optional[str],
-    ) -> None:
-        """Initialize self."""
-        super().__init__(args, description)
-        self.version = version
-        self.description = description
+    version: Optional[str]
 
-
+@dataclass
 class DocstringExample(DocstringMeta):
     """DocstringMeta symbolizing example metadata."""
 
-    def __init__(
-        self,
-        args: T.List[str],
-        snippet: T.Optional[str],
-        description: T.Optional[str],
-    ) -> None:
-        """Initialize self."""
-        super().__init__(args, description)
-        self.snippet = snippet
-        self.description = description
+    snippet: Optional[str]
 
 
 class Docstring:
@@ -167,30 +109,30 @@ class Docstring:
 
     def __init__(
         self,
-        style=None,  # type: T.Optional[DocstringStyle]
+        style=None,  # type: Optional[DocstringStyle]
     ) -> None:
         """Initialize self."""
-        self.short_description = None  # type: T.Optional[str]
-        self.long_description = None  # type: T.Optional[str]
+        self.short_description = None  # type: Optional[str]
+        self.long_description = None  # type: Optional[str]
         self.blank_after_short_description = False
         self.blank_after_long_description = False
-        self.meta = []  # type: T.List[DocstringMeta]
-        self.style = style  # type: T.Optional[DocstringStyle]
+        self.meta = []  # type: List[DocstringMeta]
+        self.style = style  # type: Optional[DocstringStyle]
 
     @property
-    def params(self) -> T.List[DocstringParam]:
+    def params(self) -> List[DocstringParam]:
         """Return a list of information on function params."""
         return [item for item in self.meta if isinstance(item, DocstringParam)]
 
     @property
-    def raises(self) -> T.List[DocstringRaises]:
+    def raises(self) -> List[DocstringRaises]:
         """Return a list of information on the exceptions that the function
         may raise.
         """
         return [item for item in self.meta if isinstance(item, DocstringRaises)]
 
     @property
-    def returns(self) -> T.Optional[DocstringReturns]:
+    def returns(self) -> Optional[DocstringReturns]:
         """Return a single information on function return.
 
         Takes the first return information.
@@ -201,7 +143,7 @@ class Docstring:
         return None
 
     @property
-    def many_returns(self) -> T.List[DocstringReturns]:
+    def many_returns(self) -> List[DocstringReturns]:
         """Return a list of information on function return."""
         return [item for item in self.meta if isinstance(item, DocstringReturns)]
 
@@ -216,12 +158,12 @@ class Docstring:
         return None
 
     @property
-    def many_yields(self) -> T.List[DocstringYields]:
+    def many_yields(self) -> List[DocstringYields]:
         """Return a list of information on function yields."""
         return [item for item in self.meta if isinstance(item, DocstringYields)]
 
     @property
-    def deprecation(self) -> T.Optional[DocstringDeprecated]:
+    def deprecation(self) -> Optional[DocstringDeprecated]:
         """Return a single information on function deprecation notes."""
         for item in self.meta:
             if isinstance(item, DocstringDeprecated):
@@ -229,6 +171,6 @@ class Docstring:
         return None
 
     @property
-    def examples(self) -> T.List[DocstringExample]:
+    def examples(self) -> List[DocstringExample]:
         """Return a list of information on function examples."""
         return [item for item in self.meta if isinstance(item, DocstringExample)]

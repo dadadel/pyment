@@ -151,7 +151,7 @@ class TestApp:
         stderr = stderr.decode()
         return stdout, stderr, process.returncode
 
-    def run_pyment_app_and_assert_is_expected(  # noqa: PLR0913
+    def run_pyment_app_and_assert_is_expected(
         self,
         cmd_args: str,
         write_to_stdin: Optional[str] = None,
@@ -272,7 +272,7 @@ class TestApp:
             expected_stdout=self.EXPECTED_OUTPUT,
         )
 
-    def run_pyment_app_with_a_file_and_assert_is_expected(  # noqa: PLR0913
+    def run_pyment_app_with_a_file_and_assert_is_expected(
         self,
         file_contents: str,
         cmd_args: str = "",

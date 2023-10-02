@@ -6,8 +6,8 @@
 import ast
 import inspect
 import textwrap
-import typing as T
 from types import ModuleType
+from typing import Any, Dict, Optional, Tuple, Union
 
 from .common import Docstring, DocstringParam
 
@@ -20,12 +20,12 @@ ast_constant_attr = {
 }
 
 
-def ast_get_constant_value(node: ast.AST) -> T.Any:
+def ast_get_constant_value(node: ast.AST) -> Any:  # noqa: ANN401
     """Return the constant's value if the given node is a constant."""
     return getattr(node, ast_constant_attr[node.__class__])
 
 
-def ast_unparse(node: ast.AST) -> T.Optional[str]:
+def ast_unparse(node: ast.AST) -> Optional[str]:
     """Convert the AST node to source code as a string."""
     if hasattr(ast, "unparse"):
         return ast.unparse(node)
@@ -48,7 +48,7 @@ def ast_is_literal_str(node: ast.AST) -> bool:
 
 def ast_get_attribute(
     node: ast.AST,
-) -> T.Optional[T.Tuple[str, T.Optional[str], T.Optional[str]]]:
+) -> Optional[Tuple[str, Optional[str], Optional[str]]]:
     """Return name, type and default if the given node is an attribute."""
     if isinstance(node, (ast.Assign, ast.AnnAssign)):
         target = node.targets[0] if isinstance(node, ast.Assign) else node.target
@@ -56,9 +56,7 @@ def ast_get_attribute(
             type_str = None
             if isinstance(node, ast.AnnAssign):
                 type_str = ast_unparse(node.annotation)
-            default = None
-            if node.value:
-                default = ast_unparse(node.value)
+            default = ast_unparse(node.value) if node.value else None
             return target.id, type_str, default
     return None
 
@@ -69,7 +67,8 @@ class AttributeDocstrings(ast.NodeVisitor):
     attr_docs = None
     prev_attr = None
 
-    def visit(self, node):
+    def visit(self, node: ast.AST) -> None:
+        """Visit a node and collect its attribute docstrings."""
         if self.prev_attr and ast_is_literal_str(node):
             attr_name, attr_type, attr_default = self.prev_attr
             self.attr_docs[attr_name] = (
@@ -82,12 +81,19 @@ class AttributeDocstrings(ast.NodeVisitor):
             self.generic_visit(node)
 
     def get_attr_docs(
-        self, component: T.Any
-    ) -> T.Dict[str, T.Tuple[str, T.Optional[str], T.Optional[str]]]:
+        self, component: Any  # noqa: ANN401
+    ) -> Dict[str, Tuple[str, Optional[str], Optional[str]]]:
         """Get attribute docstrings from the given component.
 
-        :param component: component to process (class or module)
-        :returns: for each attribute docstring, a tuple with (description,
+        Parameters
+        ----------
+        component : Any
+            component to process (class or module)
+
+        Returns
+        -------
+        Dict[str, Tuple[str, Optional[str], Optional[str]]]
+            for each attribute docstring, a tuple with (description,
             type, default)
         """
         self.attr_docs = {}
@@ -108,13 +114,16 @@ class AttributeDocstrings(ast.NodeVisitor):
 
 
 def add_attribute_docstrings(
-    obj: T.Union[type, ModuleType], docstring: Docstring
+    obj: Union[type, ModuleType], docstring: Docstring
 ) -> None:
     """Add attribute docstrings found in the object's source code.
 
-    :param obj: object from which to parse attribute docstrings
-    :param docstring: Docstring object where found attributes are added
-    :returns: list with names of added attributes
+    Parameters
+    ----------
+    obj : Union[type, ModuleType]
+        object from which to parse attribute docstrings
+    docstring : Docstring
+        Docstring object where found attributes are added
     """
     params = {p.arg_name for p in docstring.params}
     for arg_name, (description, type_name, default) in (
