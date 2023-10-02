@@ -2,7 +2,7 @@
 
 import inspect
 import re
-import typing as T
+from typing import List, Optional
 
 from .common import (
     DEPRECATION_KEYWORDS,
@@ -23,7 +23,7 @@ from .common import (
 )
 
 
-def _build_meta(args: T.List[str], desc: str) -> DocstringMeta:
+def _build_meta(args: List[str], desc: str) -> DocstringMeta:  # noqa: PLR0912
     key = args[0]
 
     if key in PARAM_KEYWORDS:
@@ -39,10 +39,11 @@ def _build_meta(args: T.List[str], desc: str) -> DocstringMeta:
             type_name = None
             is_optional = None
         else:
-            raise ParseError(f"Expected one or two arguments for a {key} keyword.")
+            msg = f"Expected one or two arguments for a {key} keyword."
+            raise ParseError(msg)
 
         match = re.match(r".*defaults to (.+)", desc, flags=re.DOTALL)
-        default = match.group(1).rstrip(".") if match else None
+        default = match[1].rstrip(".") if match else None
 
         return DocstringParam(
             args=args,
@@ -59,7 +60,8 @@ def _build_meta(args: T.List[str], desc: str) -> DocstringMeta:
         elif len(args) == 1:
             type_name = None
         else:
-            raise ParseError(f"Expected one or no arguments for a {key} keyword.")
+            msg = f"Expected one or no arguments for a {key} keyword."
+            raise ParseError(msg)
 
         return DocstringReturns(
             args=args,
@@ -74,7 +76,8 @@ def _build_meta(args: T.List[str], desc: str) -> DocstringMeta:
         elif len(args) == 1:
             type_name = None
         else:
-            raise ParseError(f"Expected one or no arguments for a {key} keyword.")
+            msg = f"Expected one or no arguments for a {key} keyword."
+            raise ParseError(msg)
 
         return DocstringYields(
             args=args,
@@ -91,8 +94,8 @@ def _build_meta(args: T.List[str], desc: str) -> DocstringMeta:
         )
         return DocstringDeprecated(
             args=args,
-            version=match.group("version") if match else None,
-            description=match.group("desc") if match else desc,
+            version=match["version"] if match else None,
+            description=match["desc"] if match else desc,
         )
 
     if key in RAISES_KEYWORDS:
@@ -101,24 +104,37 @@ def _build_meta(args: T.List[str], desc: str) -> DocstringMeta:
         elif len(args) == 1:
             type_name = None
         else:
-            raise ParseError(f"Expected one or no arguments for a {key} keyword.")
+            msg = f"Expected one or no arguments for a {key} keyword."
+            raise ParseError(msg)
         return DocstringRaises(args=args, description=desc, type_name=type_name)
 
     return DocstringMeta(args=args, description=desc)
 
 
-def parse(text: str) -> Docstring:
+def parse(text: str) -> Docstring:  # noqa: PLR0912
     """Parse the ReST-style docstring into its components.
 
-    :returns: parsed docstring
+    Parameters
+    ----------
+    text : str
+        docstring to parse
+
+    Returns
+    -------
+    Docstring
+        parsed docstring
+
+    Raises
+    ------
+    ParseError
+        If a section does not have two colons to be split on.
     """
     ret = Docstring(style=DocstringStyle.REST)
     if not text:
         return ret
 
     text = inspect.cleandoc(text)
-    match = re.search("^:", text, flags=re.M)
-    if match:
+    if match := re.search("^:", text, flags=re.M):
         desc_chunk = text[: match.start()]
         meta_chunk = text[match.start() :]
     else:
@@ -143,7 +159,8 @@ def parse(text: str) -> Docstring:
         try:
             args_chunk, desc_chunk = chunk.lstrip(":").split(":", 1)
         except ValueError as ex:
-            raise ParseError(f'Error parsing meta information near "{chunk}".') from ex
+            msg = f'Error parsing meta information near "{chunk}".'
+            raise ParseError(msg) from ex
         args = args_chunk.split()
         desc = desc_chunk.strip()
 
@@ -154,9 +171,9 @@ def parse(text: str) -> Docstring:
         # Add special handling for :type a: typename
         if len(args) == 2 and args[0] == "type":
             types[args[1]] = desc
-        elif len(args) in [1, 2] and args[0] == "rtype":
+        elif len(args) in {1, 2} and args[0] == "rtype":
             rtypes[None if len(args) == 1 else args[1]] = desc
-        elif len(args) in [1, 2] and args[0] == "ytype":
+        elif len(args) in {1, 2} and args[0] == "ytype":
             ytypes[None if len(args) == 1 else args[1]] = desc
         else:
             ret.meta.append(_build_meta(args, desc))
@@ -184,34 +201,44 @@ def parse(text: str) -> Docstring:
     return ret
 
 
-def compose(
+def compose(  # noqa: PLR0915, PLR0912
     docstring: Docstring,
     rendering_style: RenderingStyle = RenderingStyle.COMPACT,
     indent: str = "    ",
 ) -> str:
     """Render a parsed docstring into docstring text.
 
-    :param docstring: parsed docstring representation
-    :param rendering_style: the style to render docstrings
-    :param indent: the characters used as indentation in the docstring string
-    :returns: docstring text
+    Parameters
+    ----------
+    docstring : Docstring
+        parsed docstring representation
+    rendering_style : RenderingStyle
+        the style to render docstrings (Default value = RenderingStyle.COMPACT)
+    indent : str
+        the characters used as indentation in the docstring string
+        (Default value = '    ')
+
+    Returns
+    -------
+    str
+        docstring text
     """
 
-    def process_desc(desc: T.Optional[str]) -> str:
+    def process_desc(desc: Optional[str]) -> str:
         if not desc:
             return ""
 
         if rendering_style == RenderingStyle.CLEAN:
             (first, *rest) = desc.splitlines()
-            return "\n".join([" " + first] + [indent + line for line in rest])
+            return "\n".join([f" {first}"] + [indent + line for line in rest])
 
         if rendering_style == RenderingStyle.EXPANDED:
             (first, *rest) = desc.splitlines()
             return "\n".join(["\n" + indent + first] + [indent + line for line in rest])
 
-        return " " + desc
+        return f" {desc}"
 
-    parts: T.List[str] = []
+    parts: List[str] = []
     if docstring.short_description:
         parts.append(docstring.short_description)
     if docstring.blank_after_short_description:
@@ -241,9 +268,9 @@ def compose(
                 text = f":param{type_text}{meta.arg_name}:"
                 text += process_desc(meta.description)
                 parts.append(text)
-        elif isinstance(meta, DocstringReturns):
+        elif isinstance(meta, (DocstringReturns, DocstringYields)):
             type_text = f" {meta.type_name}" if meta.type_name else ""
-            key = "yields" if meta.is_generator else "returns"
+            key = "yields" if isinstance(meta, DocstringYields) else "returns"
 
             if rendering_style == RenderingStyle.EXPANDED:
                 if meta.description:
@@ -251,16 +278,19 @@ def compose(
                     text += process_desc(meta.description)
                     parts.append(text)
                 if type_text:
-                    parts.append(f":rtype:{type_text}")
+                    return_key = (
+                        "rtype" if isinstance(meta, DocstringReturns) else "ytype"
+                    )
+                    parts.append(f":{return_key}:{type_text}")
             else:
                 text = f":{key}{type_text}:"
                 text += process_desc(meta.description)
                 parts.append(text)
         elif isinstance(meta, DocstringRaises):
             type_text = f" {meta.type_name} " if meta.type_name else ""
-            text = f":raises{type_text}:" + process_desc(meta.description)
+            text = f":raises{type_text}:{process_desc(meta.description)}"
             parts.append(text)
         else:
-            text = f':{" ".join(meta.args)}:' + process_desc(meta.description)
+            text = f':{" ".join(meta.args)}:{process_desc(meta.description)}'
             parts.append(text)
     return "\n".join(parts)

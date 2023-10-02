@@ -477,7 +477,8 @@ def test_deprecation() -> None:
             "\n"
             ":param int foo: a description\n"
             ":param int bar: another description\n"
-            ":returns float: a return",
+            ":returns float: a return\n"
+            ":yields int: a yield",
         ),
         (
             RenderingStyle.CLEAN,
@@ -487,7 +488,8 @@ def test_deprecation() -> None:
             "\n"
             ":param int foo: a description\n"
             ":param int bar: another description\n"
-            ":returns float: a return",
+            ":returns float: a return\n"
+            ":yields int: a yield",
         ),
         (
             RenderingStyle.EXPANDED,
@@ -503,7 +505,10 @@ def test_deprecation() -> None:
             ":type bar: int\n"
             ":returns:\n"
             "    a return\n"
-            ":rtype: float",
+            ":rtype: float\n"
+            ":yields:\n"
+            "    a yield\n"
+            ":ytype: int",
         ),
     ],
 )
@@ -518,6 +523,7 @@ def test_compose(rendering_style: RenderingStyle, expected: str) -> None:
         :param int foo: a description
         :param int bar: another description
         :return float: a return
+        :yields int: a yield
         """
     )
     assert compose(docstring, rendering_style=rendering_style) == expected

@@ -1,9 +1,10 @@
 """Module for defining commonly used types."""
 
 import ast
+import re
 from dataclasses import dataclass
 from typing import List, Optional, Set, Tuple, TypeAlias
-import re
+
 import pyment.docstring_parser as dsp
 
 

@@ -156,7 +156,7 @@ class ParamSection(_KVSection):
                     is_optional = False
 
         default = None
-        if len(value) > 0:
+        if value != "":
             default_match = PARAM_DEFAULT_REGEX.search(value)
             if default_match is not None:
                 default = default_match.group("value")
@@ -183,7 +183,7 @@ class RaisesSection(_KVSection):
         return DocstringRaises(
             args=[self.key, key],
             description=_clean_str(value),
-            type_name=key if len(key) > 0 else None,
+            type_name=key if key != "" else None,
         )
 
 
@@ -286,13 +286,9 @@ class ExamplesSection(Section):
         while lines:
             snippet_lines = []
             description_lines = []
-            while lines:
-                if not lines[0].startswith(">>>"):
-                    break
+            while lines and lines[0].startswith(">>>"):
                 snippet_lines.append(lines.pop(0))
-            while lines:
-                if lines[0].startswith(">>>"):
-                    break
+            while lines and not lines[0].startswith(">>>"):
                 description_lines.append(lines.pop(0))
             yield DocstringExample(
                 [self.key],
@@ -351,13 +347,13 @@ class NumpydocParser:
         self.sections = {s.title: s for s in sections}
         self._setup()
 
-    def _setup(self):
+    def _setup(self) -> None:
         self.titles_re = re.compile(
             r"|".join(s.title_pattern for s in self.sections.values()),
             flags=re.M,
         )
 
-    def add_section(self, section: Section):
+    def add_section(self, section: Section) -> None:
         """Add or replace a section.
 
         Parameters
@@ -388,9 +384,7 @@ class NumpydocParser:
         # Clean according to PEP-0257
         text = inspect.cleandoc(text)
 
-        # Find first title and split on its position
-        match = self.titles_re.search(text)
-        if match:
+        if match := self.titles_re.search(text):
             desc_chunk = text[: match.start()]
             meta_chunk = text[match.start() :]
         else:

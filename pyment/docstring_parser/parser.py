@@ -1,7 +1,7 @@
 """The main parsing routine."""
 
 import inspect
-import typing as T
+from typing import Any, Optional
 
 from pyment.docstring_parser import epydoc, google, numpydoc, rest
 from pyment.docstring_parser.attrdoc import add_attribute_docstrings
@@ -23,14 +23,27 @@ _STYLE_MAP = {
 def parse(text: str, style: DocstringStyle = DocstringStyle.AUTO) -> Docstring:
     """Parse the docstring into its components.
 
-    :param text: docstring text to parse
-    :param style: docstring style
-    :returns: parsed docstring representation
+    Parameters
+    ----------
+    text : str
+        docstring text to parse
+    style : DocstringStyle
+        docstring style (Default value = DocstringStyle.AUTO)
+
+    Returns
+    -------
+    Docstring
+        parsed docstring representation
+
+    Raises
+    ------
+    ParserError
+        If none of the available module an parse the docstring
     """
     if style != DocstringStyle.AUTO:
         return _STYLE_MAP[style].parse(text)
 
-    exc: T.Optional[Exception] = None
+    exc: Optional[Exception] = None
     rets = []
     for module in _STYLE_MAP.values():
         try:
@@ -47,7 +60,7 @@ def parse(text: str, style: DocstringStyle = DocstringStyle.AUTO) -> Docstring:
 
 
 def parse_from_object(
-    obj: T.Any,
+    obj: Any,  # noqa: ANN401
     style: DocstringStyle = DocstringStyle.AUTO,
 ) -> Docstring:
     """Parse the object's docstring(s) into its components.
@@ -65,9 +78,17 @@ def parse_from_object(
     this function should be performed to get attribute docstrings of parent
     classes.
 
-    :param obj: object from which to parse the docstring(s)
-    :param style: docstring style
-    :returns: parsed docstring representation
+    Parameters
+    ----------
+    obj : Any
+        object from which to parse the docstring(s)
+    style : DocstringStyle
+        docstring style (Default value = DocstringStyle.AUTO)
+
+    Returns
+    -------
+    Docstring
+        parsed docstring representation
     """
     docstring = parse(obj.__doc__, style=style)
 
@@ -85,10 +106,22 @@ def compose(
 ) -> str:
     """Render a parsed docstring into docstring text.
 
-    :param docstring: parsed docstring representation
-    :param style: docstring style to render
-    :param indent: the characters used as indentation in the docstring string
-    :returns: docstring text
+    Parameters
+    ----------
+    docstring : Docstring
+        parsed docstring representation
+    style : DocstringStyle
+        docstring style to render (Default value = DocstringStyle.AUTO)
+    indent : str
+        the characters used as indentation in the docstring string
+        (Default value = '    ')
+    rendering_style : RenderingStyle
+        _description_ (Default value = RenderingStyle.COMPACT)
+
+    Returns
+    -------
+    str
+        docstring text
     """
     module = _STYLE_MAP[docstring.style if style == DocstringStyle.AUTO else style]
     return module.compose(docstring, rendering_style=rendering_style, indent=indent)
