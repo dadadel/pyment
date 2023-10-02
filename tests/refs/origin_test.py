@@ -44,7 +44,7 @@ def my_func_desc_line_params(first, second=None, third="value"):
     '''This is a description but params not described.
     '''
     print ("this is the code of my func")
- 
+
 def my_func_desc_line_no_params():
     '''This is a description but no params.
     '''
@@ -110,5 +110,3 @@ class MyTestClass(object):
         '''
         print("method full")
         return third
-
-

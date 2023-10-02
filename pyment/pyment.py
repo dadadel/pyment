@@ -191,8 +191,17 @@ class PyComment:
 
         fromfile = f"a/{source_path}{os.path.basename(self.input_file)}"
         tofile = f"b/{target_path}{os.path.basename(self.input_file)}"
-        diff_list = difflib.unified_diff(list_from, list_to, fromfile, tofile)
-        return list(diff_list)
+        diff_lines = []
+        for line in difflib.unified_diff(list_from, list_to, fromfile, tofile):
+            # Work around https://bugs.python.org/issue2142
+            # See:
+            # https://www.gnu.org/software/diffutils/manual/html_node/Incomplete-Lines.html
+            if line[-1] == "\n":
+                diff_lines.append(line)
+            else:
+                diff_lines.append(line + "\n")
+                diff_lines.append("\\ No newline at end of file\n")
+        return diff_lines
 
     def get_patch_lines(self, source_path: str, target_path: str) -> List[str]:
         r"""Return the diff between source_path and target_path.
