@@ -299,5 +299,11 @@ class AstAnalyzer:
             elif isinstance(node, ast.ClassDef):
                 nodes_of_interest.append(self.handle_class(node))
             elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                if any(
+                    name.id == "overload"
+                    for name in node.decorator_list
+                    if isinstance(name, ast.Name)
+                ):
+                    continue
                 nodes_of_interest.append(self.handle_function(node))
         return nodes_of_interest

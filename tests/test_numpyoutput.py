@@ -114,3 +114,7 @@ class TestNumpyOutput:
     def test_raises(self) -> None:
         """Make sure raises are handled correctly from body."""
         check_expected_diff("raises")
+
+    def test_skip_overload(self) -> None:
+        """Function annotated with @overload should be skipped for DS creation."""
+        check_expected_diff("skip_overload_decorator")
