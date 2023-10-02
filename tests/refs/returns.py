@@ -33,26 +33,24 @@ def my_single_return_func2():
 
 
 def my_single_return_func3():
-    """_summary_.
-
-    Returns
-    -------
-
-        test
-    """
     pass
-
 
 def my_single_return_func4():
+    """Existing docstring."""
     pass
 
-def my_single_return_func5():
+def my_single_return_func5() -> None:
     """Existing docstring."""
     pass
 
 def my_single_return_func6() -> None:
     """Existing docstring."""
-    pass
+    return None
+
+def my_single_return_func7():
+    """Existing docstring."""
+    return None
+
 
 def my_func1(param0, param01: int):
     """_summary_.

@@ -34,21 +34,40 @@
          Wrong
      """
      pass
-@@ -44,6 +50,13 @@
+@@ -33,6 +39,7 @@
  
+ 
+ def my_single_return_func3():
++    """_summary_."""
+     pass
  
  def my_single_return_func4():
-+    """_summary_.
+@@ -44,20 +51,35 @@
+     pass
+ 
+ def my_single_return_func6() -> None:
+-    """Existing docstring."""
++    """Existing docstring.
++
++    Returns
++    -------
++    None
++        _description_
++    """
+     return None
+ 
+ def my_single_return_func7():
+-    """Existing docstring."""
++    """Existing docstring.
 +
 +    Returns
 +    -------
 +    _type_
 +        _description_
 +    """
-     pass
+     return None
  
- def my_single_return_func5():
-@@ -57,9 +70,12 @@
+ 
  def my_func1(param0, param01: int):
      """_summary_.
  
@@ -64,7 +83,7 @@
      """
      pass
  
-@@ -69,7 +85,7 @@
+@@ -67,7 +89,7 @@
  
      Returns
      -------

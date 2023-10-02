@@ -2,7 +2,7 @@
 
 --- a/keyword_only.py
 +++ b/keyword_only.py
-@@ -1,2 +1,19 @@
+@@ -1,2 +1,14 @@
 +"""_summary_."""
  def foo(x: int, y: int, *, b: int) -> None:
 +    """_summary_.
@@ -14,11 +14,6 @@
 +    y : int
 +        _description_
 +    b : int
-+        _description_
-+
-+    Returns
-+    -------
-+    None
 +        _description_
 +    """
      pass

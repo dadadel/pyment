@@ -9,6 +9,7 @@ from .types import (
     DefinitionNodes,
     DocstringInfo,
     ElementDocstring,
+    FunctionBody,
     FunctionDocstring,
     FunctionSignature,
     ModuleDocstring,
@@ -189,6 +190,62 @@ class AstAnalyzer:
             return DocstringInfo(func.name, "", lines)
         return docstring_info
 
+    def handle_function_body(
+        self,
+        func: ast.FunctionDef | ast.AsyncFunctionDef,
+    ) -> FunctionBody:
+        """Check the function body for yields, raises and value returns."""
+        returns = set()
+        returns_value = False
+        yields = set()
+        yields_value = False
+        raises = []
+        for node in ast.walk(func):
+            if isinstance(node, ast.Return) and node.value is not None:
+                returns_value = True
+                if isinstance(node.value, ast.Tuple) and all(
+                    isinstance(value, ast.Name) for value in node.value.elts
+                ):
+                    returns.add(
+                        tuple(
+                            sorted(
+                                value.id
+                                for value in node.value.elts
+                                # Needed again for type checker
+                                if isinstance(value, ast.Name)
+                            )
+                        )
+                    )
+            elif isinstance(node, (ast.Yield, ast.YieldFrom)):
+                yields_value = True
+                if (
+                    isinstance(node, ast.Yield)
+                    and isinstance(node.value, ast.Tuple)
+                    and all(isinstance(value, ast.Name) for value in node.value.elts)
+                ):
+                    yields.add(
+                        tuple(
+                            sorted(
+                                value.id
+                                for value in node.value.elts
+                                # Needed again for type checker
+                                if isinstance(value, ast.Name)
+                            )
+                        )
+                    )
+            elif isinstance(node, ast.Raise):
+                if node.exc and isinstance(node.exc, ast.Name):
+                    raises.append(node.exc.id)
+                else:
+                    raises.append("")
+        return FunctionBody(
+            returns_value=returns_value,
+            returns=returns,
+            yields_value=yields_value,
+            yields=yields,
+            raises=raises,
+        )
+
     def handle_function(
         self,
         func: ast.FunctionDef | ast.AsyncFunctionDef,
@@ -196,8 +253,13 @@ class AstAnalyzer:
         """Extract information from signature and docstring."""
         signature = self.handle_function_signature(func)
         docstring = self.handle_function_docstring(func)
+        body = self.handle_function_body(func)
         return FunctionDocstring(
-            docstring.name, docstring.docstring, docstring.lines, signature
+            docstring.name,
+            docstring.docstring,
+            docstring.lines,
+            signature=signature,
+            body=body,
         )
 
     def handle_class(self, cls: ast.ClassDef) -> ClassDocstring:

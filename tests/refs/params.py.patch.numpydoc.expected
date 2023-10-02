@@ -2,16 +2,10 @@
 
 --- a/params.py
 +++ b/params.py
-@@ -1,42 +1,194 @@
+@@ -1,42 +1,138 @@
 +"""_summary_."""
  def func1():
-+    """_summary_.
-+
-+    Returns
-+    -------
-+    _type_
-+        _description_
-+    """
++    """_summary_."""
      pass
  
  
@@ -21,11 +15,6 @@
 +    Parameters
 +    ----------
 +    param1 : _type_
-+        _description_
-+
-+    Returns
-+    -------
-+    _type_
 +        _description_
 +    """
      pass
@@ -39,11 +28,6 @@
 +    param1 : _type_
 +        _description_
 +    param2 : _type_
-+        _description_
-+
-+    Returns
-+    -------
-+    _type_
 +        _description_
 +    """
      pass
@@ -60,11 +44,6 @@
 +        _description_
 +    param3 : _type_
 +        _description_
-+
-+    Returns
-+    -------
-+    _type_
-+        _description_
 +    """
      pass
  
@@ -76,11 +55,6 @@
 +    ----------
 +    param1 : _type_
 +        _description_ (Default value = 123)
-+
-+    Returns
-+    -------
-+    _type_
-+        _description_
 +    """
      pass
  
@@ -94,11 +68,6 @@
 +        _description_
 +    param2 : _type_
 +        _description_ (Default value = 123)
-+
-+    Returns
-+    -------
-+    _type_
-+        _description_
 +    """
      pass
  
@@ -114,11 +83,6 @@
 +        _description_
 +    param3 : _type_
 +        _description_ (Default value = 123)
-+
-+    Returns
-+    -------
-+    _type_
-+        _description_
 +    """
      pass
  
@@ -134,11 +98,6 @@
 +        _description_ (Default value = None)
 +    param3 : _type_
 +        _description_ (Default value = 123)
-+
-+    Returns
-+    -------
-+    _type_
-+        _description_
 +    """
      pass
  
@@ -154,11 +113,6 @@
 +        _description_ (Default value = +456)
 +    param3 : _type_
 +        _description_ (Default value = '!:@')
-+
-+    Returns
-+    -------
-+    _type_
-+        _description_
 +    """
      pass
  
@@ -172,11 +126,6 @@
 +        _description_ (Default value = func1())
 +    param2 : _type_
 +        _description_ (Default value = 'stuff')
-+
-+    Returns
-+    -------
-+    _type_
-+        _description_
 +    """
      pass
  
@@ -190,10 +139,5 @@
 +        _description_ (Default value = func1())
 +    param2 : _type_
 +        _description_ (Default value = 'stuff')
-+
-+    Returns
-+    -------
-+    _type_
-+        _description_
 +    """
      pass

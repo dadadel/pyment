@@ -2,7 +2,7 @@
 
 import ast
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, TypeAlias
+from typing import List, Optional, Set, Tuple, TypeAlias
 
 import docstring_parser as dsp
 
@@ -105,12 +105,24 @@ class FunctionSignature:
 
 
 @dataclass
+class FunctionBody:
+    """Information about a function from its body."""
+
+    raises: List[str]
+    returns: Set[Tuple[str, ...]]
+    returns_value: bool
+    yields: Set[Tuple[str, ...]]
+    yields_value: bool
+
+
+@dataclass
 class FunctionDocstring(DocstringInfo):
     """Information about a function from docstring."""
 
     signature: FunctionSignature
+    body: FunctionBody
 
-    def _adjust_parameters_from_sig(self, docstring: dsp.Docstring) -> None:
+    def _adjust_parameters(self, docstring: dsp.Docstring) -> None:
         """Overwrite or create param docstring entries based on signature.
 
         If an entry already exists update the type description if one exists
@@ -154,15 +166,7 @@ class FunctionDocstring(DocstringInfo):
                     )
                 )
 
-    def _add_single_return(self, docstring: dsp.Docstring) -> bool:
-        """Whether to add a return value if none was specified in the docstring."""
-        if docstring.many_returns:
-            return False
-        if self.signature.returns.type_name in (None, "None"):
-            return not self.docstring
-        return True
-
-    def _adjust_returns_from_sig(self, docstring: dsp.Docstring) -> None:
+    def _adjust_returns(self, docstring: dsp.Docstring) -> None:
         """Overwrite or create return docstring entries based on signature.
 
         If no return value was parsed from the docstring:
@@ -173,16 +177,17 @@ class FunctionDocstring(DocstringInfo):
         If one return value is specified overwrite the type with the signature
         if one was present there.
 
-        If multiple were  specified then leave them as is.
+        If multiple were specified then leave them as is.
         They might very well be expanding on a return type like:
         Tuple[int, str, whatever]
         """
-        doc_returns = docstring.many_returns
+        doc_returns = [
+            item for item in docstring.many_returns or [] if not item.is_generator
+        ]
         sig_return = self.signature.returns
         # If only one return value is specified take the type from the signature
         # as that is more likely to be correct
-        # TODO: Handle generators
-        if self._add_single_return(docstring):
+        if not doc_returns and self.body.returns_value:
             docstring.meta.append(
                 dsp.DocstringReturns(
                     args=["returns"],
@@ -192,9 +197,71 @@ class FunctionDocstring(DocstringInfo):
                     return_name=None,
                 )
             )
-        elif len(doc_returns) == 1:
+        elif len(doc_returns) == 1 and not self.body.yields_value:
             doc_return = doc_returns[0]
             doc_return.type_name = sig_return.type_name or doc_return.type_name
+        elif len(doc_returns) > 1 and len(self.body.returns) == 1:
+            doc_names = {returned.return_name for returned in doc_returns}
+            for body_name in next(iter(self.body.returns)):
+                if body_name not in doc_names:
+                    docstring.meta.append(
+                        dsp.DocstringReturns(
+                            args=["returns"],
+                            description="_description_",
+                            type_name="_type_",
+                            is_generator=False,
+                            return_name=body_name,
+                        )
+                    )
+
+    def _adjust_yields(self, docstring: dsp.Docstring) -> None:
+        """See _adjust_returns.
+
+        Only difference is that the signature return type is not added
+        to the docstring since it is a bit more complicated for generators.
+        """
+        doc_yields = [
+            item for item in docstring.many_returns or [] if item.is_generator
+        ]
+        # If only one return value is specified take the type from the signature
+        # as that is more likely to be correct
+        if not doc_yields and self.body.yields_value:
+            docstring.meta.append(
+                dsp.DocstringReturns(
+                    args=["yields"],
+                    description="_description_",
+                    type_name="_type_",
+                    is_generator=True,
+                    return_name=None,
+                )
+            )
+        elif len(doc_yields) > 1 and len(self.body.yields) == 1:
+            doc_names = {yielded.return_name for yielded in doc_yields}
+            for body_name in next(iter(self.body.yields)):
+                if body_name not in doc_names:
+                    docstring.meta.append(
+                        dsp.DocstringReturns(
+                            args=["yields"],
+                            description="_description_",
+                            type_name="_type_",
+                            is_generator=True,
+                            return_name=body_name,
+                        )
+                    )
+
+    def _adjust_raises(self, docstring: dsp.Docstring) -> None:
+        raised_in_body = self.body.raises.copy()
+        for raised in docstring.raises:
+            if raised.type_name in raised_in_body:
+                raised_in_body.remove(raised.type_name)
+        for missing_raise in raised_in_body:
+            docstring.meta.append(
+                dsp.DocstringRaises(
+                    args=["raises", missing_raise],
+                    description="_description_",
+                    type_name=missing_raise,
+                )
+            )
 
     def fix_docstring(self, docstring: dsp.Docstring) -> None:
         """Fix docstrings.
@@ -203,8 +270,10 @@ class FunctionDocstring(DocstringInfo):
         descriptions and types.
         """
         super().fix_docstring(docstring)
-        self._adjust_parameters_from_sig(docstring)
-        self._adjust_returns_from_sig(docstring)
+        self._adjust_parameters(docstring)
+        self._adjust_returns(docstring)
+        self._adjust_yields(docstring)
+        self._adjust_raises(docstring)
 
 
 ElementDocstring: TypeAlias = ModuleDocstring | ClassDocstring | FunctionDocstring

@@ -106,3 +106,11 @@ class TestNumpyOutput:
     def test_ast_ref(self) -> None:
         """Bunch of different stuff."""
         check_expected_diff("ast_ref")
+
+    def test_yields(self) -> None:
+        """Make sure yields are handled correctly from body."""
+        check_expected_diff("yields")
+
+    def test_raises(self) -> None:
+        """Make sure raises are handled correctly from body."""
+        check_expected_diff("raises")
