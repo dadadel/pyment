@@ -82,11 +82,11 @@
 +    b : int
 +        _description_
 +    c : int
-+        _description_
++        _description_ (Default value = 3)
 +    d : int
-+        _description_
++        _description_ (Default value = 5)
 +    e : _type_
-+        _description_
++        _description_ (Default value = 'test')
 +    **kwargs : _type_
 +        _description_
 +
@@ -106,7 +106,7 @@
 +        Parameters
 +        ----------
 +        one_param : _type_
-+            _description_
++            _description_ (Default value = 2)
 +
 +        Returns
 +        -------

@@ -128,11 +128,25 @@ class FunctionDocstring(DocstringInfo):
                 param_doc.is_optional = False
                 if param_sig.default:
                     param_doc.default = param_sig.default
+                    # param_doc.description should never be None at this point
+                    # as it should have already been set by '_fix_descriptions'
+                    if (
+                        param_doc.description is not None
+                        and "default" not in param_doc.description.lower()
+                    ):
+                        param_doc.description += (
+                            f" (Default value = {param_sig.default})"
+                        )
             else:
+                place_holder_description = "_description_"
+                if param_sig.default:
+                    place_holder_description += (
+                        f" (Default value = {param_sig.default})"
+                    )
                 docstring.meta.append(
                     dsp.DocstringParam(
                         args=["param", name],
-                        description="_description_",
+                        description=place_holder_description,
                         arg_name=name,
                         type_name=param_sig.type_name or "_type_",
                         is_optional=False,
