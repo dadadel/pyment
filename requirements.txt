@@ -1,1 +1,1 @@
-docstring-parser==0.15
+docstring_parser_fork==0.0.4

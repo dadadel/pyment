@@ -6,8 +6,7 @@ import os
 import sys
 from typing import List, Optional
 
-import docstring_parser as dsp
-
+import pyment.docstring_parser as dsp
 from pyment import PyComment
 
 STRING_TO_STYLE = {
@@ -129,7 +128,6 @@ def main() -> None:
     if not files:
         msg = BaseException(f"No files were found matching {args.path}")
         raise msg
-
     run(
         source,
         files,

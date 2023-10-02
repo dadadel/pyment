@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 from typing import List, Tuple
 
-import docstring_parser as dsp
+import pyment.docstring_parser as dsp
 
 from .file_parser import AstAnalyzer
 from .types import ElementDocstring
@@ -52,12 +52,12 @@ class PyComment:
             path name (file or folder)
         """
         self.input_file = input_file
+        self.output_style = output_style
         if self.input_file == "-":
             self.input_lines = sys.stdin.read()
         else:
             self.input_lines = Path(self.input_file).read_text(encoding="utf-8")
         self.docs_list = []
-        self.output_style = output_style
         self.parsed = False
 
     def _parse(self) -> List[ElementDocstring]:

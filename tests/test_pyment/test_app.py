@@ -26,7 +26,7 @@ class TestApp:
 
         # cwd to use when running subprocess.
         # It has to be at the repo directory so python -m can be used
-        self.CWD = os.path.dirname(os.path.dirname(__file__))
+        self.CWD = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
         self.INPUT = textwrap.dedent(
             '''
@@ -145,12 +145,10 @@ class TestApp:
         if write_to_stdin:
             # Python3 compatibility - input has to be bytes
             write_to_stdin = write_to_stdin.encode()
-
         stdout, stderr = process.communicate(write_to_stdin)
 
         stdout = stdout.decode()
         stderr = stderr.decode()
-
         return stdout, stderr, process.returncode
 
     def run_pyment_app_and_assert_is_expected(  # noqa: PLR0913
@@ -223,7 +221,6 @@ class TestApp:
                     # behaviour
                     got = self.normalise_empty_lines(got).replace("\r\n", "\n")
                     expected = self.normalise_empty_lines(expected)
-
                 # repr is used instead of str to make it easier
                 # to see newlines and spaces if there's a difference
                 msg = (
@@ -259,7 +256,7 @@ class TestApp:
         Means a patch will be written to stdout.
         """
         self.run_pyment_app_and_assert_is_expected(
-            cmd_args="-",
+            cmd_args="--output numpydoc -",
             write_to_stdin=self.INPUT,
             expected_stdout=self.EXPECTED_PATCH,
         )

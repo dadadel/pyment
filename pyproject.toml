@@ -102,7 +102,7 @@ convention = "numpy" # Accepts: "google", "numpy", or "pep257".
 [tool.black]
 line-length    = 88
 target-version = ['py38']
-extend-exclude = '''/tests/refs|/doc'''
+extend-exclude = '''/tests/test_pyment/refs|/doc'''
 
 [tool.coverage.run]
 branch = true

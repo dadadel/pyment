@@ -4,7 +4,7 @@ import ast
 from dataclasses import dataclass
 from typing import List, Optional, Set, Tuple, TypeAlias
 
-import docstring_parser as dsp
+import pyment.docstring_parser as dsp
 
 
 @dataclass
@@ -67,7 +67,7 @@ class DocstringInfo:
         """Parse and fix input docstrings, then compose output docstring."""
         parsed = dsp.parse(self.docstring)
         self.fix_docstring(parsed)
-        return dsp.compose(parsed, style)
+        return dsp.compose(parsed, style=style)
 
 
 @dataclass
@@ -181,9 +181,7 @@ class FunctionDocstring(DocstringInfo):
         They might very well be expanding on a return type like:
         Tuple[int, str, whatever]
         """
-        doc_returns = [
-            item for item in docstring.many_returns or [] if not item.is_generator
-        ]
+        doc_returns = docstring.many_returns
         sig_return = self.signature.returns
         # If only one return value is specified take the type from the signature
         # as that is more likely to be correct
@@ -220,32 +218,30 @@ class FunctionDocstring(DocstringInfo):
         Only difference is that the signature return type is not added
         to the docstring since it is a bit more complicated for generators.
         """
-        doc_yields = [
-            item for item in docstring.many_returns or [] if item.is_generator
-        ]
+        doc_yields = docstring.many_yields
         # If only one return value is specified take the type from the signature
         # as that is more likely to be correct
         if not doc_yields and self.body.yields_value:
             docstring.meta.append(
-                dsp.DocstringReturns(
+                dsp.DocstringYields(
                     args=["yields"],
                     description="_description_",
                     type_name="_type_",
                     is_generator=True,
-                    return_name=None,
+                    yield_name=None,
                 )
             )
         elif len(doc_yields) > 1 and len(self.body.yields) == 1:
-            doc_names = {yielded.return_name for yielded in doc_yields}
+            doc_names = {yielded.yield_name for yielded in doc_yields}
             for body_name in next(iter(self.body.yields)):
                 if body_name not in doc_names:
                     docstring.meta.append(
-                        dsp.DocstringReturns(
+                        dsp.DocstringYields(
                             args=["yields"],
                             description="_description_",
                             type_name="_type_",
                             is_generator=True,
-                            return_name=body_name,
+                            yield_name=body_name,
                         )
                     )
 
