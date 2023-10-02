@@ -6,8 +6,8 @@
 import inspect
 import itertools
 import re
-import typing as T
 from textwrap import dedent
+from typing import Any, Dict, Iterable, List, Optional
 
 from .common import (
     Docstring,
@@ -19,21 +19,22 @@ from .common import (
     DocstringReturns,
     DocstringStyle,
     DocstringYields,
+    MainSections,
     RenderingStyle,
 )
 
 
-def _pairwise(iterable: T.Iterable, end=None) -> T.Iterable:
+def _pairwise(
+    iterable: Iterable[Any], end: Any = None  # noqa: ANN401
+) -> Iterable[Any]:
     left, right = itertools.tee(iterable)
     next(right, None)
     return itertools.zip_longest(left, right, fillvalue=end)
 
 
-def _clean_str(string: str) -> T.Optional[str]:
+def _clean_str(string: str) -> Optional[str]:
     string = string.strip()
-    if len(string) > 0:
-        return string
-    return None
+    return string if string != "" else None
 
 
 KV_REGEX = re.compile(r"^[^\s].*$", flags=re.M)
@@ -52,11 +53,15 @@ RETURN_KEY_REGEX = re.compile(r"^(?:(?P<name>.*?)\s*:\s*)?(?P<type>.*?)$")
 class Section:
     """Numpydoc section parser.
 
-    :param title: section title. For most sections, this is a heading like
-                  "Parameters" which appears on its own line, underlined by
-                  en-dashes ('-') on the following line.
-    :param key: meta key string. In the parsed ``DocstringMeta`` instance this
-                will be the first element of the ``args`` attribute list.
+    Parameters
+    ----------
+    title : str
+        section title. For most sections, this is a heading like
+        "Parameters" which appears on its own line, underlined by
+        en-dashes ('-') on the following line.
+    key : str
+        meta key string. In the parsed ``DocstringMeta`` instance this
+        will be the first element of the ``args`` attribute list.
     """
 
     def __init__(self, title: str, key: str) -> None:
@@ -73,11 +78,19 @@ class Section:
         dashes = "-" * len(self.title)
         return rf"^({self.title})\s*?\n{dashes}\s*$"
 
-    def parse(self, text: str) -> T.Iterable[DocstringMeta]:
+    def parse(self, text: str) -> Iterable[DocstringMeta]:
         """Parse ``DocstringMeta`` objects from the body of this section.
 
-        :param text: section body text. Should be cleaned with
-                     ``inspect.cleandoc`` before parsing.
+        Parameters
+        ----------
+        text : str
+            section body text. Should be cleaned with
+            ``inspect.cleandoc`` before parsing.
+
+        Yields
+        ------
+        DocstringMeta
+            object from this section body.
         """
         yield DocstringMeta([self.key], description=_clean_str(text))
 
@@ -96,7 +109,7 @@ class _KVSection(Section):
     def _parse_item(self, key: str, value: str) -> DocstringMeta:
         pass
 
-    def parse(self, text: str) -> T.Iterable[DocstringMeta]:
+    def parse(self, text: str) -> Iterable[DocstringMeta]:
         for match, next_match in _pairwise(KV_REGEX.finditer(text)):
             start = match.end()
             end = next_match.start() if next_match is not None else None
@@ -230,7 +243,8 @@ class YieldsSection(ReturnsSection):
 class DeprecationSection(_SphinxSection):
     """Parser for numpydoc "deprecation warning" sections."""
 
-    def parse(self, text: str) -> T.Iterable[DocstringDeprecated]:
+    def parse(self, text: str) -> Iterable[DocstringDeprecated]:
+        """Parse ``DocstringDeprecated`` objects from the body of this section."""
         version, desc, *_ = [*text.split(sep="\n", maxsplit=1), None, None]
 
         if desc is not None:
@@ -254,11 +268,19 @@ class ExamplesSection(Section):
                 [ 6586976, 22740995]])
     """
 
-    def parse(self, text: str) -> T.Iterable[DocstringMeta]:
+    def parse(self, text: str) -> Iterable[DocstringExample]:
         """Parse ``DocstringExample`` objects from the body of this section.
 
-        :param text: section body text. Should be cleaned with
-                     ``inspect.cleandoc`` before parsing.
+        Parameters
+        ----------
+        text : str
+            section body text. Should be cleaned with
+            ``inspect.cleandoc`` before parsing.
+
+        Yields
+        ------
+        DocstringMeta
+            Docstring example sections
         """
         lines = dedent(text).strip().splitlines()
         while lines:
@@ -317,10 +339,13 @@ DEFAULT_SECTIONS = [
 class NumpydocParser:
     """Parser for numpydoc-style docstrings."""
 
-    def __init__(self, sections: T.Optional[T.Dict[str, Section]] = None) -> None:
-        """Setup sections.
+    def __init__(self, sections: Optional[Dict[str, Section]] = None) -> None:
+        """Set up sections.
 
-        :param sections: Recognized sections or None to defaults.
+        Parameters
+        ----------
+        sections : Optional[Dict[str, Section]]
+            Recognized sections or None to defaults.
         """
         sections = sections or DEFAULT_SECTIONS
         self.sections = {s.title: s for s in sections}
@@ -335,7 +360,10 @@ class NumpydocParser:
     def add_section(self, section: Section):
         """Add or replace a section.
 
-        :param section: The new section.
+        Parameters
+        ----------
+        section : Section
+            The new section.
         """
         self.sections[section.title] = section
         self._setup()
@@ -343,7 +371,15 @@ class NumpydocParser:
     def parse(self, text: str) -> Docstring:
         """Parse the numpy-style docstring into its components.
 
-        :returns: parsed docstring
+        Parameters
+        ----------
+        text : str
+            docstring text
+
+        Returns
+        -------
+        Docstring
+            parsed docstring
         """
         ret = Docstring(style=DocstringStyle.NUMPYDOC)
         if not text:
@@ -386,28 +422,44 @@ class NumpydocParser:
 def parse(text: str) -> Docstring:
     """Parse the numpy-style docstring into its components.
 
-    :returns: parsed docstring
+    Parameters
+    ----------
+    text : str
+        docstring text
+
+    Returns
+    -------
+    Docstring
+        parsed docstring
     """
     return NumpydocParser().parse(text)
 
 
-def compose(
+def compose(  # noqa: PLR0915
     # pylint: disable=W0613
     docstring: Docstring,
-    rendering_style: RenderingStyle = RenderingStyle.COMPACT,
+    rendering_style: RenderingStyle = RenderingStyle.COMPACT,  # noqa: ARG001
     indent: str = "    ",
 ) -> str:
     """Render a parsed docstring into docstring text.
 
-    :param docstring: parsed docstring representation
-    :param rendering_style: the style to render docstrings
-    :param indent: the characters used as indentation in the docstring string
-    :returns: docstring text
+    Parameters
+    ----------
+    docstring : Docstring
+        parsed docstring representation
+    rendering_style : RenderingStyle
+        the style to render docstrings (Default value = RenderingStyle.COMPACT)
+    indent : str
+        the characters used as indentation in the docstring string
+        (Default value = '    ')
+
+    Returns
+    -------
+    str
+        docstring text
     """
 
-    def process_one(
-        one: T.Union[DocstringParam, DocstringReturns, DocstringRaises, DocstringYields]
-    ):
+    def process_one(one: MainSections) -> None:
         if isinstance(one, DocstringParam):
             head = one.arg_name
         elif isinstance(one, DocstringReturns):
@@ -433,7 +485,7 @@ def compose(
         else:
             parts.append(head)
 
-    def process_sect(name: str, args: T.List[T.Any]):
+    def process_sect(name: str, args: List[MainSections]) -> None:
         if args:
             parts.append("")
             parts.append(name)
@@ -441,7 +493,7 @@ def compose(
             for arg in args:
                 process_one(arg)
 
-    parts: T.List[str] = []
+    parts: List[str] = []
     if docstring.short_description:
         parts.append(docstring.short_description)
     if docstring.blank_after_short_description:

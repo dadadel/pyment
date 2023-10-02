@@ -42,3 +42,23 @@ def generator() -> str:
         desc
     """
     return a
+
+def generator() -> Iterable[str]:
+    """_summary_."""
+    yield "test"
+
+def generator() -> Iterator[str]:
+    """_summary_.
+
+    Yields
+    ------
+    Nope
+        _description_
+    """
+    pass
+
+def generator() -> Generator[int, float, str]:
+    """_summary_."""
+    if False:
+        return a
+    yield b

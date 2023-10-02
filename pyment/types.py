@@ -3,7 +3,7 @@
 import ast
 from dataclasses import dataclass
 from typing import List, Optional, Set, Tuple, TypeAlias
-
+import re
 import pyment.docstring_parser as dsp
 
 
@@ -182,7 +182,11 @@ class FunctionDocstring(DocstringInfo):
         Tuple[int, str, whatever]
         """
         doc_returns = docstring.many_returns
-        sig_return = self.signature.returns
+        sig_return = self.signature.returns.type_name
+        if sig_return and (
+            matches := (re.match(r"Generator\[(\w+), (\w+), (\w+)\]", sig_return))
+        ):
+            sig_return = matches[3]
         # If only one return value is specified take the type from the signature
         # as that is more likely to be correct
         if not doc_returns and self.body.returns_value:
@@ -190,14 +194,14 @@ class FunctionDocstring(DocstringInfo):
                 dsp.DocstringReturns(
                     args=["returns"],
                     description="_description_",
-                    type_name=sig_return.type_name or "_type_",
+                    type_name=sig_return or "_type_",
                     is_generator=False,
                     return_name=None,
                 )
             )
         elif len(doc_returns) == 1 and not self.body.yields_value:
             doc_return = doc_returns[0]
-            doc_return.type_name = sig_return.type_name or doc_return.type_name
+            doc_return.type_name = sig_return or doc_return.type_name
         elif len(doc_returns) > 1 and len(self.body.returns) == 1:
             doc_names = {returned.return_name for returned in doc_returns}
             for body_name in next(iter(self.body.returns)):
@@ -219,6 +223,18 @@ class FunctionDocstring(DocstringInfo):
         to the docstring since it is a bit more complicated for generators.
         """
         doc_yields = docstring.many_yields
+        sig_return = self.signature.returns.type_name
+        # TODO: Handle gnerators Generator[YieldType, SendType, ReturnType]
+        # If we match that then we extract the yield type and
+        if sig_return and (
+            matches := (
+                re.match(r"(?:Iterable|Iterator)\[([^\]]+)\]", sig_return)
+                or re.match(r"Generator\[(\w+), (\w+), (\w+)\]", sig_return)
+            )
+        ):
+            sig_return = matches[1]
+        else:
+            sig_return = None
         # If only one return value is specified take the type from the signature
         # as that is more likely to be correct
         if not doc_yields and self.body.yields_value:
@@ -226,11 +242,14 @@ class FunctionDocstring(DocstringInfo):
                 dsp.DocstringYields(
                     args=["yields"],
                     description="_description_",
-                    type_name="_type_",
+                    type_name=sig_return or "_type_",
                     is_generator=True,
                     yield_name=None,
                 )
             )
+        elif len(doc_yields) == 1:
+            doc_yields = doc_yields[0]
+            doc_yields.type_name = sig_return or doc_yields.type_name
         elif len(doc_yields) > 1 and len(self.body.yields) == 1:
             doc_names = {yielded.yield_name for yielded in doc_yields}
             for body_name in next(iter(self.body.yields)):

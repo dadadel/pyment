@@ -1,7 +1,7 @@
 """Common methods for parsing."""
 import enum
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, TypeAlias, Union
 
 PARAM_KEYWORDS = {
     "param",
@@ -95,6 +95,11 @@ class DocstringRaises(DocstringMeta):
 
     type_name: Optional[str]
     description: Optional[str]
+
+
+MainSections: TypeAlias = Union[
+    DocstringParam, DocstringRaises, DocstringReturns, DocstringYields
+]
 
 
 @dataclass

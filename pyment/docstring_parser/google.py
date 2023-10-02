@@ -4,7 +4,7 @@ import inspect
 import re
 from collections import OrderedDict
 from enum import IntEnum
-from typing import Any, List, Mapping, NamedTuple, Optional, Union
+from typing import List, Mapping, NamedTuple, Optional
 
 from .common import (
     EXAMPLES_KEYWORDS,
@@ -20,6 +20,7 @@ from .common import (
     DocstringReturns,
     DocstringStyle,
     DocstringYields,
+    MainSections,
     ParseError,
     RenderingStyle,
 )
@@ -355,7 +356,7 @@ def compose(  # noqa: PLR0915
     """
 
     def process_one(
-        one: Union[DocstringParam, DocstringReturns, DocstringRaises, DocstringYields]
+        one: MainSections
     ) -> None:
         head = ""
 
@@ -391,7 +392,7 @@ def compose(  # noqa: PLR0915
         else:
             parts.append(head)
 
-    def process_sect(name: str, args: List[Any]) -> None:
+    def process_sect(name: str, args: List[MainSections]) -> None:
         if args:
             parts.append(name)
             for arg in args:

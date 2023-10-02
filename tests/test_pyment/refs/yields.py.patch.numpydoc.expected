@@ -33,7 +33,7 @@
      """
      if False:
          return a
-@@ -38,7 +47,7 @@
+@@ -38,13 +47,19 @@
  
      Returns
      -------
@@ -42,3 +42,43 @@
          desc
      """
      return a
+ 
+ def generator() -> Iterable[str]:
+-    """_summary_."""
++    """_summary_.
++
++    Yields
++    ------
++    str
++        _description_
++    """
+     yield "test"
+ 
+ def generator() -> Iterator[str]:
+@@ -52,13 +67,24 @@
+ 
+     Yields
+     ------
+-    Nope
++    str
+         _description_
+     """
+     pass
+ 
+ def generator() -> Generator[int, float, str]:
+-    """_summary_."""
++    """_summary_.
++
++    Returns
++    -------
++    str
++        _description_
++
++    Yields
++    ------
++    int
++        _description_
++    """
+     if False:
+         return a
+     yield b

@@ -95,6 +95,7 @@ target-version = "py38"
 "tests/test_*.py"                          = ["S101", "SLF001", "ANN101", "ANN102", "PLR2004"]
 "setup.py"                                 = ["D100"]
 "pyment/docstrings/parsers/parser_base.py" = ["ERA001"]
+"pyment/types.py"                          = ["PERF401"]
 
 [tool.ruff.pydocstyle]
 convention = "numpy" # Accepts: "google", "numpy", or "pep257".
