@@ -90,10 +90,10 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 target-version = "py38"
 
 [tool.ruff.per-file-ignores]
-"__init__.py"                              = ["E402", "F401"]
-"tests/test_*.py"                          = ["S101", "SLF001", "ANN101", "ANN102", "PLR2004"]
-"setup.py"                                 = ["D100"]
-"pyment/docstrings/parsers/parser_base.py" = ["ERA001"]
+"__init__.py"                                           = ["E402", "F401"]
+"tests/*/test_*.py"                                     = ["S101", "SLF001", "ANN101", "ANN102", "PLR2004"]
+"setup.py"                                              = ["D100"]
+"pyment/docstrings/parsers/parser_base.py"              = ["ERA001"]
 
 [tool.ruff.pydocstyle]
 convention = "numpy" # Accepts: "google", "numpy", or "pep257".
@@ -230,7 +230,7 @@ evaluation = "max(0, 0 if fatal else 10.0 - ((float(5 * error + warning + refact
 
 [tool.pylint.similarities]
 # Minimum lines number of a similarity.
-min-similarity-lines = 10
+min-similarity-lines = 20
 
 [tool.pylint.spelling]
 # Limits count of emitted suggestions for spelling mistakes.

@@ -179,8 +179,9 @@ def test_numpydoc() -> None:
 
 
 def test_autodetection_error_detection() -> None:
-    """Test autodection for the case where one of the parsers throws an error
-    and another one succeeds.
+    """Test autodection.
+
+    Case where one of the parsers throws an error and another one succeeds.
     """
     source = """
     Does something useless

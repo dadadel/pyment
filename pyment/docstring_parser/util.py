@@ -1,30 +1,29 @@
 """Utility functions for working with docstrings."""
-import typing as T
 from collections import ChainMap
 from inspect import Signature
 from itertools import chain
+from typing import Any, Callable, Iterable, Type
 
 from .common import (
     DocstringMeta,
     DocstringParam,
-    DocstringReturns,
     DocstringStyle,
     RenderingStyle,
 )
 from .parser import compose, parse
 
-_Func = T.Callable[..., T.Any]
-
-assert DocstringReturns  # used in docstring
+_Func = Callable[..., Any]
 
 
 def combine_docstrings(
     *others: _Func,
-    exclude: T.Iterable[T.Type[DocstringMeta]] = (),
+    exclude: Iterable[Type[DocstringMeta]] = (),
     style: DocstringStyle = DocstringStyle.AUTO,
     rendering_style: RenderingStyle = RenderingStyle.COMPACT,
 ) -> _Func:
-    """A function decorator that parses the docstrings from `others`,
+    """Combine docstrings of multiple functions.
+
+    Parses the docstrings from `others`,
     programmatically combines them with the parsed docstring of the decorated
     function, and replaces the docstring of the decorated function with the
     composed result. Only parameters that are part of the decorated functions

@@ -1,5 +1,5 @@
 """Tests for epydoc-style docstring routines."""
-import typing as T
+from typing import Optional
 
 import pytest
 
@@ -92,6 +92,7 @@ def test_long_description(
     source: str,
     expected_short_desc: str,
     expected_long_desc: str,
+    *,
     expected_blank: bool,
 ) -> None:
     """Test parsing long description."""
@@ -184,8 +185,9 @@ def test_long_description(
 )
 def test_meta_newlines(
     source: str,
-    expected_short_desc: T.Optional[str],
-    expected_long_desc: T.Optional[str],
+    expected_short_desc: Optional[str],
+    expected_long_desc: Optional[str],
+    *,
     expected_blank_short_desc: bool,
     expected_blank_long_desc: bool,
 ) -> None:

@@ -9,7 +9,7 @@ module_attr: int = 1
 
 def test_from_module_attribute_docstrings() -> None:
     """Test the parse of attribute docstrings from a module."""
-    from . import test_parse_from_object  # pylint: disable=C0415,W0406
+    from . import test_parse_from_object  # pylint: disable=C0415,W0406  # noqa: PLW0406
 
     docstring = parse_from_object(test_parse_from_object)
 
@@ -26,7 +26,7 @@ def test_from_class_attribute_docstrings() -> None:
     class StandardCase:
         """Short description
         Long description.
-        """
+        """  # noqa: D205
 
         attr_one: str
         """Description for attr_one"""
@@ -82,12 +82,12 @@ def test_from_class_without_source() -> None:
 def test_from_function() -> None:
     """Test the parse of a function docstring."""
 
-    def a_function(param1: str, param2: int = 2):
+    def a_function(param1: str, param2: int = 2) -> str:
         """Short description
         Args:
             param1: Description for param1
             param2: Description for param2.
-        """
+        """  # noqa: D205
         return f"{param1} {param2}"
 
     docstring = parse_from_object(a_function)

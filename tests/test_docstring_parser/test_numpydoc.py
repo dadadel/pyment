@@ -1,5 +1,5 @@
 """Tests for numpydoc-style docstring routines."""
-import typing as T
+from typing import List, Optional, Tuple
 
 import pytest
 
@@ -91,6 +91,7 @@ def test_long_description(
     source: str,
     expected_short_desc: str,
     expected_long_desc: str,
+    *,
     expected_blank: bool,
 ) -> None:
     """Test parsing long description."""
@@ -195,8 +196,9 @@ def test_long_description(
 )
 def test_meta_newlines(
     source: str,
-    expected_short_desc: T.Optional[str],
-    expected_long_desc: T.Optional[str],
+    expected_short_desc: Optional[str],
+    expected_long_desc: Optional[str],
+    *,
     expected_blank_short_desc: bool,
     expected_blank_long_desc: bool,
 ) -> None:
@@ -304,9 +306,10 @@ def test_meta_with_multiline_description() -> None:
 )
 def test_default_args(
     source: str,
+    *,
     expected_is_optional: bool,
-    expected_type_name: T.Optional[str],
-    expected_default: T.Optional[str],
+    expected_type_name: Optional[str],
+    expected_default: Optional[str],
 ) -> None:
     """Test parsing default arguments."""
     docstring = parse(source)
@@ -802,7 +805,7 @@ def test_simple_sections() -> None:
     ],
 )
 def test_examples(
-    source, expected_results: T.List[T.Tuple[T.Optional[str], str]]
+    source: str, expected_results: List[Tuple[Optional[str], str]]
 ) -> None:
     """Test parsing examples."""
     docstring = parse(source)
@@ -843,8 +846,8 @@ def test_examples(
 )
 def test_deprecation(
     source: str,
-    expected_depr_version: T.Optional[str],
-    expected_depr_desc: T.Optional[str],
+    expected_depr_version: Optional[str],
+    expected_depr_desc: Optional[str],
 ) -> None:
     """Test parsing deprecation notes."""
     docstring = parse(source)

@@ -7,7 +7,7 @@ from pyment.docstring_parser.util import combine_docstrings
 def test_combine_docstrings() -> None:
     """Test combine_docstrings wrapper."""
 
-    def fun1(arg_a, arg_b, arg_c, arg_d):
+    def fun1(arg_a, arg_b, arg_c, arg_d) -> None:  # noqa: ANN001
         """short_description: fun1.
 
         :param arg_a: fun1
@@ -19,7 +19,7 @@ def test_combine_docstrings() -> None:
         assert arg_c
         assert arg_d
 
-    def fun2(arg_b, arg_c, arg_d, arg_e):
+    def fun2(arg_b, arg_c, arg_d, arg_e) -> None:  # noqa: ANN001
         """short_description: fun2.
 
         long_description: fun2
@@ -34,11 +34,11 @@ def test_combine_docstrings() -> None:
         assert arg_e
 
     @combine_docstrings(fun1, fun2)
-    def decorated1(arg_a, arg_b, arg_c, arg_d, arg_e, arg_f):
+    def decorated1(arg_a, arg_b, arg_c, arg_d, arg_e, arg_f) -> None:  # noqa: ANN001
         """
         :param arg_e: decorated
         :param arg_f: decorated
-        """
+        """  # noqa: D205
         assert arg_a
         assert arg_b
         assert arg_c
@@ -60,7 +60,7 @@ def test_combine_docstrings() -> None:
     )
 
     @combine_docstrings(fun1, fun2, exclude=[DocstringReturns])
-    def decorated2(arg_a, arg_b, arg_c, arg_d, arg_e, arg_f):
+    def decorated2(arg_a, arg_b, arg_c, arg_d, arg_e, arg_f) -> None:  # noqa: ANN001
         assert arg_a
         assert arg_b
         assert arg_c
