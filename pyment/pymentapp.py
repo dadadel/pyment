@@ -6,10 +6,16 @@ import os
 import sys
 from typing import List, Optional
 
+import docstring_parser as dsp
+
 from pyment import PyComment
 
-# The maximum depth to reach while recursively exploring sub folders
-MAX_DEPTH_RECUR = 50
+STRING_TO_STYLE = {
+    "rest": dsp.DocstringStyle.REST,
+    "javadoc": dsp.DocstringStyle.EPYDOC,
+    "numpydoc": dsp.DocstringStyle.NUMPYDOC,
+    "google": dsp.DocstringStyle.GOOGLE,
+}
 
 
 def run(  # pylint: disable=too-many-locals, too-many-branches
@@ -17,6 +23,7 @@ def run(  # pylint: disable=too-many-locals, too-many-branches
     files: Optional[List[str]] = None,
     *,
     overwrite: bool = False,
+    output_style: dsp.DocstringStyle = dsp.DocstringStyle.NUMPYDOC,
 ) -> None:
     r"""_summary_.
 
@@ -26,8 +33,6 @@ def run(  # pylint: disable=too-many-locals, too-many-branches
         _description_
     files : Optional[List[str]]
         _description_ (Default value = [])
-    config_file : Optional[str]
-        _description_ (Default value = None)
     overwrite : bool
         _description_ (Default value = False)
     """
@@ -47,6 +52,7 @@ def run(  # pylint: disable=too-many-locals, too-many-branches
 
         comment = PyComment(
             file,
+            output_style=output_style,
         )
         comment.proceed()
 
@@ -107,6 +113,14 @@ def main() -> None:
         "If used with path '-' won't overwrite but write "
         "to stdout the new content instead of a patch/.",
     )
+    parser.add_argument(
+        "-o",
+        "--output",
+        metavar="style",
+        default="numpydoc",
+        help="Output docstring style in ['javadoc', 'rest', 'numpydoc', 'google']"
+        " (default 'numpydoc')",
+    )
 
     args = parser.parse_args()
     source = ""
@@ -120,6 +134,7 @@ def main() -> None:
         source,
         files,
         overwrite=args.overwrite,
+        output_style=STRING_TO_STYLE[args.output.lower()],
     )
 
 

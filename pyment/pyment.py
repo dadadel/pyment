@@ -7,6 +7,8 @@ import sys
 from pathlib import Path
 from typing import List, Tuple
 
+import docstring_parser as dsp
+
 from .file_parser import AstAnalyzer
 from .types import ElementDocstring
 
@@ -40,6 +42,7 @@ class PyComment:
     def __init__(
         self,
         input_file: str,
+        output_style: dsp.DocstringStyle = dsp.DocstringStyle.NUMPYDOC,
     ) -> None:
         r"""Set the configuration including the source to proceed and options.
 
@@ -54,6 +57,7 @@ class PyComment:
         else:
             self.input_lines = Path(self.input_file).read_text(encoding="utf-8")
         self.docs_list = []
+        self.output_style = output_style
         self.parsed = False
 
     def _parse(self) -> List[ElementDocstring]:
@@ -111,6 +115,8 @@ class PyComment:
         list_to = []
         list_changed = []
         last = 0
+        # Loop over all found docstrings and replace the lines where they used to
+        # (or ought to) be with the new docstring.
         for e in self.docs_list:
             start, end = e.lines
             if end is None:
@@ -122,7 +128,9 @@ class PyComment:
             leading_whitespace = old_line[: -len(old_line.lstrip())]
             modifier = self._get_modifier(old_line)
             out_docstring = self._add_quotes_indentation_modifier(
-                e.output_docstring(), indentation=leading_whitespace, modifier=modifier
+                e.output_docstring(style=self.output_style),
+                indentation=leading_whitespace,
+                modifier=modifier,
             )
             if in_docstring != out_docstring.strip()[3:-3]:
                 list_changed.append(e.name)
@@ -254,11 +262,5 @@ class PyComment:
         os.rename(tmp_filename, self.input_file)
 
     def proceed(self) -> None:
-        """Parse file and generates/converts the docstrings.
-
-        Returns
-        -------
-        List[Dict]
-            the list of docstrings
-        """
+        """Parse file and generates/converts the docstrings."""
         self._parse()
