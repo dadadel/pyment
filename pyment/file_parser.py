@@ -2,11 +2,11 @@
 
 import ast
 import re
-from typing import List, Optional, overload
+from typing import List, Optional, Union
 
+from .docstring_parser.attrdoc import ast_unparse
 from .types import (
     ClassDocstring,
-    DefinitionNodes,
     DocstringInfo,
     ElementDocstring,
     FunctionBody,
@@ -75,7 +75,12 @@ class AstAnalyzer:
                 )
                 raise ValueError(msg)
             return DocstringInfo(
-                node.name if isinstance(node, DefinitionNodes) else "Module",
+                # Can not use DefinitionNodes in isinstance checks before 3.10
+                node.name
+                if isinstance(
+                    node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+                )
+                else "Module",
                 str(docnode.value),
                 (docnode.lineno, docnode.end_lineno),
             )
@@ -93,81 +98,58 @@ class AstAnalyzer:
 
     def get_padded_args_defaults(
         self,
-        func: ast.FunctionDef | ast.AsyncFunctionDef,
+        func: Union[ast.FunctionDef, ast.AsyncFunctionDef],
     ) -> List[Optional[str]]:
         """Left-Pad the general args defaults to the length of the args."""
-        pos_defaults = [
-            self.get_expr_as_string(default) for default in func.args.defaults
-        ]
+        pos_defaults = [ast_unparse(default) for default in func.args.defaults]
         return [None] * (len(func.args.args) - len(pos_defaults)) + pos_defaults
 
-    @overload
-    def get_expr_as_string(self, annotation: None) -> None:
-        ...
-
-    @overload
-    def get_expr_as_string(self, annotation: ast.expr) -> str:
-        ...
-
-    def get_expr_as_string(self, annotation: Optional[ast.expr]) -> Optional[str]:
-        """Turn an expression ast node into a sensible string.
-
-        Used for default values and annotations.
-        """
-        return None if annotation is None else ast.unparse(annotation)
-
     def get_parameters_sig(
-        self, func: ast.FunctionDef | ast.AsyncFunctionDef
-    ) -> list[Parameter]:
+        self, func: Union[ast.FunctionDef, ast.AsyncFunctionDef]
+    ) -> List[Parameter]:
         """Get information about function parameters."""
         arguments: List[Parameter] = []
         pos_defaults = self.get_padded_args_defaults(func)
 
         pos_only_args = [
-            Parameter(arg.arg, self.get_expr_as_string(arg.annotation), None)
+            Parameter(arg.arg, ast_unparse(arg.annotation), None)
             for arg in func.args.posonlyargs
         ]
         arguments += pos_only_args
         general_args = [
-            Parameter(arg.arg, self.get_expr_as_string(arg.annotation), default)
-            for arg, default in zip(func.args.args, pos_defaults, strict=True)
+            Parameter(arg.arg, ast_unparse(arg.annotation), default)
+            for arg, default in zip(func.args.args, pos_defaults)
         ]
         arguments += general_args
         if vararg := func.args.vararg:
             arguments.append(
-                Parameter(
-                    f"*{vararg.arg}", self.get_expr_as_string(vararg.annotation), None
-                )
+                Parameter(f"*{vararg.arg}", ast_unparse(vararg.annotation), None)
             )
         kw_only_args = [
             Parameter(
                 arg.arg,
-                self.get_expr_as_string(arg.annotation),
-                self.get_expr_as_string(default),
+                ast_unparse(arg.annotation),
+                ast_unparse(default),
             )
-            for arg, default in zip(
-                func.args.kwonlyargs, func.args.kw_defaults, strict=True
-            )
+            for arg, default in zip(func.args.kwonlyargs, func.args.kw_defaults)
         ]
         arguments += kw_only_args
         if kwarg := func.args.kwarg:
             arguments.append(
-                Parameter(
-                    f"**{kwarg.arg}", self.get_expr_as_string(kwarg.annotation), None
-                )
+                Parameter(f"**{kwarg.arg}", ast_unparse(kwarg.annotation), None)
             )
         return arguments
 
     def get_return_value_sig(
-        self, func: ast.FunctionDef | ast.AsyncFunctionDef
+        self, func: Union[ast.FunctionDef, ast.AsyncFunctionDef]
     ) -> ReturnValue:
         """Get information about return value from signature."""
         return_node = func.returns
-        return ReturnValue(type_name=self.get_expr_as_string(return_node))
+        return ReturnValue(type_name=ast_unparse(return_node))
 
     def handle_function_signature(
         self,
-        func: ast.FunctionDef | ast.AsyncFunctionDef,
+        func: Union[ast.FunctionDef, ast.AsyncFunctionDef],
     ) -> FunctionSignature:
         """Extract information about the signature of the function."""
         parameters = self.get_parameters_sig(func)
@@ -178,7 +160,7 @@ class AstAnalyzer:
 
     def handle_function_docstring(
         self,
-        func: ast.FunctionDef | ast.AsyncFunctionDef,
+        func: Union[ast.FunctionDef, ast.AsyncFunctionDef],
     ) -> DocstringInfo:
         """Extract information about the docstring of the function."""
         docstring_info = self.get_docstring_info(func)
@@ -192,7 +174,7 @@ class AstAnalyzer:
 
     def handle_function_body(
         self,
-        func: ast.FunctionDef | ast.AsyncFunctionDef,
+        func: Union[ast.FunctionDef, ast.AsyncFunctionDef],
     ) -> FunctionBody:
         """Check the function body for yields, raises and value returns."""
         returns = set()
@@ -248,7 +230,7 @@ class AstAnalyzer:
 
     def handle_function(
         self,
-        func: ast.FunctionDef | ast.AsyncFunctionDef,
+        func: Union[ast.FunctionDef, ast.AsyncFunctionDef],
     ) -> FunctionDocstring:
         """Extract information from signature and docstring."""
         signature = self.handle_function_signature(func)

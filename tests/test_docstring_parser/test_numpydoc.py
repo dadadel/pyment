@@ -842,6 +842,11 @@ def test_examples(
             None,
             "No version!",
         ),
+        (
+            "Short description\n\n.. deprecated::",
+            None,
+            None,
+        ),
     ],
 )
 def test_deprecation(

@@ -1,7 +1,9 @@
 """Common methods for parsing."""
 import enum
 from dataclasses import dataclass
-from typing import List, Optional, TypeAlias, Union
+from typing import List, Optional, Union
+
+from typing_extensions import TypeAlias
 
 PARAM_KEYWORDS = {
     "param",

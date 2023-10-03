@@ -1,8 +1,10 @@
 """Tests for generic docstring routines."""
+import re
+
 import pytest
 
-from pyment.docstring_parser.common import DocstringStyle, ParseError
-from pyment.docstring_parser.parser import parse
+from pyment.docstring_parser.common import Docstring, DocstringStyle, ParseError
+from pyment.docstring_parser.parser import compose, parse
 
 
 def test_rest() -> None:
@@ -179,7 +181,7 @@ def test_numpydoc() -> None:
 
 
 def test_autodetection_error_detection() -> None:
-    """Test autodection.
+    """Test autodetection.
 
     Case where one of the parsers throws an error and another one succeeds.
     """
@@ -198,3 +200,15 @@ def test_autodetection_error_detection() -> None:
 
     assert docstring
     assert docstring.style == DocstringStyle.GOOGLE
+
+
+def test_compose_empty_docstring() -> None:
+    """Test what compose does when called on an empty docstring without style."""
+    docstring = Docstring()
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "Detected docstring.style of `None` and requested style of `AUTO`."
+        ),
+    ):
+        compose(docstring)

@@ -9,6 +9,8 @@ import textwrap
 from types import ModuleType
 from typing import Any, Dict, Optional, Tuple, Union
 
+from typing_extensions import TypeGuard
+
 from .common import Docstring, DocstringParam
 
 ast_constant_attr = {
@@ -20,15 +22,19 @@ ast_constant_attr = {
 }
 
 
-def ast_get_constant_value(node: ast.AST) -> Any:  # noqa: ANN401
+def ast_get_constant_value(
+    node: Union[ast.Str, ast.Num, ast.NameConstant, ast.Constant]
+) -> Any:  # noqa: ANN401
     """Return the constant's value if the given node is a constant."""
     return getattr(node, ast_constant_attr[node.__class__])
 
 
-def ast_unparse(node: ast.AST) -> Optional[str]:
+def ast_unparse(node: Optional[ast.AST]) -> Optional[str]:
     """Convert the AST node to source code as a string."""
-    if hasattr(ast, "unparse"):
-        return ast.unparse(node)
+    # pylint: disable=no-member
+    if hasattr(ast, "unparse") and node is not None:
+        # Raises this issue for Python < 3.9
+        return ast.unparse(node)  # pyright: ignore[reportGeneralTypeIssues]
     # Support simple cases in Python < 3.9
     if isinstance(node, (ast.Str, ast.Num, ast.NameConstant, ast.Constant)):
         return str(ast_get_constant_value(node))
@@ -37,7 +43,7 @@ def ast_unparse(node: ast.AST) -> Optional[str]:
     return None
 
 
-def ast_is_literal_str(node: ast.AST) -> bool:
+def ast_is_literal_str(node: ast.AST) -> TypeGuard[ast.Expr]:
     """Return True if the given node is a literal string."""
     return (
         isinstance(node, ast.Expr)
@@ -69,10 +75,14 @@ class AttributeDocstrings(ast.NodeVisitor):
 
     def visit(self, node: ast.AST) -> None:
         """Visit a node and collect its attribute docstrings."""
-        if self.prev_attr and ast_is_literal_str(node):
+        if self.prev_attr and self.attr_docs is not None and ast_is_literal_str(node):
             attr_name, attr_type, attr_default = self.prev_attr
+            # This is save because `ast_is_literal_str`
+            # ensure that node.value is of type (ast.Constant, ast.Str)
             self.attr_docs[attr_name] = (
-                ast_get_constant_value(node.value),
+                ast_get_constant_value(
+                    node.value  # pyright: ignore[reportGeneralTypeIssues]
+                ),
                 attr_type,
                 attr_default,
             )
@@ -103,13 +113,10 @@ class AttributeDocstrings(ast.NodeVisitor):
         except OSError:
             pass
         else:
+            # This change might cause issues with older python versions
+            # Not sure yet.
             tree = ast.parse(source)
-            if inspect.ismodule(component):
-                self.visit(tree)
-            elif isinstance(tree, ast.Module) and isinstance(
-                tree.body[0], ast.ClassDef
-            ):
-                self.visit(tree.body[0])
+            self.visit(tree)
         return self.attr_docs
 
 

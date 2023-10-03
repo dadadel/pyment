@@ -3,7 +3,9 @@
 import ast
 import re
 from dataclasses import dataclass
-from typing import List, Optional, Set, Tuple, TypeAlias
+from typing import List, Optional, Set, Tuple, Union
+
+from typing_extensions import TypeAlias
 
 import pyment.docstring_parser as dsp
 
@@ -292,6 +294,6 @@ class FunctionDocstring(DocstringInfo):
         self._adjust_raises(docstring)
 
 
-ElementDocstring: TypeAlias = ModuleDocstring | ClassDocstring | FunctionDocstring
-DefinitionNodes: TypeAlias = ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef
-NodeOfInterest: TypeAlias = DefinitionNodes | ast.Module
+ElementDocstring: TypeAlias = Union[ModuleDocstring, ClassDocstring, FunctionDocstring]
+DefinitionNodes: TypeAlias = Union[ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef]
+NodeOfInterest: TypeAlias = Union[DefinitionNodes, ast.Module]

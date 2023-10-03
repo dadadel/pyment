@@ -7,7 +7,7 @@ import inspect
 import itertools
 import re
 from textwrap import dedent
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Iterable, List, Optional
 
 from .common import (
     Docstring,
@@ -20,6 +20,7 @@ from .common import (
     DocstringStyle,
     DocstringYields,
     MainSections,
+    ParseError,
     RenderingStyle,
 )
 
@@ -107,7 +108,7 @@ class _KVSection(Section):
     """
 
     def _parse_item(self, key: str, value: str) -> DocstringMeta:
-        pass
+        raise NotImplementedError
 
     def parse(self, text: str) -> Iterable[DocstringMeta]:
         for match, next_match in _pairwise(KV_REGEX.finditer(text)):
@@ -144,16 +145,26 @@ class ParamSection(_KVSection):
     def _parse_item(self, key: str, value: str) -> DocstringParam:
         match = PARAM_KEY_REGEX.match(key)
         arg_name = type_name = is_optional = None
-        if match is not None:
-            arg_name = match.group("name")
-            type_name = match.group("type")
-            if type_name is not None:
-                optional_match = PARAM_OPTIONAL_REGEX.match(type_name)
-                if optional_match is not None:
-                    type_name = optional_match.group("type")
-                    is_optional = True
-                else:
-                    is_optional = False
+        if match is None:
+            msg = f"Could not parse param key on line `{key}`"
+            raise ParseError(msg)
+        arg_name = match.group("name")
+        type_name = match.group("type")
+        if not isinstance(arg_name, str):
+            msg = (
+                f"Did not get a string when capturing mandatory section"
+                f" 'arg_name' for key line `{key}`. Got `{arg_name}` instead."
+            )
+            raise ParseError(msg)
+        if isinstance(type_name, str):
+            optional_match = PARAM_OPTIONAL_REGEX.match(type_name)
+            if optional_match is not None:
+                type_name = optional_match.group("type")
+                is_optional = True
+            else:
+                is_optional = False
+        else:
+            type_name = None
 
         default = None
         if value != "":
@@ -246,7 +257,12 @@ class DeprecationSection(_SphinxSection):
     def parse(self, text: str) -> Iterable[DocstringDeprecated]:
         """Parse ``DocstringDeprecated`` objects from the body of this section."""
         version, desc, *_ = [*text.split(sep="\n", maxsplit=1), None, None]
-
+        if version is None:
+            msg = (
+                f"Got `None` while parsing version number "
+                f"in deprecated section `{text}`."
+            )
+            raise ParseError(msg)
         if desc is not None:
             desc = _clean_str(inspect.cleandoc(desc))
 
@@ -335,7 +351,7 @@ DEFAULT_SECTIONS = [
 class NumpydocParser:
     """Parser for numpydoc-style docstrings."""
 
-    def __init__(self, sections: Optional[Dict[str, Section]] = None) -> None:
+    def __init__(self, sections: Optional[Iterable[Section]] = None) -> None:
         """Set up sections.
 
         Parameters
@@ -343,8 +359,7 @@ class NumpydocParser:
         sections : Optional[Dict[str, Section]]
             Recognized sections or None to defaults.
         """
-        sections = sections or DEFAULT_SECTIONS
-        self.sections = {s.title: s for s in sections}
+        self.sections = {s.title: s for s in (sections or DEFAULT_SECTIONS)}
         self._setup()
 
     def _setup(self) -> None:

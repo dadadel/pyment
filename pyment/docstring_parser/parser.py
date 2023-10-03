@@ -53,7 +53,7 @@ def parse(text: str, style: DocstringStyle = DocstringStyle.AUTO) -> Docstring:
         else:
             rets.append(ret)
 
-    if not rets:
+    if not rets and exc:
         raise exc
 
     return sorted(rets, key=lambda d: len(d.meta), reverse=True)[0]
@@ -123,5 +123,15 @@ def compose(
     str
         docstring text
     """
-    module = _STYLE_MAP[docstring.style if style == DocstringStyle.AUTO else style]
+    if style == DocstringStyle.AUTO:
+        if docstring.style is None:
+            msg = (
+                "Detected docstring.style of `None` and requested style of `AUTO`.\n"
+                "Either the docstring to compose has to have its style set"
+                " (for example by calling `parse`) or an "
+                "output style has to be provided."
+            )
+            raise ValueError(msg)
+        style = docstring.style
+    module = _STYLE_MAP[style]
     return module.compose(docstring, rendering_style=rendering_style, indent=indent)

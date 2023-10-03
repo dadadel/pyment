@@ -26,10 +26,10 @@ def _clean_str(string: str) -> Optional[str]:
 
 def _tokenize(
     meta_chunk: str,
-    param_pattern: re.Pattern[str],
-    raise_pattern: re.Pattern[str],
-    return_pattern: re.Pattern[str],
-    meta_pattern: re.Pattern[str],
+    param_pattern: re.Pattern,
+    raise_pattern: re.Pattern,
+    return_pattern: re.Pattern,
+    meta_pattern: re.Pattern,
 ) -> List[Tuple[str, str, List[str], str]]:
     """Return the tokenized stream according to the regex patterns.
 

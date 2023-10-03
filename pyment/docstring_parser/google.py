@@ -4,7 +4,7 @@ import inspect
 import re
 from collections import OrderedDict
 from enum import IntEnum
-from typing import List, Mapping, NamedTuple, Optional
+from typing import List, Mapping, NamedTuple, Optional, Sequence
 
 from .common import (
     EXAMPLES_KEYWORDS,
@@ -165,7 +165,7 @@ class GoogleParser:
         if section.key in EXAMPLES_KEYWORDS:
             return DocstringExample(args=[section.key], snippet=None, description=desc)
         if section.key in PARAM_KEYWORDS:
-            msg = "Expected paramenter name."
+            msg = "Expected parameter name."
             raise ParseError(msg)
         return DocstringMeta(args=[section.key], description=desc)
 
@@ -314,7 +314,7 @@ class GoogleParser:
                 raise ParseError(msg)
             c_splits = [
                 (c_cur.end(), c_next.start())
-                for c_cur, c_next in zip(c_matches, c_matches[1:], strict=False)
+                for c_cur, c_next in zip(c_matches, c_matches[1:])
             ]
             c_splits.append((c_matches[-1].end(), len(chunk)))
             for start, end in c_splits:
@@ -355,9 +355,7 @@ def compose(  # noqa: PLR0915
         docstring text
     """
 
-    def process_one(
-        one: MainSections
-    ) -> None:
+    def process_one(one: MainSections) -> None:
         head = ""
 
         if isinstance(one, DocstringParam):
@@ -392,7 +390,7 @@ def compose(  # noqa: PLR0915
         else:
             parts.append(head)
 
-    def process_sect(name: str, args: List[MainSections]) -> None:
+    def process_sect(name: str, args: Sequence[MainSections]) -> None:
         if args:
             parts.append(name)
             for arg in args:

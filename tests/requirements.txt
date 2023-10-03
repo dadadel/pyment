@@ -1,5 +1,5 @@
 pre-commit==3.4.0
-pylint==2.17.6
+pylint==3.0.0
 pyright==1.1.329
 pytest==7.4.2
 pytest-cov==4.1.0
