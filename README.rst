@@ -102,7 +102,7 @@ To see how pymend looks in action lets consider this example file `example.py`:
 
 .. code-block:: python
 
-     """_summary_."""
+   """_summary_."""
     def my_func(param0, param01: int, param1: str = "Some value", param2: List[str] = {}):
         """_summary_.
 
