@@ -4,7 +4,7 @@
 """
 import inspect
 import re
-from typing import Any, Optional
+from typing import Optional
 
 from .common import (
     Docstring,
@@ -103,8 +103,8 @@ def _tokenize(
 
 def _combine_params(
     stream: list[tuple[str, str, list[str], str]]
-) -> dict[str, dict[str, Any]]:
-    params: dict[str, dict[str, Any]] = {}
+) -> dict[str, dict[str, Optional[str]]]:
+    params: dict[str, dict[str, Optional[str]]] = {}
     for base, key, args, desc in stream:
         if base not in ["param", "return", "yield"]:
             continue  # nothing to do
@@ -117,7 +117,7 @@ def _combine_params(
 
 def _add_meta_information(
     stream: list[tuple[str, str, list[str], str]],
-    params: dict[str, dict[str, Any]],
+    params: dict[str, dict[str, Optional[str]]],
     ret: Docstring,
 ) -> None:
     is_done: dict[str, bool] = {}
@@ -188,7 +188,7 @@ def _add_meta_information(
         ret.meta.append(meta_item)
 
 
-def parse(text: str) -> Docstring:
+def parse(text: Optional[str]) -> Docstring:
     """Parse the epydoc-style docstring into its components.
 
     Parameters

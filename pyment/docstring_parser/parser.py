@@ -1,7 +1,7 @@
 """The main parsing routine."""
 
 import inspect
-from typing import Any, Optional
+from typing import Optional
 
 from pyment.docstring_parser import epydoc, google, numpydoc, rest
 from pyment.docstring_parser.attrdoc import add_attribute_docstrings
@@ -20,7 +20,9 @@ _STYLE_MAP = {
 }
 
 
-def parse(text: str, style: DocstringStyle = DocstringStyle.AUTO) -> Docstring:
+def parse(
+    text: Optional[str], style: DocstringStyle = DocstringStyle.AUTO
+) -> Docstring:
     """Parse the docstring into its components.
 
     Parameters
@@ -60,7 +62,7 @@ def parse(text: str, style: DocstringStyle = DocstringStyle.AUTO) -> Docstring:
 
 
 def parse_from_object(
-    obj: Any,  # noqa: ANN401
+    obj: object,
     style: DocstringStyle = DocstringStyle.AUTO,
 ) -> Docstring:
     """Parse the object's docstring(s) into its components.
@@ -80,7 +82,7 @@ def parse_from_object(
 
     Parameters
     ----------
-    obj : Any
+    obj : object
         object from which to parse the docstring(s)
     style : DocstringStyle
         docstring style (Default value = DocstringStyle.AUTO)

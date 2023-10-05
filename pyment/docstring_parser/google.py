@@ -227,7 +227,7 @@ class GoogleParser:
         self.sections[section.title] = section
         self._setup()
 
-    def parse(self, text: str) -> Docstring:  # noqa: PLR0912
+    def parse(self, text: Optional[str]) -> Docstring:  # noqa: PLR0912
         """Parse the Google-style docstring into its components.
 
         Parameters
@@ -325,7 +325,7 @@ class GoogleParser:
         return ret
 
 
-def parse(text: str) -> Docstring:
+def parse(text: Optional[str]) -> Docstring:
     """Parse the Google-style docstring into its components.
 
     :returns: parsed docstring

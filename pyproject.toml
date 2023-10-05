@@ -148,6 +148,7 @@ fail-under = 10.0
 # Good variable names which should always be accepted, separated by a comma.
 good-names          = ["i", "j", "k", "ex", "Run", "_", "x", "y", "z", "e", "ok"]
 include-naming-hint = true
+typevar-rgx         = "^_{0,2}(?!T[A-Z])([A-Z]|T[0-9]?)(?:[A-Z]*[0-9]*)?(?:_co(?:ntra)?)?$"
 
 [tool.pylint.design]
 # Maximum number of arguments for function / method.

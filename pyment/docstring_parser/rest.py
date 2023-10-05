@@ -111,7 +111,7 @@ def _build_meta(args: list[str], desc: str) -> DocstringMeta:  # noqa: PLR0912
     return DocstringMeta(args=args, description=desc)
 
 
-def parse(text: str) -> Docstring:  # noqa: PLR0912
+def parse(text: Optional[str]) -> Docstring:  # noqa: PLR0912
     """Parse the ReST-style docstring into its components.
 
     Parameters

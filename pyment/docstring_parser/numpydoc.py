@@ -6,9 +6,9 @@
 import inspect
 import itertools
 import re
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from textwrap import dedent
-from typing import Any, Optional, TypeVar, Union
+from typing import Optional, TypeVar
 
 from .common import (
     Docstring,
@@ -25,15 +25,15 @@ from .common import (
     RenderingStyle,
 )
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 
 
 def _pairwise(
-    iterable: Iterable[T], end: Optional[T] = None
-) -> Iterable[tuple[Union[T, Any], Union[T, Any]]]:
+    iterable: Iterable[_T], end: Optional[_T] = None
+) -> Iterator[tuple[_T, Optional[_T]]]:
     left, right = itertools.tee(iterable)
     next(right, None)
-    return itertools.zip_longest(left, right, fillvalue=end)
+    return zip(left, itertools.chain(right, [end]))
 
 
 def _clean_str(string: str) -> Optional[str]:
@@ -360,10 +360,7 @@ DEFAULT_SECTIONS = [
 
 
 class NumpydocParser:
-    """Parser for numpydoc-style docstrings.
-
-    TODO: Add parsing and composing of `Methods` section
-    """
+    """Parser for numpydoc-style docstrings."""
 
     def __init__(self, sections: Optional[Iterable[Section]] = None) -> None:
         """Set up sections.
@@ -393,7 +390,7 @@ class NumpydocParser:
         self.sections[section.title] = section
         self._setup()
 
-    def parse(self, text: str) -> Docstring:
+    def parse(self, text: Optional[str]) -> Docstring:
         """Parse the numpy-style docstring into its components.
 
         Parameters
@@ -442,7 +439,7 @@ class NumpydocParser:
         return ret
 
 
-def parse(text: str) -> Docstring:
+def parse(text: Optional[str]) -> Docstring:
     """Parse the numpy-style docstring into its components.
 
     Parameters

@@ -3,7 +3,7 @@ from collections import ChainMap
 from collections.abc import Iterable
 from inspect import Signature
 from itertools import chain
-from typing import Any, Callable
+from typing import Callable
 
 from .common import (
     DocstringMeta,
@@ -13,7 +13,7 @@ from .common import (
 )
 from .parser import compose, parse
 
-_Func = Callable[..., Any]
+_Func = Callable[..., object]
 
 
 def combine_docstrings(
