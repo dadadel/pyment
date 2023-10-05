@@ -115,7 +115,7 @@ add the following to your ``.pre-commit-config.yaml``
    -   repo: https://github.com/JanEricNitschke/pymend
        rev: "v1.0.0"
        hooks:
-       -   id: pyment
+       -   id: pymend
            language: python
            args: ["--write", "--output=numpydoc"]
 
