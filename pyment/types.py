@@ -3,7 +3,7 @@
 import ast
 import re
 from dataclasses import dataclass
-from typing import List, Optional, Set, Tuple, Union
+from typing import ClassVar, Iterable, Iterator, List, Optional, Set, Tuple, Union
 
 from typing_extensions import TypeAlias
 
@@ -17,10 +17,15 @@ class DocstringInfo:
     name: str
     docstring: str
     lines: Tuple[int, Optional[int]]
+    default_description: ClassVar[str] = "_description_"
+    default_type: ClassVar[str] = "_type_"
+    default_summary: ClassVar[str] = "_summary_."
 
     def _fix_short_description(self, docstring: dsp.Docstring) -> None:
         """Set default summary."""
-        docstring.short_description = docstring.short_description or "_summary_."
+        docstring.short_description = (
+            docstring.short_description or self.default_summary
+        )
 
     def _fix_long_description(self, docstring: dsp.Docstring) -> None:
         """Add '.' to end of description if missing."""
@@ -43,14 +48,14 @@ class DocstringInfo:
     def _fix_descriptions(self, docstring: dsp.Docstring) -> None:
         """Everything should have a description."""
         for ele in docstring.meta:
-            ele.description = ele.description or "_description_"
+            ele.description = ele.description or self.default_description
 
     def _fix_types(self, docstring: dsp.Docstring) -> None:
         """Set empty types for parameters and returns."""
         for param in docstring.params:
-            param.type_name = param.type_name or "_type_"
+            param.type_name = param.type_name or self.default_type
         for returned in docstring.many_returns:
-            returned.type_name = returned.type_name or "_type_"
+            returned.type_name = returned.type_name or self.default_type
 
     def fix_docstring(self, docstring: dsp.Docstring) -> None:
         """Fix docstrings.
@@ -79,17 +84,25 @@ class ModuleDocstring(DocstringInfo):
 
 
 @dataclass
-class ClassDocstring(DocstringInfo):
-    """Information about a module."""
-
-
-@dataclass
 class Parameter:
     """Info for parameter from signature."""
 
     arg_name: str
-    type_name: Optional[str]
-    default: Optional[str]
+    type_name: Optional[str] = None
+    default: Optional[str] = None
+
+    def custom_hash(self) -> int:
+        """Implement custom has function for uniquefying."""
+        return hash((self.arg_name, self.type_name, self.default))
+
+    @staticmethod
+    def uniquefy(lst: Iterable["Parameter"]) -> Iterator["Parameter"]:
+        """Remove duplicates while keeping order."""
+        seen = set()
+        for item in lst:
+            if (itemhash := item.custom_hash()) not in seen:
+                seen.add(itemhash)
+                yield item
 
 
 @dataclass
@@ -119,6 +132,63 @@ class FunctionBody:
 
 
 @dataclass
+class ClassDocstring(DocstringInfo):
+    """Information about a module."""
+
+    attributes: List[Parameter]
+    methods: List[str]
+
+    def _adjust_attributes(self, docstring: dsp.Docstring) -> None:
+        """Overwrite or create attribute docstring entries based on body.
+
+        Create the full list if there was no original docstring.
+
+        Do not add additional attributes and do not create the section
+        if it did not exist.
+        """
+        # If a docstring or the section already exists we are done.
+        # We already fixed empty types and descriptions in the super call.
+        if self.docstring:
+            return
+        for attribute in self.attributes:
+            docstring.meta.append(
+                dsp.DocstringParam(
+                    args=["attribute", attribute.arg_name],
+                    description=self.default_description,
+                    arg_name=attribute.arg_name,
+                    type_name=self.default_type,
+                    is_optional=False,
+                    default=None,
+                )
+            )
+
+    def _adjust_methods(self, docstring: dsp.Docstring) -> None:
+        """If a new docstring is generated add a methods section."""
+        if self.docstring:
+            return
+        for method in self.methods:
+            docstring.meta.append(
+                dsp.DocstringParam(
+                    args=["method", method],
+                    description=self.default_description,
+                    arg_name=method,
+                    type_name=None,
+                    is_optional=False,
+                    default=None,
+                )
+            )
+
+    def fix_docstring(self, docstring: dsp.Docstring) -> None:
+        """Fix docstrings.
+
+        Additionally adjust attributes and methods from body.
+        """
+        super().fix_docstring(docstring)
+        self._adjust_attributes(docstring)
+        self._adjust_methods(docstring)
+
+
+@dataclass
 class FunctionDocstring(DocstringInfo):
     """Information about a function from docstring."""
 
@@ -133,6 +203,7 @@ class FunctionDocstring(DocstringInfo):
 
         If no entry exists then create one with name, type and default from the
         signature and place holder description.
+
         """
         params_from_doc = {param.arg_name: param for param in docstring.params}
         params_from_sig = {param.arg_name: param for param in self.signature.params}
@@ -153,7 +224,7 @@ class FunctionDocstring(DocstringInfo):
                             f" (Default value = {param_sig.default})"
                         )
             else:
-                place_holder_description = "_description_"
+                place_holder_description = self.default_description
                 if param_sig.default:
                     place_holder_description += (
                         f" (Default value = {param_sig.default})"
@@ -163,7 +234,7 @@ class FunctionDocstring(DocstringInfo):
                         args=["param", name],
                         description=place_holder_description,
                         arg_name=name,
-                        type_name=param_sig.type_name or "_type_",
+                        type_name=param_sig.type_name or self.default_type,
                         is_optional=False,
                         default=param_sig.default,
                     )
@@ -196,8 +267,8 @@ class FunctionDocstring(DocstringInfo):
             docstring.meta.append(
                 dsp.DocstringReturns(
                     args=["returns"],
-                    description="_description_",
-                    type_name=sig_return or "_type_",
+                    description=self.default_description,
+                    type_name=sig_return or self.default_type,
                     is_generator=False,
                     return_name=None,
                 )
@@ -212,8 +283,8 @@ class FunctionDocstring(DocstringInfo):
                     docstring.meta.append(
                         dsp.DocstringReturns(
                             args=["returns"],
-                            description="_description_",
-                            type_name="_type_",
+                            description=self.default_description,
+                            type_name=self.default_type,
                             is_generator=False,
                             return_name=body_name,
                         )
@@ -244,8 +315,8 @@ class FunctionDocstring(DocstringInfo):
             docstring.meta.append(
                 dsp.DocstringYields(
                     args=["yields"],
-                    description="_description_",
-                    type_name=sig_return or "_type_",
+                    description=self.default_description,
+                    type_name=sig_return or self.default_type,
                     is_generator=True,
                     yield_name=None,
                 )
@@ -260,8 +331,8 @@ class FunctionDocstring(DocstringInfo):
                     docstring.meta.append(
                         dsp.DocstringYields(
                             args=["yields"],
-                            description="_description_",
-                            type_name="_type_",
+                            description=self.default_description,
+                            type_name=self.default_type,
                             is_generator=True,
                             yield_name=body_name,
                         )
@@ -276,7 +347,7 @@ class FunctionDocstring(DocstringInfo):
             docstring.meta.append(
                 dsp.DocstringRaises(
                     args=["raises", missing_raise],
-                    description="_description_",
+                    description=self.default_description,
                     type_name=missing_raise,
                 )
             )
@@ -284,8 +355,10 @@ class FunctionDocstring(DocstringInfo):
     def fix_docstring(self, docstring: dsp.Docstring) -> None:
         """Fix docstrings.
 
-        Default are to add missing dots, blank lines and give defaults for
-        descriptions and types.
+        Additionally adjust:
+            parameters from function signature.
+            return and yield from signature and body.
+            raises from body.
         """
         super().fix_docstring(docstring)
         self._adjust_parameters(docstring)

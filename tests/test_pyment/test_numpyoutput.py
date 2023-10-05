@@ -118,3 +118,7 @@ class TestNumpyOutput:
     def test_skip_overload(self) -> None:
         """Function annotated with @overload should be skipped for DS creation."""
         check_expected_diff("skip_overload_decorator")
+
+    def test_class_body(self) -> None:
+        """Correctly parse and compose class from body information."""
+        check_expected_diff("class_body")

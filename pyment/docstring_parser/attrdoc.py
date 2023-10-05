@@ -7,7 +7,7 @@ import ast
 import inspect
 import textwrap
 from types import ModuleType
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Union, overload
 
 from typing_extensions import TypeGuard
 
@@ -29,18 +29,21 @@ def ast_get_constant_value(
     return getattr(node, ast_constant_attr[node.__class__])
 
 
+@overload
+def ast_unparse(node: None) -> None:
+    ...
+
+
+@overload
+def ast_unparse(node: ast.AST) -> str:
+    ...
+
+
 def ast_unparse(node: Optional[ast.AST]) -> Optional[str]:
     """Convert the AST node to source code as a string."""
-    # pylint: disable=no-member
-    if hasattr(ast, "unparse") and node is not None:
-        # Raises this issue for Python < 3.9
-        return ast.unparse(node)  # pyright: ignore[reportGeneralTypeIssues]
-    # Support simple cases in Python < 3.9
-    if isinstance(node, (ast.Str, ast.Num, ast.NameConstant, ast.Constant)):
-        return str(ast_get_constant_value(node))
-    if isinstance(node, ast.Name):
-        return node.id
-    return None
+    if node is None:
+        return None
+    return ast.unparse(node)
 
 
 def ast_is_literal_str(node: ast.AST) -> TypeGuard[ast.Expr]:

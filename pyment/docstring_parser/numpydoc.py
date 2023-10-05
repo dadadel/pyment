@@ -7,7 +7,7 @@ import inspect
 import itertools
 import re
 from textwrap import dedent
-from typing import Any, Iterable, List, Optional
+from typing import Any, Iterable, List, Optional, Tuple, TypeVar, Union
 
 from .common import (
     Docstring,
@@ -24,10 +24,12 @@ from .common import (
     RenderingStyle,
 )
 
+T = TypeVar("T")
+
 
 def _pairwise(
-    iterable: Iterable[Any], end: Any = None  # noqa: ANN401
-) -> Iterable[Any]:
+    iterable: Iterable[T], end: Optional[T] = None
+) -> Iterable[Tuple[Union[T, Any], Union[T, Any]]]:
     left, right = itertools.tee(iterable)
     next(right, None)
     return itertools.zip_longest(left, right, fillvalue=end)
@@ -252,7 +254,13 @@ class YieldsSection(ReturnsSection):
 
 
 class DeprecationSection(_SphinxSection):
-    """Parser for numpydoc "deprecation warning" sections."""
+    """Parser for numpydoc "deprecation warning" sections.
+
+    E.g. any section that looks like this:
+        .. deprecated:: 1.6.0
+            This description has
+            multiple lines!
+    """
 
     def parse(self, text: str) -> Iterable[DocstringDeprecated]:
         """Parse ``DocstringDeprecated`` objects from the body of this section."""
@@ -330,6 +338,8 @@ DEFAULT_SECTIONS = [
     RaisesSection("Warn", "warns"),
     ParamSection("Attributes", "attribute"),
     ParamSection("Attribute", "attribute"),
+    ParamSection("Methods", "method"),
+    ParamSection("Method", "method"),
     ReturnsSection("Returns", "returns"),
     ReturnsSection("Return", "returns"),
     YieldsSection("Yields", "yields"),
@@ -349,7 +359,10 @@ DEFAULT_SECTIONS = [
 
 
 class NumpydocParser:
-    """Parser for numpydoc-style docstrings."""
+    """Parser for numpydoc-style docstrings.
+
+    TODO: Add parsing and composing of `Methods` section
+    """
 
     def __init__(self, sections: Optional[Iterable[Section]] = None) -> None:
         """Set up sections.
@@ -532,6 +545,11 @@ def compose(  # noqa: PLR0915
     process_sect(
         "Attributes",
         [item for item in docstring.params or [] if item.args[0] == "attribute"],
+    )
+
+    process_sect(
+        "Methods",
+        [item for item in docstring.params or [] if item.args[0] == "method"],
     )
 
     process_sect(

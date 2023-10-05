@@ -2,7 +2,7 @@
 
 --- a/module_dot_missing.py
 +++ b/module_dot_missing.py
-@@ -1,6 +1,13 @@
+@@ -1,6 +1,7 @@
 -"""Some long docstring
 +"""Some long docstring.
  
@@ -10,12 +10,6 @@
 +a
 +"""
  
- def func(param):
--    """summary."""
-+    """summary.
-+
-+    Parameters
-+    ----------
-+    param : _type_
-+        _description_
-+    """
+ def func():
+-    """summary"""
++    """summary."""

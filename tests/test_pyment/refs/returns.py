@@ -1,3 +1,4 @@
+"""_summary_."""
 def my_func(param0, param01: int, param1: str = "Some value", param2: List[str] = {}):
     """_summary_.
 

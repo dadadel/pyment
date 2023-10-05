@@ -3,7 +3,7 @@
 --- a/positional_only.py
 +++ b/positional_only.py
 @@ -1,2 +1,14 @@
-+"""_summary_."""
+ """_summary_."""
  def foo(x: int, y: int, /, b: int) -> None:
 +    """_summary_.
 +

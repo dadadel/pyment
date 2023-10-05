@@ -479,6 +479,58 @@ def test_attributes() -> None:
     assert docstring.params[1].description == "description 2"
 
 
+def test_methods() -> None:
+    """Test parsing methods."""
+    docstring = parse("Short description")
+    assert len(docstring.params) == 0
+
+    docstring = parse(
+        """
+        Short description
+
+        Methods
+        -------
+        colorspace(c='rgb')
+            Represent the photo in the given colorspace.
+        gamma(n=1.0)
+            Change the photo's gamma exposure.
+        """
+    )
+    assert len(docstring.params) == 2
+    assert docstring.params[0].arg_name == "colorspace(c='rgb')"
+    assert docstring.params[0].type_name is None
+    assert (
+        docstring.params[0].description
+        == "Represent the photo in the given colorspace."
+    )
+    assert not docstring.params[0].is_optional
+    assert docstring.params[1].arg_name == "gamma(n=1.0)"
+    assert docstring.params[1].type_name is None
+    assert docstring.params[1].description == "Change the photo's gamma exposure."
+    assert not docstring.params[1].is_optional
+
+    docstring = parse(
+        """
+        Short description
+
+        Attributes
+        ----------
+        name
+            description 1
+            with multi-line text
+        priority : int
+            description 2
+        """
+    )
+    assert len(docstring.params) == 2
+    assert docstring.params[0].arg_name == "name"
+    assert docstring.params[0].type_name is None
+    assert docstring.params[0].description == ("description 1\nwith multi-line text")
+    assert docstring.params[1].arg_name == "priority"
+    assert docstring.params[1].type_name == "int"
+    assert docstring.params[1].description == "description 2"
+
+
 def test_other_params() -> None:
     """Test parsing other parameters."""
     docstring = parse(

@@ -2,7 +2,7 @@
 
 import ast
 import re
-from typing import List, Optional, Union
+from typing import List, Optional, Tuple, Union
 
 from .docstring_parser.attrdoc import ast_unparse
 from .types import (
@@ -25,7 +25,8 @@ class AstAnalyzer:
     def __init__(self, file_content: str) -> None:
         self.file_content = file_content
 
-    def _is_shebang_or_pragma(self, line: str) -> bool:
+    @staticmethod
+    def is_shebang_or_pragma(line: str) -> bool:
         """Check if a given line contains encoding or shebang.
 
         Parameters
@@ -54,7 +55,7 @@ class AstAnalyzer:
                     for index, line in enumerate(
                         self.file_content.splitlines()[:shebang_encoding_lines]
                     )
-                    if not self._is_shebang_or_pragma(line)
+                    if not self.is_shebang_or_pragma(line)
                 ),
                 2,
             )
@@ -158,18 +159,18 @@ class AstAnalyzer:
         return_value = self.get_return_value_sig(func)
         return FunctionSignature(parameters, return_value)
 
-    def handle_function_docstring(
+    def handle_elem_docstring(
         self,
-        func: Union[ast.FunctionDef, ast.AsyncFunctionDef],
+        elem: Union[ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef],
     ) -> DocstringInfo:
         """Extract information about the docstring of the function."""
-        docstring_info = self.get_docstring_info(func)
+        docstring_info = self.get_docstring_info(elem)
         if docstring_info is None:
-            if not func.body:
+            if not elem.body:
                 msg = "Function body was unexpectedly completely empty."
                 raise ValueError(msg)
-            lines = (func.body[0].lineno, func.body[0].lineno)
-            return DocstringInfo(func.name, "", lines)
+            lines = (elem.body[0].lineno, elem.body[0].lineno)
+            return DocstringInfo(elem.name, "", lines)
         return docstring_info
 
     def handle_function_body(
@@ -190,12 +191,10 @@ class AstAnalyzer:
                 ):
                     returns.add(
                         tuple(
-                            sorted(
-                                value.id
-                                for value in node.value.elts
-                                # Needed again for type checker
-                                if isinstance(value, ast.Name)
-                            )
+                            value.id
+                            for value in node.value.elts
+                            # Needed again for type checker
+                            if isinstance(value, ast.Name)
                         )
                     )
             elif isinstance(node, (ast.Yield, ast.YieldFrom)):
@@ -207,12 +206,10 @@ class AstAnalyzer:
                 ):
                     yields.add(
                         tuple(
-                            sorted(
-                                value.id
-                                for value in node.value.elts
-                                # Needed again for type checker
-                                if isinstance(value, ast.Name)
-                            )
+                            value.id
+                            for value in node.value.elts
+                            # Needed again for type checker
+                            if isinstance(value, ast.Name)
                         )
                     )
             elif isinstance(node, ast.Raise):
@@ -233,8 +230,8 @@ class AstAnalyzer:
         func: Union[ast.FunctionDef, ast.AsyncFunctionDef],
     ) -> FunctionDocstring:
         """Extract information from signature and docstring."""
+        docstring = self.handle_elem_docstring(func)
         signature = self.handle_function_signature(func)
-        docstring = self.handle_function_docstring(func)
         body = self.handle_function_body(func)
         return FunctionDocstring(
             docstring.name,
@@ -244,17 +241,118 @@ class AstAnalyzer:
             body=body,
         )
 
+    def _has_excluding_decorator(
+        self, node: Union[ast.FunctionDef, ast.AsyncFunctionDef]
+    ) -> bool:
+        """Exclude function with some decorators.
+
+        Currently excluded:
+            staticmethod
+            classmethod
+            property (and related)
+        """
+        decorators = node.decorator_list
+        excluded_decorators = {"staticmethod", "classmethod", "property"}
+        # TODO handle property related decorators
+        for decorator in decorators:
+            if isinstance(decorator, ast.Name) and decorator.id in excluded_decorators:
+                return True
+            # Handle property related decorators like in
+            # @x.setter
+            # def x(self, value):
+            #     self._x = value  # noqa: ERA001
+
+            # @x.deleter
+            # def x(self):
+            #     del self._x
+            if (
+                isinstance(decorator, ast.Attribute)
+                and isinstance(decorator.value, ast.Name)
+                and decorator.value.id == node.name
+            ):
+                return True
+        return False
+
+    def _get_attributes_from_init(
+        self, init: Union[ast.FunctionDef, ast.AsyncFunctionDef]
+    ) -> List[Parameter]:
+        """Iterate over body and grab every assignment `self.abc = XYZ`."""
+        attributes: List[Parameter] = []
+        for node in init.body:
+            if not isinstance(node, ast.Assign):
+                continue
+            # Targets is a list in case of multiple assignent
+            # a = b = 3  # noqa: ERA001
+            for target in node.targets:
+                if (
+                    # We only care about assignments self.abc
+                    isinstance(target, ast.Attribute)
+                    and isinstance(target.value, ast.Name)
+                    and target.value.id == "self"
+                    # Skip private attributes like self._x
+                    and not target.attr.startswith("_")
+                ):
+                    attributes.append(Parameter(target.attr, "_type_", None))
+        return attributes
+
+    def _get_method_signature(
+        self, func: Union[ast.FunctionDef, ast.AsyncFunctionDef]
+    ) -> str:
+        """Remove self from signature and return the unparsed string."""
+        arguments = func.args
+        if arguments.posonlyargs:
+            arguments.posonlyargs = [
+                arg for arg in arguments.posonlyargs if arg.arg != "self"
+            ]
+        elif arguments.args:
+            arguments.args = [arg for arg in arguments.args if arg.arg != "self"]
+        return f"{func.name}({ast.unparse(arguments)})"
+
+    def handle_class_body(self, cls: ast.ClassDef) -> Tuple[List[Parameter], List[str]]:
+        """Extract attributes and methods from class body.
+
+        Will walk the AST of the ClassDef node and add each function encountered
+        as a method.
+
+        If the `__init__` method is encountered walk its body for attribute
+        definitions.
+        """
+        attributes: List[Parameter] = []
+        methods: List[str] = []
+        for node in cls.body:
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            # Document non-private methods.
+            # Exclude some like statismethods and properties
+            if not (node.name.startswith("_") or self._has_excluding_decorator(node)):
+                methods.append(self._get_method_signature(node))
+            # Extract attributes from init method.
+            # Excluded from first because of the leading underscore
+            elif node.name == "__init__":
+                attributes.extend(self._get_attributes_from_init(node))
+            # Treat properties as attributes.
+            # TODO: Read out type from property return type
+            # or property docstring?
+            elif "property" in {
+                decorator.id
+                for decorator in node.decorator_list
+                if isinstance(decorator, ast.Name)
+            }:
+                return_value = self.get_return_value_sig(node)
+                attributes.append(Parameter(node.name, return_value.type_name, None))
+        # Remove duplicates from attributes while maintaining order
+        return list(Parameter.uniquefy(attributes)), methods
+
     def handle_class(self, cls: ast.ClassDef) -> ClassDocstring:
         """Extract information about class docstring."""
-        docstring_info = self.get_docstring_info(cls)
-        if docstring_info is None:
-            if not cls.body:
-                msg = "Function body was unexpectedly completely empty."
-                raise ValueError(msg)
-            lines = (cls.body[0].lineno, cls.body[0].lineno)
-            return ClassDocstring(cls.name, "", lines)
+        docstring = self.handle_elem_docstring(cls)
+        attributes, methods = self.handle_class_body(cls)
         return ClassDocstring(
-            docstring_info.name, docstring_info.docstring, docstring_info.lines
+            docstring.name,
+            docstring.docstring,
+            docstring.lines,
+            attributes=attributes,
+            methods=methods,
         )
 
     def parse_from_ast(

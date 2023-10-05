@@ -2,5 +2,5 @@
 
 a"""
 
-def func(param):
-    """summary."""
+def func():
+    """summary"""

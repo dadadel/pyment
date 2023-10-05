@@ -2,8 +2,7 @@
 
 --- a/returns.py
 +++ b/returns.py
-@@ -1,11 +1,17 @@
-+"""_summary_."""
+@@ -2,11 +2,16 @@
  def my_func(param0, param01: int, param1: str = "Some value", param2: List[str] = {}):
      """_summary_.
  
@@ -25,7 +24,7 @@
      """
      pass
  
-@@ -15,7 +21,7 @@
+@@ -16,7 +21,7 @@
  
      Returns
      -------
@@ -34,7 +33,7 @@
          Wrong
      """
      pass
-@@ -33,6 +39,7 @@
+@@ -34,6 +39,7 @@
  
  
  def my_single_return_func3():
@@ -42,7 +41,7 @@
      pass
  
  def my_single_return_func4():
-@@ -44,20 +51,35 @@
+@@ -45,20 +51,35 @@
      pass
  
  def my_single_return_func6() -> None:
@@ -83,7 +82,7 @@
      """
      pass
  
-@@ -67,7 +89,7 @@
+@@ -68,7 +89,7 @@
  
      Returns
      -------
