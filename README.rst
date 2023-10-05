@@ -21,15 +21,12 @@ with pyright| |pre-commit|
 |Supports Python311|
 |Supports Python312|
 
-|
 
-.. raw:: html
+.. **Code Coverage**
 
-   <!-- .. **Code Coverage**
-
-   .. .. image:: https://coveralls.io/repos/github/wagnerpeer/pymend/badge.svg?branch=enhancement%2Fcoveralls
-   ..     :target: https://coveralls.io/github/wagnerpeer/pymend?branch=enhancement%2Fcoveralls
-   ..     :alt: Test coverage (Coveralls) -->
+.. .. image:: https://coveralls.io/repos/github/wagnerpeer/pymend/badge.svg?branch=enhancement%2Fcoveralls
+..       :target: https://coveralls.io/github/wagnerpeer/pymend?branch=enhancement%2Fcoveralls
+..       :alt: Test coverage (Coveralls)
 
 Description
 -----------
