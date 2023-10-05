@@ -1,5 +1,5 @@
 """Tests for numpydoc-style docstring routines."""
-from typing import List, Optional, Tuple
+from typing import Optional
 
 import pytest
 
@@ -857,7 +857,7 @@ def test_simple_sections() -> None:
     ],
 )
 def test_examples(
-    source: str, expected_results: List[Tuple[Optional[str], str]]
+    source: str, expected_results: list[tuple[Optional[str], str]]
 ) -> None:
     """Test parsing examples."""
     docstring = parse(source)

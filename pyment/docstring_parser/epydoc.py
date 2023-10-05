@@ -4,7 +4,7 @@
 """
 import inspect
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 from .common import (
     Docstring,
@@ -30,7 +30,7 @@ def _tokenize(
     raise_pattern: re.Pattern,
     return_pattern: re.Pattern,
     meta_pattern: re.Pattern,
-) -> List[Tuple[str, str, List[str], str]]:
+) -> list[tuple[str, str, list[str], str]]:
     """Return the tokenized stream according to the regex patterns.
 
     Returns
@@ -42,7 +42,7 @@ def _tokenize(
         args: List[str]
         desc: str: Description
     """
-    stream: List[Tuple[str, str, List[str], str]] = []
+    stream: list[tuple[str, str, list[str], str]] = []
     for match in re.finditer(r"(^@.*?)(?=^@|\Z)", meta_chunk, flags=re.S | re.M):
         chunk = match.group(0)
         if not chunk:
@@ -102,9 +102,9 @@ def _tokenize(
 
 
 def _combine_params(
-    stream: List[Tuple[str, str, List[str], str]]
-) -> Dict[str, Dict[str, Any]]:
-    params: Dict[str, Dict[str, Any]] = {}
+    stream: list[tuple[str, str, list[str], str]]
+) -> dict[str, dict[str, Any]]:
+    params: dict[str, dict[str, Any]] = {}
     for base, key, args, desc in stream:
         if base not in ["param", "return", "yield"]:
             continue  # nothing to do
@@ -116,11 +116,11 @@ def _combine_params(
 
 
 def _add_meta_information(
-    stream: List[Tuple[str, str, List[str], str]],
-    params: Dict[str, Dict[str, Any]],
+    stream: list[tuple[str, str, list[str], str]],
+    params: dict[str, dict[str, Any]],
     ret: Docstring,
 ) -> None:
-    is_done: Dict[str, bool] = {}
+    is_done: dict[str, bool] = {}
     for base, key, args, desc in stream:
         if base == "param" and not is_done.get(args[0], False):
             (arg_name,) = args
@@ -275,7 +275,7 @@ def compose(
         (first, *rest) = desc.splitlines()
         return "\n".join([f" {first}"] + [indent + line for line in rest])
 
-    parts: List[str] = []
+    parts: list[str] = []
     if docstring.short_description:
         parts.append(docstring.short_description)
     if docstring.blank_after_short_description:

@@ -7,7 +7,7 @@ import ast
 import inspect
 import textwrap
 from types import ModuleType
-from typing import Any, Dict, Optional, Tuple, Union, overload
+from typing import Any, Optional, Union, overload
 
 from typing_extensions import TypeGuard
 
@@ -57,7 +57,7 @@ def ast_is_literal_str(node: ast.AST) -> TypeGuard[ast.Expr]:
 
 def ast_get_attribute(
     node: ast.AST,
-) -> Optional[Tuple[str, Optional[str], Optional[str]]]:
+) -> Optional[tuple[str, Optional[str], Optional[str]]]:
     """Return name, type and default if the given node is an attribute."""
     if isinstance(node, (ast.Assign, ast.AnnAssign)):
         target = node.targets[0] if isinstance(node, ast.Assign) else node.target
@@ -95,7 +95,7 @@ class AttributeDocstrings(ast.NodeVisitor):
 
     def get_attr_docs(
         self, component: Any  # noqa: ANN401
-    ) -> Dict[str, Tuple[str, Optional[str], Optional[str]]]:
+    ) -> dict[str, tuple[str, Optional[str], Optional[str]]]:
         """Get attribute docstrings from the given component.
 
         Parameters

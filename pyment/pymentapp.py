@@ -4,7 +4,7 @@
 import argparse
 import os
 import sys
-from typing import List, Optional
+from typing import Optional
 
 import pyment.docstring_parser as dsp
 from pyment import PyComment
@@ -19,7 +19,7 @@ STRING_TO_STYLE = {
 
 def run(  # pylint: disable=too-many-locals, too-many-branches
     source: str,
-    files: Optional[List[str]] = None,
+    files: Optional[list[str]] = None,
     *,
     overwrite: bool = False,
     output_style: dsp.DocstringStyle = dsp.DocstringStyle.NUMPYDOC,
@@ -55,9 +55,9 @@ def run(  # pylint: disable=too-many-locals, too-many-branches
         )
         comment.proceed()
 
-        list_from: List[str] = []
-        lines_to_write: List[str] = []
-        list_changed: List[str] = []
+        list_from: list[str] = []
+        lines_to_write: list[str] = []
+        list_changed: list[str] = []
         if overwrite:
             list_from, lines_to_write, list_changed = comment.compute_before_after()
             if (list_from == lines_to_write) != (len(list_changed) == 0):

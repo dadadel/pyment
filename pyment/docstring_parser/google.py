@@ -3,8 +3,9 @@
 import inspect
 import re
 from collections import OrderedDict
+from collections.abc import Mapping, Sequence
 from enum import IntEnum
-from typing import List, Mapping, NamedTuple, Optional, Sequence
+from typing import NamedTuple, Optional
 
 from .common import (
     EXAMPLES_KEYWORDS,
@@ -73,7 +74,7 @@ class GoogleParser:
     """Parser for Google-style docstrings."""
 
     def __init__(
-        self, sections: Optional[List[Section]] = None, *, title_colon: bool = True
+        self, sections: Optional[list[Section]] = None, *, title_colon: bool = True
     ) -> None:
         """Set up sections.
 
@@ -397,7 +398,7 @@ def compose(  # noqa: PLR0915
                 process_one(arg)
             parts.append("")
 
-    parts: List[str] = []
+    parts: list[str] = []
     if docstring.short_description:
         parts.append(docstring.short_description)
     if docstring.blank_after_short_description:

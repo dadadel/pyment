@@ -1,8 +1,9 @@
 """Utility functions for working with docstrings."""
 from collections import ChainMap
+from collections.abc import Iterable
 from inspect import Signature
 from itertools import chain
-from typing import Any, Callable, Iterable, Type
+from typing import Any, Callable
 
 from .common import (
     DocstringMeta,
@@ -17,7 +18,7 @@ _Func = Callable[..., Any]
 
 def combine_docstrings(
     *others: _Func,
-    exclude: Iterable[Type[DocstringMeta]] = (),
+    exclude: Iterable[type[DocstringMeta]] = (),
     style: DocstringStyle = DocstringStyle.AUTO,
     rendering_style: RenderingStyle = RenderingStyle.COMPACT,
 ) -> _Func:

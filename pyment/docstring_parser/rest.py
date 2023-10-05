@@ -2,7 +2,7 @@
 
 import inspect
 import re
-from typing import List, Optional
+from typing import Optional
 
 from .common import (
     DEPRECATION_KEYWORDS,
@@ -23,7 +23,7 @@ from .common import (
 )
 
 
-def _build_meta(args: List[str], desc: str) -> DocstringMeta:  # noqa: PLR0912
+def _build_meta(args: list[str], desc: str) -> DocstringMeta:  # noqa: PLR0912
     key = args[0]
 
     if key in PARAM_KEYWORDS:
@@ -238,7 +238,7 @@ def compose(  # noqa: PLR0915, PLR0912
 
         return f" {desc}"
 
-    parts: List[str] = []
+    parts: list[str] = []
     if docstring.short_description:
         parts.append(docstring.short_description)
     if docstring.blank_after_short_description:

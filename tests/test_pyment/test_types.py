@@ -1,6 +1,5 @@
 """Unit tests for pyment.types."""
 
-from typing import List
 
 import pytest
 
@@ -34,6 +33,6 @@ class TestParameter:
             ),
         ],
     )
-    def test_uniquefy(self, source: List[Parameter], expected: List[Parameter]) -> None:
+    def test_uniquefy(self, source: list[Parameter], expected: list[Parameter]) -> None:
         """Test that uniquefy removes duplicates and keeps order."""
         assert list(Parameter.uniquefy(source)) == expected

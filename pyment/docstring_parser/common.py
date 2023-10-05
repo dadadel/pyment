@@ -1,7 +1,7 @@
 """Common methods for parsing."""
 import enum
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from typing_extensions import TypeAlias
 
@@ -59,7 +59,7 @@ class DocstringMeta:
         associated docstring description.
     """
 
-    args: List[str]
+    args: list[str]
     description: Optional[str]
 
 
@@ -130,16 +130,16 @@ class Docstring:
         self.long_description: Optional[str] = None
         self.blank_after_short_description: bool = False
         self.blank_after_long_description: bool = False
-        self.meta: List[DocstringMeta] = []
+        self.meta: list[DocstringMeta] = []
         self.style: Optional[DocstringStyle] = style
 
     @property
-    def params(self) -> List[DocstringParam]:
+    def params(self) -> list[DocstringParam]:
         """Return a list of information on function params."""
         return [item for item in self.meta if isinstance(item, DocstringParam)]
 
     @property
-    def raises(self) -> List[DocstringRaises]:
+    def raises(self) -> list[DocstringRaises]:
         """Return a list of the exceptions that the function may raise."""
         return [item for item in self.meta if isinstance(item, DocstringRaises)]
 
@@ -155,7 +155,7 @@ class Docstring:
         )
 
     @property
-    def many_returns(self) -> List[DocstringReturns]:
+    def many_returns(self) -> list[DocstringReturns]:
         """Return a list of information on function return."""
         return [item for item in self.meta if isinstance(item, DocstringReturns)]
 
@@ -175,7 +175,7 @@ class Docstring:
         )
 
     @property
-    def many_yields(self) -> List[DocstringYields]:
+    def many_yields(self) -> list[DocstringYields]:
         """Return a list of information on function yields."""
         return [item for item in self.meta if isinstance(item, DocstringYields)]
 
@@ -188,6 +188,6 @@ class Docstring:
         )
 
     @property
-    def examples(self) -> List[DocstringExample]:
+    def examples(self) -> list[DocstringExample]:
         """Return a list of information on function examples."""
         return [item for item in self.meta if isinstance(item, DocstringExample)]

@@ -2,7 +2,7 @@
 
 import ast
 import re
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 from .docstring_parser.attrdoc import ast_unparse
 from .types import (
@@ -100,16 +100,16 @@ class AstAnalyzer:
     def get_padded_args_defaults(
         self,
         func: Union[ast.FunctionDef, ast.AsyncFunctionDef],
-    ) -> List[Optional[str]]:
+    ) -> list[Optional[str]]:
         """Left-Pad the general args defaults to the length of the args."""
         pos_defaults = [ast_unparse(default) for default in func.args.defaults]
         return [None] * (len(func.args.args) - len(pos_defaults)) + pos_defaults
 
     def get_parameters_sig(
         self, func: Union[ast.FunctionDef, ast.AsyncFunctionDef]
-    ) -> List[Parameter]:
+    ) -> list[Parameter]:
         """Get information about function parameters."""
-        arguments: List[Parameter] = []
+        arguments: list[Parameter] = []
         pos_defaults = self.get_padded_args_defaults(func)
 
         pos_only_args = [
@@ -275,9 +275,9 @@ class AstAnalyzer:
 
     def _get_attributes_from_init(
         self, init: Union[ast.FunctionDef, ast.AsyncFunctionDef]
-    ) -> List[Parameter]:
+    ) -> list[Parameter]:
         """Iterate over body and grab every assignment `self.abc = XYZ`."""
-        attributes: List[Parameter] = []
+        attributes: list[Parameter] = []
         for node in init.body:
             if not isinstance(node, ast.Assign):
                 continue
@@ -308,7 +308,7 @@ class AstAnalyzer:
             arguments.args = [arg for arg in arguments.args if arg.arg != "self"]
         return f"{func.name}({ast.unparse(arguments)})"
 
-    def handle_class_body(self, cls: ast.ClassDef) -> Tuple[List[Parameter], List[str]]:
+    def handle_class_body(self, cls: ast.ClassDef) -> tuple[list[Parameter], list[str]]:
         """Extract attributes and methods from class body.
 
         Will walk the AST of the ClassDef node and add each function encountered
@@ -317,8 +317,8 @@ class AstAnalyzer:
         If the `__init__` method is encountered walk its body for attribute
         definitions.
         """
-        attributes: List[Parameter] = []
-        methods: List[str] = []
+        attributes: list[Parameter] = []
+        methods: list[str] = []
         for node in cls.body:
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
@@ -357,7 +357,7 @@ class AstAnalyzer:
 
     def parse_from_ast(
         self,
-    ) -> List[ElementDocstring]:
+    ) -> list[ElementDocstring]:
         """Walk AST of the input file extract info about module, classes and functions.
 
         For the module and classes and the raw docstring
@@ -371,7 +371,7 @@ class AstAnalyzer:
         List[ElementDocstring]
             List of information about module, classes and functions.
         """
-        nodes_of_interest: List[ElementDocstring] = []
+        nodes_of_interest: list[ElementDocstring] = []
 
         for node in ast.walk(ast.parse(self.file_content)):
             if isinstance(node, ast.Module):

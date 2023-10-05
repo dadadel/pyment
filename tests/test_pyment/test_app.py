@@ -6,7 +6,8 @@ import subprocess
 import sys
 import tempfile
 import textwrap
-from typing import Optional, Pattern, Tuple, Union
+from re import Pattern
+from typing import Optional, Union
 
 import pyment.pyment
 
@@ -119,7 +120,7 @@ class TestApp:
 
     def run_command(
         self, cmd_to_run: str, write_to_stdin: Optional[str] = None
-    ) -> Tuple[str, str, int]:
+    ) -> tuple[str, str, int]:
         r"""Run a command in shell mode returning stdout, stderr and the returncode.
 
         Parameters

@@ -2,8 +2,9 @@
 
 import ast
 import re
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
-from typing import ClassVar, Iterable, Iterator, List, Optional, Set, Tuple, Union
+from typing import ClassVar, Optional, Union
 
 from typing_extensions import TypeAlias
 
@@ -16,7 +17,7 @@ class DocstringInfo:
 
     name: str
     docstring: str
-    lines: Tuple[int, Optional[int]]
+    lines: tuple[int, Optional[int]]
     default_description: ClassVar[str] = "_description_"
     default_type: ClassVar[str] = "_type_"
     default_summary: ClassVar[str] = "_summary_."
@@ -116,7 +117,7 @@ class ReturnValue:
 class FunctionSignature:
     """Information about a function signature."""
 
-    params: List[Parameter]
+    params: list[Parameter]
     returns: ReturnValue
 
 
@@ -124,10 +125,10 @@ class FunctionSignature:
 class FunctionBody:
     """Information about a function from its body."""
 
-    raises: List[str]
-    returns: Set[Tuple[str, ...]]
+    raises: list[str]
+    returns: set[tuple[str, ...]]
     returns_value: bool
-    yields: Set[Tuple[str, ...]]
+    yields: set[tuple[str, ...]]
     yields_value: bool
 
 
@@ -135,8 +136,8 @@ class FunctionBody:
 class ClassDocstring(DocstringInfo):
     """Information about a module."""
 
-    attributes: List[Parameter]
-    methods: List[str]
+    attributes: list[Parameter]
+    methods: list[str]
 
     def _adjust_attributes(self, docstring: dsp.Docstring) -> None:
         """Overwrite or create attribute docstring entries based on body.

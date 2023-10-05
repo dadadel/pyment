@@ -6,8 +6,9 @@
 import inspect
 import itertools
 import re
+from collections.abc import Iterable
 from textwrap import dedent
-from typing import Any, Iterable, List, Optional, Tuple, TypeVar, Union
+from typing import Any, Optional, TypeVar, Union
 
 from .common import (
     Docstring,
@@ -29,7 +30,7 @@ T = TypeVar("T")
 
 def _pairwise(
     iterable: Iterable[T], end: Optional[T] = None
-) -> Iterable[Tuple[Union[T, Any], Union[T, Any]]]:
+) -> Iterable[tuple[Union[T, Any], Union[T, Any]]]:
     left, right = itertools.tee(iterable)
     next(right, None)
     return itertools.zip_longest(left, right, fillvalue=end)
@@ -507,7 +508,7 @@ def compose(  # noqa: PLR0915
         else:
             parts.append(head)
 
-    def process_sect(name: str, args: List[MainSections]) -> None:
+    def process_sect(name: str, args: list[MainSections]) -> None:
         if args:
             parts.append("")
             parts.append(name)
@@ -515,7 +516,7 @@ def compose(  # noqa: PLR0915
             for arg in args:
                 process_one(arg)
 
-    parts: List[str] = []
+    parts: list[str] = []
     if docstring.short_description:
         parts.append(docstring.short_description)
     if docstring.blank_after_short_description:
