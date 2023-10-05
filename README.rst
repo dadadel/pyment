@@ -1,258 +1,165 @@
-pyment
+pymend
 ======
 
-Create, update or convert docstrings in existing Python files, managing several styles.
-
-.. contents:: :local:
+Create, update or convert docstrings in existing Python files, managing
+several styles.
 
 Project Status
 --------------
 
 **Test Status**
 
-Linux: |travis|
+|Build| |Documentation Status|
 
-Windows: |appveyor|
-
-
-.. |travis| image:: https://travis-ci.org/dadadel/pyment.svg?branch=master
-    :target: https://travis-ci.org/dadadel/pyment.svg?branch=master
-    :alt: Linux tests (TravisCI)
-
-.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/f9d4jps5fkf4m42h?svg=true
-    :target: https://ci.appveyor.com/api/projects/status/f9d4jps5fkf4m42h?svg=true
-    :alt: Windows tests (Appveyor)
-
-|
+|License: GPL v3| |Code style: black| |linting: pylint| |Ruff| |Checked
+with pyright| |pre-commit|
 
 **Supported Versions**
 
-.. image:: https://img.shields.io/badge/python-3.6-blue.svg
-    :target: https://img.shields.io/badge/python-3.6-blue.svg
-    :alt: Supports Python36
-.. image:: https://img.shields.io/badge/python-3.7-blue.svg
-    :target: https://img.shields.io/badge/python-3.7-blue.svg
-    :alt: Supports Python37
-.. image:: https://img.shields.io/badge/python-3.8-blue.svg
-    :target: https://img.shields.io/badge/python-3.8-blue.svg
-    :alt: Supports Python38
-.. image:: https://img.shields.io/badge/python-3.9-blue.svg
-    :target: https://img.shields.io/badge/python-3.9-blue.svg
-    :alt: Supports Python39
+|Supports Python39|
+|Supports Python310|
+|Supports Python311|
+|Supports Python312|
 
 |
 
-**Code Coverage**
+.. raw:: html
 
-.. image:: https://coveralls.io/repos/github/wagnerpeer/pyment/badge.svg?branch=enhancement%2Fcoveralls
-    :target: https://coveralls.io/github/wagnerpeer/pyment?branch=enhancement%2Fcoveralls
-    :alt: Test coverage (Coveralls)
+   <!-- .. **Code Coverage**
 
+   .. .. image:: https://coveralls.io/repos/github/wagnerpeer/pymend/badge.svg?branch=enhancement%2Fcoveralls
+   ..     :target: https://coveralls.io/github/wagnerpeer/pymend?branch=enhancement%2Fcoveralls
+   ..     :alt: Test coverage (Coveralls) -->
 
 Description
 -----------
 
-This Python3 program intends to help Python programmers to enhance inside code documentation using docstrings.
-It is useful for code not well documented, or code without docstrings, or some not yet or partially documented code, or a mix of all of this :-)
-It can be helpful also to harmonize or change a project docstring style format.
+Command-line program to generate, update or transform docstrings python
+source code.
 
-It will parse one or several python scripts and retrieve existing docstrings.
-Then, for all found functions/methods/classes, it will generate formatted docstrings with parameters, default values,...
+The app will parse the requested source files for docstrings as well as
+function signatures and class bodies.
 
-At the end, patches can be generated for each file. Then, man can apply the patches to the initial scripts.
-It is also possible to update the files directly without generating patches, or to output on *stdout*.
-It is also possible to generate the python file with the new docstrings, or to retrieve only the docstrings...
+This information is combined to build up complete docstrings for every
+function and class including place holders for types and descriptions
+where none could be found elsewhere.
 
-Currently, the managed styles in input/output are javadoc, one variant of reST (re-Structured Text, used by Sphinx), numpydoc, google docstrings, groups (other grouped style).
+The output format of the docstrings can be chosen between google, numpy,
+reST and epydoc. This means that the tool can also be used to transform
+docstrings in the file from one format into another.
 
-You can also configure some settings via the command line or a configuration
-file.
+Note however that not all section types are supported for all docstring
+styles.
 
-To get further information please refer to the `documentation <https://github.com/dadadel/pyment/blob/master/doc/sphinx/source/pyment.rst>`_.
+Partially because they have not been added yet, but also because not
+every style officially supports the sections from all others.
 
-The tool, at the time, offer to generate patches or get a list of the new docstrings (created or converted).
+To get further information please refer to the
+`documentation <https://github.com/dadadel/pymend/blob/master/doc/sphinx/source/pymend.rst>`__.
 
-You can contact the developer *dadel* by opening a `discussion <https://github.com/dadadel/pyment/discussions/new>`_.
+The tool offers the choice between generating patch files or directly
+overwriting the python source files.
 
 Start quickly
 -------------
-- install from Pypi
 
-.. code-block:: sh
+-  install from PyPi
 
-        $ pip install pyment
+.. code:: sh
 
-- install from sources:
+   $ pip install pymend
 
-.. code-block:: sh
+-  install from sources:
 
-        $ pip install git+https://github.com/dadadel/pyment.git
-        or
-        $ git clone https://github.com/dadadel/pyment.git
-        $ cd pyment
-        $ python setup.py install
+.. code:: sh
 
-- run from the command line:
+   $ pip install git+https://github.com/JanEricNitschke/pymend.git
+   or
+   $ git clone https://github.com/JanEricNitschke/pymend.git
+   $ cd pymend
+   $ python setup.py install
 
-.. code-block:: sh
+-  run from the command line:
 
-        $ pyment  myfile.py    # will generate a patch
-        $ pyment -w myfile.py  # will overwrite the file
+.. code:: sh
+
+   $ pymend  myfile.py    # will generate a patch
+   $ pymend -w myfile.py  # will overwrite the file
 
 or
 
-.. code-block:: sh
+.. code:: sh
 
-        $ pyment  my/folder/
+   $ pymend  my/folder/
 
-- get help:
+-  get help:
 
-.. code-block:: sh
+.. code:: sh
 
-        $ pyment -h
-
-- run from a script:
-
-.. code-block:: python
-
-        import os
-        from pyment import PyComment
-
-        filename = 'test.py'
-
-        c = PyComment(filename)
-        c.proceed()
-        c.diff_to_file(os.path.basename(filename) + ".patch")
-        for s in c.get_output_docs():
-            print(s)
+   $ pymend -h
 
 Example
 -------
 
-Here is a full example using Pyment to generate a patch and then apply the patch.
+TODO
 
-Let's consider a file *test.py* with following content:
+Pre-commit
+----------
 
-.. code-block:: python
+To use pymend in a `pre-commit <https://pre-commit.com/>`__ hook just
+add the following to your ``.pre-commit-config.yaml``
 
-        def func(param1=True, param2: str = 'default val'):
-            '''Description of func with docstring groups style.
+.. code:: yaml
 
-            Params:
-                param1 - descr of param1 that has True for default value.
-                param2 - descr of param2
+   repos:
+   -   repo: https://github.com/JanEricNitschke/pymend
+       rev: "v1.0.0"
+       hooks:
+       -   id: pymend
+           language: python
+           args: ["--write", "--output=numpydoc"]
 
-            Returns:
-                some value
+Acknowledgements
+----------------
 
-            Raises:
-                keyError: raises key exception
-                TypeError: raises type exception
+This project was inspired by and is originally based upon
+`pyment <https://github.com/dadadel/pyment/>`__. The intended
+functionality as well as the main entry point remain largerly unchanged.
+However additional functionality has been added in the form of ast
+traversal for extracting function and class information.
 
-            '''
-            pass
+The docstring parsing has been replaced completely with code taken from
+the awesome
+`docstring_parser <https://github.com/rr-/docstring_parser>`__ project,
+specifically `this
+fork <https://github.com/jsh9/docstring_parser_fork>`__.
 
-        class A:
-            def method(self, param1, param2=None) -> int:
-                pass
+So far only minor modifications have been made to the docstring parsing
+functionality. Mainly the addition of the “Methods” section for numpydoc
+style docstrings. Additionally the the code has been linted as well as
+type hinted.
 
-Now let's use Pyment:
-
-.. code-block:: sh
-
-        $ pyment test.py
-
-Using Pyment without any argument will autodetect the docstrings formats and generate a patch using the reStructured Text format.
-So the previous command has generated the file *test.py.patch* with following content:
-
-.. code-block:: patch
-
-        # Patch generated by Pyment v0.4.0
-
-        --- a/test.py
-        +++ b/test.py
-        @@ -1,20 +1,22 @@
-         def func(param1=True, param2: str = 'default val'):
-        -    '''Description of func with docstring groups style.
-        -
-        -    Params:
-        -        param1 - descr of param1 that has True for default value.
-        -        param2 - descr of param2
-        -
-        -    Returns:
-        -        some value
-        -
-        -    Raises:
-        -        keyError: raises key exception
-        -        TypeError: raises type exception
-        -
-        -    '''
-        +    """Description of func with docstring groups style.
-        +
-        +    :param param1: descr of param1 that has True for default value
-        +    :param param2: descr of param2 (Default value = 'default val')
-        +    :type param2: str
-        +    :returns: some value
-        +    :raises keyError: raises key exception
-        +    :raises TypeError: raises type exception
-        +
-        +    """
-             pass
-
-         class A:
-        +    """ """
-             def method(self, param1, param2=None) -> int:
-        +        """
-        +
-        +        :param param1:
-        +        :param param2:  (Default value = None)
-        +        :rtype: int
-        +
-        +        """
-                 pass
-
-Let's finally apply the patch with the following command:
-
-.. code-block:: sh
-
-        $ patch -p1 < test.py.patch
-
-Now the original *test.py* was updated and its content is now:
-
-.. code-block:: python
-
-        def func(param1=True, param2: str = 'default val'):
-            """Description of func with docstring groups style.
-
-            :param param1: descr of param1 that has True for default value
-            :param param2: descr of param2 (Default value = 'default val')
-            :type param2: str
-            :returns: some value
-            :raises keyError: raises key exception
-            :raises TypeError: raises type exception
-
-            """
-            pass
-
-        class A:
-            """ """
-            def method(self, param1, param2=None) -> int:
-                """
-
-                :param param1:
-                :param param2:  (Default value = None)
-                :rtype: int
-
-                """
-                pass
-
-Also refer to the files `example.py.patch <https://github.com/dadadel/pyment/blob/master/example_javadoc.py.patch>`_ or `example_numpy.py.patch <https://github.com/dadadel/pyment/blob/master/example_numpydoc.py.patch>`_ to see some other results that can be obtained processing the file `example.py <https://github.com/dadadel/pyment/blob/master/example.py>`_
-
-
-Offer a coffee or a beer
-------------------------
-
-If you enjoyed this free software, and want to thank me, you can offer me some
-bitcoins for a coffee, a beer, or more, I would be happy :)
-
-Here's my address for bitcoins : 1Kz5bu4HuRtwbjzopN6xWSVsmtTDK6Kb89
+.. |Build| image:: https://github.com/JanEricNitschke/pymend/actions/workflows/build.yaml/badge.svg
+   :target: https://github.com/JanEricNitschke/pymend/workflows/build.yaml
+.. |Documentation Status| image:: https://readthedocs.org/projects/pymend/badge/?version=latest
+   :target: https://pymend.readthedocs.io/en/latest/?badge=latest
+.. |License: GPL v3| image:: https://img.shields.io/badge/License-GPLv3-blue.svg
+   :target: https://github.com/JanEricNitschke/pymend/blob/main/LICENSE
+.. |Code style: black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
+   :target: https://github.com/psf/black
+.. |linting: pylint| image:: https://img.shields.io/badge/linting-pylint-yellowgreen
+   :target: https://github.com/pylint-dev/pylint
+.. |Ruff| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v1.json
+   :target: https://github.com/charliermarsh/ruff
+.. |Checked with pyright| image:: https://microsoft.github.io/pyright/img/pyright_badge.svg
+   :target: https://microsoft.github.io/pyright/
+.. |pre-commit| image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit
+   :target: https://github.com/pre-commit/pre-commit
+.. |Supports Python39| image:: https://img.shields.io/badge/python-3.9-blue.svg
+   :target: https://img.shields.io/badge/python-3.9-blue.svg
+.. |Supports Python310| image:: https://img.shields.io/badge/python-3.10-blue.svg
+   :target: https://img.shields.io/badge/python-3.10-blue.svg
+.. |Supports Python311| image:: https://img.shields.io/badge/python-3.11-blue.svg
+   :target: https://img.shields.io/badge/python-3.11-blue.svg
+.. |Supports Python312| image:: https://img.shields.io/badge/python-3.12-blue.svg
+   :target: https://img.shields.io/badge/python-3.12-blue.svg

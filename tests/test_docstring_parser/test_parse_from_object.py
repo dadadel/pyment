@@ -1,7 +1,7 @@
 """Tests for parse_from_object function and attribute docstrings."""
 from unittest.mock import patch
 
-from pyment.docstring_parser import parse_from_object
+from pymend.docstring_parser import parse_from_object
 
 module_attr: int = 1
 """Description for module_attr"""

@@ -3,8 +3,8 @@ from typing import Optional
 
 import pytest
 
-from pyment.docstring_parser.common import ParseError, RenderingStyle
-from pyment.docstring_parser.google import (
+from pymend.docstring_parser.common import ParseError, RenderingStyle
+from pymend.docstring_parser.google import (
     GoogleParser,
     Section,
     SectionType,
