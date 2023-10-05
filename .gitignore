@@ -11,3 +11,6 @@ build
 *code-workspace
 .coverage
 /venv
+
+# Sphinx documentation
+docs/_build/
