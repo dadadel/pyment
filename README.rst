@@ -52,7 +52,7 @@ Partially because they have not been added yet, but also because not
 every style officially supports the sections from all others.
 
 To get further information please refer to the
-`documentation <https://github.com/dadadel/pymend/blob/master/doc/sphinx/source/pymend.rst>`__.
+`documentation <https://pymend.readthedocs.io/en/latest/?badge=latest>`__.
 
 The tool offers the choice between generating patch files or directly
 overwriting the python source files.
