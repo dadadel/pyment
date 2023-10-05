@@ -3,7 +3,7 @@ from typing import Optional
 
 import pytest
 
-from pyment.docstring_parser.numpydoc import compose, parse
+from pymend.docstring_parser.numpydoc import compose, parse
 
 
 @pytest.mark.parametrize(

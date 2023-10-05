@@ -3,8 +3,8 @@ import re
 
 import pytest
 
-from pyment.docstring_parser.common import Docstring, DocstringStyle, ParseError
-from pyment.docstring_parser.parser import compose, parse
+from pymend.docstring_parser.common import Docstring, DocstringStyle, ParseError
+from pymend.docstring_parser.parser import compose, parse
 
 
 def test_rest() -> None:

@@ -1,7 +1,7 @@
--   id: pyment
-    name: Pyment
+-   id: pymend
+    name: Pymend
     description: Create, update or convert docstrings in existing Python files, managing several styles.
-    entry: pyment
+    entry: pymend
     language: python
     language_version: python3
     types: [text]

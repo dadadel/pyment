@@ -1,3 +1,35 @@
+[project]
+name = "pymend"
+version = "1.0.0"
+authors = [{ name = "Jan-Eric Nitschke", email = "janericnitschke@gmail.com" }]
+maintainers = [{ name = "Jan-Eric Nitschke", email = "janericnitschke@gmail.com" }]
+license = { file = "LICENSE" }
+description = "Generate, fix and convert docstrings."
+readme = { file = "README.rst", content-type = "text/x-rst" }
+requires-python = ">=3.9"
+keywords = ["pymend", "docstring"]
+classifiers = [
+    "Intended Audience :: Developers",
+    "Topic :: Documentation",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
+dependencies = ["typing-extensions>=4.0,<5.0"]
+
+[project.urls]
+"Homepage"    = "https://github.com/JanEricNitschke/pymend"
+"Bug Tracker" = "https://github.com/JanEricNitschke/pymend/issues"
+
+
+[project.scripts]
+pymend = "pymend.pymendapp:main"
+
+
 [tool.ruff]
 # Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
 select = [
@@ -76,7 +108,7 @@ exclude = [
     "venv",
     "docs",
     "doc",
-    "tests/test_pyment/refs",
+    "tests/test_pymend/refs",
     "*.html",
 ]
 
@@ -93,7 +125,7 @@ target-version = "py39"
 "__init__.py"                              = ["E402", "F401"]
 "tests/*/test_*.py"                        = ["S101", "SLF001", "ANN101", "ANN102", "PLR2004"]
 "setup.py"                                 = ["D100"]
-"pyment/docstrings/parsers/parser_base.py" = ["ERA001"]
+"pymend/docstrings/parsers/parser_base.py" = ["ERA001"]
 
 [tool.ruff.pydocstyle]
 convention = "numpy" # Accepts: "google", "numpy", or "pep257".
@@ -104,17 +136,17 @@ max-args = 10
 [tool.black]
 line-length    = 88
 target-version = ['py39']
-extend-exclude = '''/tests/test_pyment/refs|/doc'''
+extend-exclude = '''/tests/test_pymend/refs|/doc'''
 
 [tool.coverage.run]
 branch = true
-source = ["pyment"]
+source = ["pymend"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
 [tool.pyright]
-include                        = ["pyment"]
+include                        = ["pymend"]
 exclude                        = ["tests"]
 strictListInference            = true
 strictDictionaryInference      = true

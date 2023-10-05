@@ -41,7 +41,7 @@ jobs:
           version: 1.1.329
 
       - name: Thorough check with pylint
-        run: pylint pyment
+        run: pylint pymend
       - name: Test with pytest
         run: |
           coverage run -m pytest --durations=10

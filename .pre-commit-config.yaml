@@ -52,7 +52,7 @@ repos:
     hooks:
       - id: pylint
         name: pylint
-        entry: pylint pyment
+        entry: pylint pymend
         language: system
         types: [python]
         pass_filenames: false

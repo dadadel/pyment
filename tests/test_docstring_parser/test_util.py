@@ -1,7 +1,7 @@
 """Test for utility functions."""
 
-from pyment.docstring_parser.common import DocstringReturns
-from pyment.docstring_parser.util import combine_docstrings
+from pymend.docstring_parser.common import DocstringReturns
+from pymend.docstring_parser.util import combine_docstrings
 
 
 def test_combine_docstrings() -> None:
