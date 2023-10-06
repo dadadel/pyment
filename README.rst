@@ -9,7 +9,7 @@ Project Status
 
 **Test Status**
 
-|Build| |Documentation Status|
+|Build| |Documentation Status| |Downloads|
 
 |License: GPL v3| |Code style: black| |linting: pylint| |Ruff| |Checked
 with pyright| |pre-commit|
@@ -342,6 +342,8 @@ type hinted.
    :target: https://github.com/JanEricNitschke/pymend/workflows/build.yaml
 .. |Documentation Status| image:: https://readthedocs.org/projects/pymend/badge/?version=latest
    :target: https://pymend.readthedocs.io/en/latest/?badge=latest
+.. |Downloads| image:: https://static.pepy.tech/personalized-badge/pymend?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads
+   :target: https://www.pepy.tech/projects/pymend
 .. |License: GPL v3| image:: https://img.shields.io/badge/License-GPLv3-blue.svg
    :target: https://github.com/JanEricNitschke/pymend/blob/main/LICENSE
 .. |Code style: black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
@@ -355,10 +357,10 @@ type hinted.
 .. |pre-commit| image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit
    :target: https://github.com/pre-commit/pre-commit
 .. |Supports Python39| image:: https://img.shields.io/badge/python-3.9-blue.svg
-   :target: https://img.shields.io/badge/python-3.9-blue.svg
+   :target: https://www.python.org/downloads/release/python-390/
 .. |Supports Python310| image:: https://img.shields.io/badge/python-3.10-blue.svg
-   :target: https://img.shields.io/badge/python-3.10-blue.svg
+   :target: https://www.python.org/downloads/release/python-3100/
 .. |Supports Python311| image:: https://img.shields.io/badge/python-3.11-blue.svg
-   :target: https://img.shields.io/badge/python-3.11-blue.svg
+   :target: https://www.python.org/downloads/release/python-3110/
 .. |Supports Python312| image:: https://img.shields.io/badge/python-3.12-blue.svg
-   :target: https://img.shields.io/badge/python-3.12-blue.svg
+   :target: https://www.python.org/downloads/release/python-3120/

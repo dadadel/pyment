@@ -112,9 +112,9 @@ def combine_docstrings(
             comb_doc.blank_after_long_description = doc.blank_after_long_description
             break
 
-        combined = {}
+        combined: dict[type[DocstringMeta], list[DocstringMeta]] = {}
         for doc in docs:
-            metas = {}
+            metas: dict[type[DocstringMeta], list[DocstringMeta]] = {}
             for meta in doc.meta:
                 meta_type = type(meta)
                 if meta_type in exclude:

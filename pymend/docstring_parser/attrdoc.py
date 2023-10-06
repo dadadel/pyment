@@ -9,7 +9,7 @@ import textwrap
 from types import ModuleType
 from typing import Any, Optional, Union, overload
 
-from typing_extensions import TypeGuard
+from typing_extensions import TypeGuard, override
 
 from .common import Docstring, DocstringParam
 
@@ -73,9 +73,10 @@ def ast_get_attribute(
 class AttributeDocstrings(ast.NodeVisitor):
     """An ast.NodeVisitor that collects attribute docstrings."""
 
-    attr_docs = None
+    attr_docs: Optional[dict[str, tuple[str, Optional[str], Optional[str]]]] = None
     prev_attr = None
 
+    @override
     def visit(self, node: ast.AST) -> None:
         """Visit a node and collect its attribute docstrings."""
         if self.prev_attr and self.attr_docs is not None and ast_is_literal_str(node):

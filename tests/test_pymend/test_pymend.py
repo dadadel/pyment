@@ -132,7 +132,7 @@ def remove_diff_header(diff: str) -> str:
     str
         Cleaned diff.
     """
-    return re.sub("@@.+@@", "", diff)
+    return re.sub(r"(@@.+@@)|(\-\-\-.*)|(\+\+\+.*)", "", diff)
 
 
 class TestFilesConversions:

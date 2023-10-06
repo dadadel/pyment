@@ -17,8 +17,7 @@ STRING_TO_STYLE = {
 }
 
 
-def run(  # pylint: disable=too-many-locals, too-many-branches
-    source: str,
+def run(
     files: Optional[list[str]] = None,
     *,
     overwrite: bool = False,
@@ -28,27 +27,12 @@ def run(  # pylint: disable=too-many-locals, too-many-branches
 
     Parameters
     ----------
-    source : str
-        _description_
     files : Optional[List[str]]
-        _description_ (Default value = [])
+        _description_ (Default value = None)
     overwrite : bool
         _description_ (Default value = False)
     """
-    if files is None:
-        files = []
-
-    for file in files:
-        if os.path.isdir(source):
-            path = (
-                source
-                + os.sep
-                + os.path.relpath(os.path.abspath(file), os.path.abspath(source))
-            )
-            path = path[: -len(os.path.basename(file))]
-        else:
-            path = ""
-
+    for file in files or []:
         comment = PyComment(
             file,
             output_style=output_style,
@@ -79,7 +63,7 @@ def run(  # pylint: disable=too-many-locals, too-many-branches
                 )
                 comment.overwrite_source_file(lines_to_write)
         else:
-            lines_to_write = comment.get_patch_lines(path, path)
+            lines_to_write = comment.get_patch_lines(file, file)
 
             if file == "-":
                 sys.stdout.writelines(lines_to_write)
@@ -98,9 +82,8 @@ def main() -> None:
         "path",
         type=str,
         nargs="+",
-        help="python files or folders containing python files to "
-        "proceed (explore also sub-folders)."
-        " Use '-' to read from stdin and write to stdout",
+        help="Python files to process."
+        " If set to '-' lines are instead read from stdin.",
     )
     parser.add_argument(
         "-w",
@@ -122,14 +105,9 @@ def main() -> None:
     )
 
     args = parser.parse_args()
-    source = ""
 
     files = args.path
-    if not files:
-        msg = BaseException(f"No files were found matching {args.path}")
-        raise msg
     run(
-        source,
         files,
         overwrite=args.overwrite,
         output_style=STRING_TO_STYLE[args.output.lower()],
