@@ -342,8 +342,8 @@ type hinted.
    :target: https://github.com/JanEricNitschke/pymend/workflows/build.yaml
 .. |Documentation Status| image:: https://readthedocs.org/projects/pymend/badge/?version=latest
    :target: https://pymend.readthedocs.io/en/latest/?badge=latest
-.. |Downloads| image:: https://static.pepy.tech/personalized-badge/awpy?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads
-   :target: https://pepy.tech/project/awpy
+.. |Downloads| image:: https://static.pepy.tech/personalized-badge/pymend?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads
+   :target: https://www.pepy.tech/projects/pymend
 .. |License: GPL v3| image:: https://img.shields.io/badge/License-GPLv3-blue.svg
    :target: https://github.com/JanEricNitschke/pymend/blob/main/LICENSE
 .. |Code style: black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
