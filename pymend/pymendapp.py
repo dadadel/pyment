@@ -4,7 +4,6 @@
 import argparse
 import os
 import sys
-from typing import Optional
 
 import pymend.docstring_parser as dsp
 from pymend import PyComment
@@ -18,7 +17,7 @@ STRING_TO_STYLE = {
 
 
 def run(
-    files: Optional[list[str]] = None,
+    files: list[str],
     *,
     overwrite: bool = False,
     output_style: dsp.DocstringStyle = dsp.DocstringStyle.NUMPYDOC,
@@ -27,12 +26,16 @@ def run(
 
     Parameters
     ----------
-    files : Optional[List[str]]
-        _description_ (Default value = None)
+    files : List[str]
+        List of files to analyze and fix.
     overwrite : bool
-        _description_ (Default value = False)
+        Whether to overwrite the source file directly instead of creating
+        a patch. (Default value = False)
+    output_style : dsp.DocstringStyle
+        Output style to use for the modified docstrings.
+        (Default value = dsp.DocstringStyle.NUMPYDOC)
     """
-    for file in files or []:
+    for file in files:
         comment = PyComment(
             file,
             output_style=output_style,
