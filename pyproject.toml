@@ -153,7 +153,7 @@ testpaths = ["tests"]
 [tool.pyright]
 include                            = ["pymend"]
 exclude                            = ["tests"]
-# typeCheckingMode                   = "strict"
+typeCheckingMode                   = "strict"
 strictListInference                = true
 strictDictionaryInference          = true
 reportPropertyTypeMismatch         = "error"

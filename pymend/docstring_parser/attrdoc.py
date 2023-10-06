@@ -73,7 +73,7 @@ def ast_get_attribute(
 class AttributeDocstrings(ast.NodeVisitor):
     """An ast.NodeVisitor that collects attribute docstrings."""
 
-    attr_docs = None
+    attr_docs: Optional[dict[str, tuple[str, Optional[str], Optional[str]]]] = None
     prev_attr = None
 
     @override

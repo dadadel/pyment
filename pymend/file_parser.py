@@ -200,11 +200,11 @@ class AstAnalyzer:
         func: Union[ast.FunctionDef, ast.AsyncFunctionDef],
     ) -> FunctionBody:
         """Check the function body for yields, raises and value returns."""
-        returns = set()
+        returns: set[tuple[str, ...]] = set()
         returns_value = False
-        yields = set()
+        yields: set[tuple[str, ...]] = set()
         yields_value = False
-        raises = []
+        raises: list[str] = []
         for node in ast.walk(func):
             if isinstance(node, ast.Return) and node.value is not None:
                 returns_value = True

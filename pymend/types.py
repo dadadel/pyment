@@ -105,7 +105,7 @@ class Parameter:
     @staticmethod
     def uniquefy(lst: Iterable["Parameter"]) -> Iterator["Parameter"]:
         """Remove duplicates while keeping order."""
-        seen = set()
+        seen: set[int] = set()
         for item in lst:
             if (itemhash := item.custom_hash()) not in seen:
                 seen.add(itemhash)

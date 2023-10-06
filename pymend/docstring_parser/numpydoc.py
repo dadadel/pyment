@@ -238,7 +238,7 @@ class ReturnsSection(_KVSection):
         )
 
 
-class YieldsSection(ReturnsSection):
+class YieldsSection(_KVSection):
     """Parser for numpydoc generator "yields" sections."""
 
     is_generator = True
@@ -319,8 +319,8 @@ class ExamplesSection(Section):
         """
         lines = dedent(text).strip().splitlines()
         while lines:
-            snippet_lines = []
-            description_lines = []
+            snippet_lines: list[str] = []
+            description_lines: list[str] = []
             while lines and lines[0].startswith(">>>"):
                 snippet_lines.append(lines.pop(0))
             while lines and not lines[0].startswith(">>>"):

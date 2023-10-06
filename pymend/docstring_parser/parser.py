@@ -46,7 +46,7 @@ def parse(
         return _STYLE_MAP[style].parse(text)
 
     exc: Optional[Exception] = None
-    rets = []
+    rets: list[Docstring] = []
     for module in _STYLE_MAP.values():
         try:
             ret = module.parse(text)

@@ -100,8 +100,8 @@ class PyComment:
         if not self.parsed:
             self._parse()
         list_from = self.input_lines.splitlines(keepends=True)
-        list_to = []
-        list_changed = []
+        list_to: list[str] = []
+        list_changed: list[str] = []
         last = 0
         # Loop over all found docstrings and replace the lines where they used to
         # (or ought to) be with the new docstring.
@@ -171,7 +171,7 @@ class PyComment:
 
         fromfile = f"a/{source_path}"
         tofile = f"b/{target_path}"
-        diff_lines = []
+        diff_lines: list[str] = []
         for line in difflib.unified_diff(list_from, list_to, fromfile, tofile):
             # Work around https://bugs.python.org/issue2142
             # See:
