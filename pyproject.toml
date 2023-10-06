@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pymend"
-version = "1.0.0"
+version = "1.0.1"
 authors = [{ name = "Jan-Eric Nitschke", email = "janericnitschke@gmail.com" }]
 maintainers = [{ name = "Jan-Eric Nitschke", email = "janericnitschke@gmail.com" }]
 license = { file = "LICENSE" }
