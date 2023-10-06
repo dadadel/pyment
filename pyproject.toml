@@ -4,10 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pymend"
-version = "1.0.1"
+version = "1.0.2"
 authors = [{ name = "Jan-Eric Nitschke", email = "janericnitschke@gmail.com" }]
 maintainers = [{ name = "Jan-Eric Nitschke", email = "janericnitschke@gmail.com" }]
-license = { file = "LICENSE" }
+license = { text = "GPL-3.0-or-later" }
 description = "Generate, fix and convert docstrings."
 readme = { file = "README.rst", content-type = "text/x-rst" }
 requires-python = ">=3.9"
@@ -27,6 +27,8 @@ dependencies = ["typing-extensions>=4.0,<5.0"]
 
 [project.urls]
 "Homepage"    = "https://github.com/JanEricNitschke/pymend"
+"Documentation" = "https://pymend.readthedocs.io/en/latest/"
+"GitHub"    = "https://github.com/JanEricNitschke/pymend"
 "Bug Tracker" = "https://github.com/JanEricNitschke/pymend/issues"
 
 
