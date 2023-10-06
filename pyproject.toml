@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires      = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
@@ -26,10 +26,10 @@ classifiers = [
 dependencies = ["typing-extensions>=4.0,<5.0"]
 
 [project.urls]
-"Homepage"    = "https://github.com/JanEricNitschke/pymend"
+"Homepage"      = "https://github.com/JanEricNitschke/pymend"
 "Documentation" = "https://pymend.readthedocs.io/en/latest/"
-"GitHub"    = "https://github.com/JanEricNitschke/pymend"
-"Bug Tracker" = "https://github.com/JanEricNitschke/pymend/issues"
+"GitHub"        = "https://github.com/JanEricNitschke/pymend"
+"Bug Tracker"   = "https://github.com/JanEricNitschke/pymend/issues"
 
 
 [project.scripts]
@@ -87,7 +87,7 @@ select = [
 ignore = [
     "ANN101",
     "ANN102",
-    "PLR2004", # PLR2004 should be added back, but too much work atm
+    # "", # PLR2004 should be added back, but too much work atm
 ]
 
 # Exclude a variety of commonly ignored directories.
@@ -130,8 +130,7 @@ target-version = "py39"
 [tool.ruff.per-file-ignores]
 "__init__.py"                              = ["E402", "F401"]
 "tests/*/test_*.py"                        = ["S101", "SLF001", "ANN101", "ANN102", "PLR2004"]
-"setup.py"                                 = ["D100"]
-"pymend/docstrings/parsers/parser_base.py" = ["ERA001"]
+"pymend/docstring_parser/rest.py" = ["PLR2004"]
 
 [tool.ruff.pydocstyle]
 convention = "numpy" # Accepts: "google", "numpy", or "pep257".
@@ -152,29 +151,29 @@ source = ["pymend"]
 testpaths = ["tests"]
 
 [tool.pyright]
-include                        = ["pymend"]
-exclude                        = ["tests"]
-strictListInference            = true
-strictDictionaryInference      = true
-reportPropertyTypeMismatch     = "error"
-reportFunctionMemberAccess     = "warning"
-reportMissingTypeStubs         = "warning"
-reportUntypedFunctionDecorator = "error"
-reportUntypedClassDecorator    = "error"
-reportUntypedBaseClass         = "error"
-reportUntypedNamedTuple        = "error"
-reportPrivateUsage             = "error"
-reportConstantRedefinition     = "error"
-reportOverlappingOverload      = "error"
-reportMissingParameterType     = "warning"
-reportUnnecessaryIsInstance    = "error"
-reportUnnecessaryCast          = "error"
-reportUnnecessaryComparison    = "error"
-reportUnnecessaryContains      = "error"
-reportAssertAlwaysTrue         = "error"
-# Can be different between python versions. So just warn about it
-reportUnnecessaryTypeIgnoreComment = "warning"
-reportImplicitOverride             = "none"
+include                            = ["pymend"]
+exclude                            = ["tests"]
+# typeCheckingMode                   = "strict"
+strictListInference                = true
+strictDictionaryInference          = true
+reportPropertyTypeMismatch         = "error"
+reportFunctionMemberAccess         = "error"
+reportMissingTypeStubs             = "error"
+reportUntypedFunctionDecorator     = "error"
+reportUntypedClassDecorator        = "error"
+reportUntypedBaseClass             = "error"
+reportUntypedNamedTuple            = "error"
+reportPrivateUsage                 = "error"
+reportConstantRedefinition         = "error"
+reportOverlappingOverload          = "error"
+reportMissingParameterType         = "error"
+reportUnnecessaryIsInstance        = "error"
+reportUnnecessaryCast              = "error"
+reportUnnecessaryComparison        = "error"
+reportUnnecessaryContains          = "error"
+reportAssertAlwaysTrue             = "error"
+reportUnnecessaryTypeIgnoreComment = "error"
+reportImplicitOverride             = "error"
 reportShadowedImports              = "error"
 pythonVersion                      = "3.9"
 
@@ -190,35 +189,35 @@ typevar-rgx         = "^_{0,2}(?!T[A-Z])([A-Z]|T[0-9]?)(?:[A-Z]*[0-9]*)?(?:_co(?
 
 [tool.pylint.design]
 # Maximum number of arguments for function / method.
-max-args = 15
+max-args = 5
 
 # Maximum number of attributes for a class (see R0902).
 # Should be lowered to 7 but got no time for that atm
-max-attributes = 20
+max-attributes = 7
 
 # Maximum number of boolean expressions in an if statement (see R0916).
 max-bool-expr = 5
 
 # Maximum number of branch for function / method body.
 # Same as for max-attributes
-max-branches = 30
+max-branches = 12
 
 # Maximum number of locals for function / method body.
 # Same as for max-attributes
-max-locals = 25
+max-locals = 15
 
 # Maximum number of public methods for a class (see R0904).
-max-public-methods = 30
+max-public-methods = 20
 
 # Maximum number of return / yield for function / method body.
 max-returns = 6
 
 # Maximum number of statements in function / method body.
-max-statements = 100
+max-statements = 60
 
 # Minimum number of public methods for a class (see R0903).
 # Same as for max-attributes
-min-public-methods = 1
+min-public-methods = 2
 
 [tool.pylint.exceptions]
 # Exceptions that will emit a warning when caught.
@@ -249,8 +248,7 @@ disable = ["unnecessary-ellipsis"] #  but needed for pyright
 
 [tool.pylint.miscellaneous]
 # List of note tags to take in consideration, separated by a comma.
-# notes = ["FIXME", "XXX", "TODO"]
-notes = []
+notes = ["FIXME", "XXX", "TODO"]
 
 [tool.pylint.refactoring]
 # Maximum number of nested blocks for function / method body

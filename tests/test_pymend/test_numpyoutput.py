@@ -63,7 +63,7 @@ def remove_diff_header(diff: str) -> str:
     str
         Cleaned diff.
     """
-    return re.sub("@@.+@@", "", diff)
+    return re.sub(r"(@@.+@@)|(\-\-\-.*)|(\+\+\+.*)", "", diff)
 
 
 def check_expected_diff(test_name: str) -> None:

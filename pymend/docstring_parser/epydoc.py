@@ -4,7 +4,7 @@
 """
 import inspect
 import re
-from typing import Optional
+from typing import NamedTuple, Optional
 
 from .common import (
     Docstring,
@@ -24,13 +24,46 @@ def _clean_str(string: str) -> Optional[str]:
     return string if string != "" else None
 
 
+class SectionPattern(NamedTuple):
+    """Patterns for docstring sections."""
+
+    param: re.Pattern[str]
+    raises: re.Pattern[str]
+    returns: re.Pattern[str]
+    meta: re.Pattern[str]
+
+
+class SectionMatch(NamedTuple):
+    """Matches of docstring sections."""
+
+    param: Optional[re.Match[str]]
+    raises: Optional[re.Match[str]]
+    returns: Optional[re.Match[str]]
+    meta: Optional[re.Match[str]]
+
+
+def _get_matches_for_chunk(chunk: str, patterns: SectionPattern) -> SectionMatch:
+    return SectionMatch(
+        param=re.search(patterns.param, chunk),
+        raises=re.search(patterns.raises, chunk),
+        returns=re.search(patterns.returns, chunk),
+        meta=re.search(patterns.meta, chunk),
+    )
+
+
+class StreamToken(NamedTuple):
+    """One entry of the stream list."""
+
+    base: str
+    key: str
+    args: list[str]
+    desc: str
+
+
 def _tokenize(
     meta_chunk: str,
-    param_pattern: re.Pattern,
-    raise_pattern: re.Pattern,
-    return_pattern: re.Pattern,
-    meta_pattern: re.Pattern,
-) -> list[tuple[str, str, list[str], str]]:
+    patterns: SectionPattern,
+) -> list[StreamToken]:
     """Return the tokenized stream according to the regex patterns.
 
     Returns
@@ -42,34 +75,28 @@ def _tokenize(
         args: List[str]
         desc: str: Description
     """
-    stream: list[tuple[str, str, list[str], str]] = []
-    for match in re.finditer(r"(^@.*?)(?=^@|\Z)", meta_chunk, flags=re.S | re.M):
-        chunk = match.group(0)
+    stream: list[StreamToken] = []
+    for chunk_match in re.finditer(r"(^@.*?)(?=^@|\Z)", meta_chunk, flags=re.S | re.M):
+        chunk = chunk_match.group(0)
         if not chunk:
             continue
 
-        param_match = re.search(param_pattern, chunk)
-        raise_match = re.search(raise_pattern, chunk)
-        return_match = re.search(return_pattern, chunk)
-        meta_match = re.search(meta_pattern, chunk)
+        matches = _get_matches_for_chunk(chunk, patterns)
 
-        match = (  # noqa: PLW2901
-            param_match or raise_match or return_match or meta_match
-        )
+        match = matches.param or matches.raises or matches.returns or matches.meta
         if not match:
             msg = f'Error parsing meta information near "{chunk}".'
             raise ParseError(msg)
 
-        desc_chunk = chunk[match.end() :]
-        if param_match:
+        if matches.param:
             base = "param"
             key: str = match.group(1)
             args = [match.group(2).strip()]
-        elif raise_match:
+        elif matches.raises:
             base = "raise"
             key: str = match.group(1)
             args = [] if match.group(2) is None else [match.group(2).strip()]
-        elif return_match:
+        elif matches.returns:
             base = "return" if match.group(1) in ("return", "rtype") else "yield"
             key: str = match.group(1)
             args = []
@@ -93,17 +120,15 @@ def _tokenize(
                 msg = f'Error parsing meta information near "{chunk}".'
                 raise ParseError(msg)
 
-        desc = desc_chunk.strip()
+        desc = chunk[match.end() :].strip()
         if "\n" in desc:
             first_line, rest = desc.split("\n", 1)
             desc = first_line + "\n" + inspect.cleandoc(rest)
-        stream.append((base, key, args, desc))
+        stream.append(StreamToken(base, key, args, desc))
     return stream
 
 
-def _combine_params(
-    stream: list[tuple[str, str, list[str], str]]
-) -> dict[str, dict[str, Optional[str]]]:
+def _combine_params(stream: list[StreamToken]) -> dict[str, dict[str, Optional[str]]]:
     params: dict[str, dict[str, Optional[str]]] = {}
     for base, key, args, desc in stream:
         if base not in ["param", "return", "yield"]:
@@ -116,14 +141,14 @@ def _combine_params(
 
 
 def _add_meta_information(
-    stream: list[tuple[str, str, list[str], str]],
+    stream: list[StreamToken],
     params: dict[str, dict[str, Optional[str]]],
     ret: Docstring,
 ) -> None:
     is_done: dict[str, bool] = {}
-    for base, key, args, desc in stream:
-        if base == "param" and not is_done.get(args[0], False):
-            (arg_name,) = args
+    for token in stream:
+        if token.base == "param" and not is_done.get(token.args[0], False):
+            (arg_name,) = token.args
             info = params[arg_name]
             type_name = info.get("type_name")
 
@@ -133,11 +158,11 @@ def _add_meta_information(
             else:
                 is_optional = False
 
-            match = re.match(r".*defaults to (.+)", desc, flags=re.DOTALL)
+            match = re.match(r".*defaults to (.+)", token.desc, flags=re.DOTALL)
             default = match[1].rstrip(".") if match else None
 
             meta_item = DocstringParam(
-                args=[key, arg_name],
+                args=[token.key, arg_name],
                 description=info.get("description"),
                 arg_name=arg_name,
                 type_name=type_name,
@@ -145,38 +170,38 @@ def _add_meta_information(
                 default=default,
             )
             is_done[arg_name] = True
-        elif base == "return" and not is_done.get("return", False):
+        elif token.base == "return" and not is_done.get("return", False):
             info = params["return"]
             meta_item = DocstringReturns(
-                args=[key],
+                args=[token.key],
                 description=info.get("description"),
                 type_name=info.get("type_name"),
                 is_generator=False,
             )
             is_done["return"] = True
-        elif base == "yield" and not is_done.get("yield", False):
+        elif token.base == "yield" and not is_done.get("yield", False):
             info = params["yield"]
             meta_item = DocstringYields(
-                args=[key],
+                args=[token.key],
                 description=info.get("description"),
                 type_name=info.get("type_name"),
                 is_generator=True,
             )
             is_done["yield"] = True
-        elif base == "raise":
-            (type_name,) = args or (None,)
+        elif token.base == "raise":
+            (type_name,) = token.args or (None,)
             meta_item = DocstringRaises(
-                args=[key, *args],
-                description=desc,
+                args=[token.key, *token.args],
+                description=token.desc,
                 type_name=type_name,
             )
-        elif base == "meta":
+        elif token.base == "meta":
             meta_item = DocstringMeta(
-                args=[key, *args],
-                description=desc,
+                args=[token.key, *token.args],
+                description=token.desc,
             )
         else:
-            arg_key = args[0] if args else base
+            arg_key = token.args[0] if token.args else token.base
             if not is_done.get(arg_key, False):
                 msg = (
                     "Error building meta information. "
@@ -221,15 +246,15 @@ def parse(text: Optional[str]) -> Docstring:
         ret.blank_after_long_description = long_desc_chunk.endswith("\n\n")
         ret.long_description = long_desc_chunk.strip() or None
 
-    param_pattern = re.compile(r"(param|keyword|type)(\s+[_A-z][_A-z0-9]*\??):")
-    raise_pattern = re.compile(r"(raise)(\s+[_A-z][_A-z0-9]*\??)?:")
-    return_pattern = re.compile(r"(return|rtype|yield|ytype):")
-    meta_pattern = re.compile(r"([_A-z][_A-z0-9]+)((\s+[_A-z][_A-z0-9]*\??)*):")
+    patterns = SectionPattern(
+        param=re.compile(r"(param|keyword|type)(\s+[_A-z][_A-z0-9]*\??):"),
+        raises=re.compile(r"(raise)(\s+[_A-z][_A-z0-9]*\??)?:"),
+        returns=re.compile(r"(return|rtype|yield|ytype):"),
+        meta=re.compile(r"([_A-z][_A-z0-9]+)((\s+[_A-z][_A-z0-9]*\??)*):"),
+    )
 
     # tokenize
-    stream = _tokenize(
-        meta_chunk, param_pattern, raise_pattern, return_pattern, meta_pattern
-    )
+    stream = _tokenize(meta_chunk, patterns)
 
     # Combine type_name, arg_name, and description information
     params = _combine_params(stream)

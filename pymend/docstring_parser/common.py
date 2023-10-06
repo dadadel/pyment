@@ -14,6 +14,9 @@ PARAM_KEYWORDS = {
     "key",
     "keyword",
 }
+# These could be made into frozen sets
+# Then one could create a dictionary
+# {KEYWORD: FUNCTION_THAT_HANDLES_THAT_KEYWORD_SECTION}  # noqa: ERA001
 RAISES_KEYWORDS = {"raises", "raise", "except", "exception"}
 DEPRECATION_KEYWORDS = {"deprecation", "deprecated"}
 RETURNS_KEYWORDS = {"return", "returns"}

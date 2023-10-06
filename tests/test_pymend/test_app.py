@@ -12,6 +12,22 @@ from typing import Optional, Union
 import pymend.pymend
 
 
+def remove_diff_header(diff: str) -> str:
+    """Remove header differences from diff.
+
+    Parameters
+    ----------
+    diff : str
+        Diff file to clean.
+
+    Returns
+    -------
+    str
+        Cleaned diff.
+    """
+    return re.sub(r"(@@.+@@)|(\-\-\-.*)|(\+\+\+.*)", "", diff)
+
+
 class TestApp:
     """Test pymend as an app in a shell.
 
@@ -188,7 +204,10 @@ class TestApp:
         """
 
         def assert_output(
-            cmd_to_run: str, what: str, got: str, expected: Union[str, Pattern[str]]
+            cmd_to_run: str,
+            what: str,
+            got: Union[str, int],
+            expected: Union[str, Pattern[str], int],
         ) -> None:
             """See run_pymend_app_and_assert_is_expected.
 
@@ -220,8 +239,10 @@ class TestApp:
                     # Turn lines that only have whitespace into
                     # single newline lines to workaround textwrap.dedent
                     # behaviour
-                    got = self.normalise_empty_lines(got).replace("\r\n", "\n")
-                    expected = self.normalise_empty_lines(expected)
+                    got = remove_diff_header(
+                        self.normalise_empty_lines(got).replace("\r\n", "\n")
+                    )
+                    expected = remove_diff_header(self.normalise_empty_lines(expected))
                 # repr is used instead of str to make it easier
                 # to see newlines and spaces if there's a difference
                 msg = (
@@ -361,8 +382,9 @@ class TestApp:
             normalised_expected_output = self.normalise_empty_lines(
                 expected_file_contents
             )
-
-            assert normalised_output == normalised_expected_output, (
+            assert remove_diff_header(normalised_output) == remove_diff_header(
+                normalised_expected_output
+            ), (
                 f"Output from cmd: {cmd_args} was:\n{normalised_output!r}\nnot "
                 f"the expected:\n{normalised_expected_output!r}"
             )

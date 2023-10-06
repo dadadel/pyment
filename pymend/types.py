@@ -6,7 +6,7 @@ from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from typing import ClassVar, Optional, Union
 
-from typing_extensions import TypeAlias
+from typing_extensions import TypeAlias, override
 
 import pymend.docstring_parser as dsp
 
@@ -27,6 +27,26 @@ class DocstringInfo:
     default_description: ClassVar[str] = "_description_"
     default_type: ClassVar[str] = "_type_"
     default_summary: ClassVar[str] = "_summary_."
+
+    def output_docstring(
+        self, style: dsp.DocstringStyle = dsp.DocstringStyle.NUMPYDOC
+    ) -> str:
+        """Parse and fix input docstrings, then compose output docstring."""
+        parsed = dsp.parse(self.docstring)
+        self.fix_docstring(parsed)
+        return dsp.compose(parsed, style=style)
+
+    def fix_docstring(self, docstring: dsp.Docstring) -> None:
+        """Fix docstrings.
+
+        Default are to add missing dots, blank lines and give defaults for
+        descriptions and types.
+        """
+        self._fix_short_description(docstring)
+        self._fix_long_description(docstring)
+        self._fix_blank_lines(docstring)
+        self._fix_descriptions(docstring)
+        self._fix_types(docstring)
 
     def _fix_short_description(self, docstring: dsp.Docstring) -> None:
         """Set default summary."""
@@ -64,26 +84,6 @@ class DocstringInfo:
         for returned in docstring.many_returns:
             returned.type_name = returned.type_name or self.default_type
 
-    def fix_docstring(self, docstring: dsp.Docstring) -> None:
-        """Fix docstrings.
-
-        Default are to add missing dots, blank lines and give defaults for
-        descriptions and types.
-        """
-        self._fix_short_description(docstring)
-        self._fix_long_description(docstring)
-        self._fix_blank_lines(docstring)
-        self._fix_descriptions(docstring)
-        self._fix_types(docstring)
-
-    def output_docstring(
-        self, style: dsp.DocstringStyle = dsp.DocstringStyle.NUMPYDOC
-    ) -> str:
-        """Parse and fix input docstrings, then compose output docstring."""
-        parsed = dsp.parse(self.docstring)
-        self.fix_docstring(parsed)
-        return dsp.compose(parsed, style=style)
-
 
 @dataclass
 class ModuleDocstring(DocstringInfo):
@@ -113,37 +113,21 @@ class Parameter:
 
 
 @dataclass
-class ReturnValue:
-    """Info about return value from signature."""
-
-    type_name: Optional[str] = None
-
-
-@dataclass
-class FunctionSignature:
-    """Information about a function signature."""
-
-    params: list[Parameter]
-    returns: ReturnValue
-
-
-@dataclass
-class FunctionBody:
-    """Information about a function from its body."""
-
-    raises: list[str]
-    returns: set[tuple[str, ...]]
-    returns_value: bool
-    yields: set[tuple[str, ...]]
-    yields_value: bool
-
-
-@dataclass
 class ClassDocstring(DocstringInfo):
     """Information about a module."""
 
     attributes: list[Parameter]
     methods: list[str]
+
+    @override
+    def fix_docstring(self, docstring: dsp.Docstring) -> None:
+        """Fix docstrings.
+
+        Additionally adjust attributes and methods from body.
+        """
+        super().fix_docstring(docstring)
+        self._adjust_attributes(docstring)
+        self._adjust_methods(docstring)
 
     def _adjust_attributes(self, docstring: dsp.Docstring) -> None:
         """Overwrite or create attribute docstring entries based on body.
@@ -185,14 +169,31 @@ class ClassDocstring(DocstringInfo):
                 )
             )
 
-    def fix_docstring(self, docstring: dsp.Docstring) -> None:
-        """Fix docstrings.
 
-        Additionally adjust attributes and methods from body.
-        """
-        super().fix_docstring(docstring)
-        self._adjust_attributes(docstring)
-        self._adjust_methods(docstring)
+@dataclass
+class ReturnValue:
+    """Info about return value from signature."""
+
+    type_name: Optional[str] = None
+
+
+@dataclass
+class FunctionSignature:
+    """Information about a function signature."""
+
+    params: list[Parameter]
+    returns: ReturnValue
+
+
+@dataclass
+class FunctionBody:
+    """Information about a function from its body."""
+
+    raises: list[str]
+    returns: set[tuple[str, ...]]
+    returns_value: bool
+    yields: set[tuple[str, ...]]
+    yields_value: bool
 
 
 @dataclass
@@ -201,6 +202,21 @@ class FunctionDocstring(DocstringInfo):
 
     signature: FunctionSignature
     body: FunctionBody
+
+    @override
+    def fix_docstring(self, docstring: dsp.Docstring) -> None:
+        """Fix docstrings.
+
+        Additionally adjust:
+            parameters from function signature.
+            return and yield from signature and body.
+            raises from body.
+        """
+        super().fix_docstring(docstring)
+        self._adjust_parameters(docstring)
+        self._adjust_returns(docstring)
+        self._adjust_yields(docstring)
+        self._adjust_raises(docstring)
 
     def _adjust_parameters(self, docstring: dsp.Docstring) -> None:
         """Overwrite or create param docstring entries based on signature.
@@ -305,8 +321,6 @@ class FunctionDocstring(DocstringInfo):
         """
         doc_yields = docstring.many_yields
         sig_return = self.signature.returns.type_name
-        # TODO: Handle gnerators Generator[YieldType, SendType, ReturnType]
-        # If we match that then we extract the yield type and
         if sig_return and (
             matches := (
                 re.match(r"(?:Iterable|Iterator)\[([^\]]+)\]", sig_return)
@@ -358,20 +372,6 @@ class FunctionDocstring(DocstringInfo):
                     type_name=missing_raise,
                 )
             )
-
-    def fix_docstring(self, docstring: dsp.Docstring) -> None:
-        """Fix docstrings.
-
-        Additionally adjust:
-            parameters from function signature.
-            return and yield from signature and body.
-            raises from body.
-        """
-        super().fix_docstring(docstring)
-        self._adjust_parameters(docstring)
-        self._adjust_returns(docstring)
-        self._adjust_yields(docstring)
-        self._adjust_raises(docstring)
 
 
 ElementDocstring: TypeAlias = Union[ModuleDocstring, ClassDocstring, FunctionDocstring]

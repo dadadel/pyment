@@ -10,6 +10,8 @@ from collections.abc import Iterable, Iterator
 from textwrap import dedent
 from typing import Optional, TypeVar
 
+from typing_extensions import override
+
 from .common import (
     Docstring,
     DocstringDeprecated,
@@ -113,6 +115,7 @@ class _KVSection(Section):
     def _parse_item(self, key: str, value: str) -> DocstringMeta:
         raise NotImplementedError
 
+    @override
     def parse(self, text: str) -> Iterable[DocstringMeta]:
         for match, next_match in _pairwise(KV_REGEX.finditer(text)):
             start = match.end()
@@ -130,6 +133,7 @@ class _SphinxSection(Section):
     """
 
     @property
+    @override
     def title_pattern(self) -> str:
         return rf"^\.\.\s*({self.title})\s*::"
 
@@ -145,6 +149,7 @@ class ParamSection(_KVSection):
             ... multiple lines
     """
 
+    @override
     def _parse_item(self, key: str, value: str) -> DocstringParam:
         match = PARAM_KEY_REGEX.match(key)
         arg_name = type_name = is_optional = None
@@ -193,6 +198,7 @@ class RaisesSection(_KVSection):
             A description of what might raise ValueError
     """
 
+    @override
     def _parse_item(self, key: str, value: str) -> DocstringRaises:
         return DocstringRaises(
             args=[self.key, key],
@@ -213,6 +219,7 @@ class ReturnsSection(_KVSection):
 
     is_generator = False
 
+    @override
     def _parse_item(self, key: str, value: str) -> DocstringReturns:
         match = RETURN_KEY_REGEX.match(key)
         if match is not None:
@@ -236,6 +243,7 @@ class YieldsSection(ReturnsSection):
 
     is_generator = True
 
+    @override
     def _parse_item(self, key: str, value: str) -> DocstringYields:
         match = RETURN_KEY_REGEX.match(key)
         if match is not None:
@@ -263,6 +271,7 @@ class DeprecationSection(_SphinxSection):
             multiple lines!
     """
 
+    @override
     def parse(self, text: str) -> Iterable[DocstringDeprecated]:
         """Parse ``DocstringDeprecated`` objects from the body of this section."""
         version, desc, *_ = [*text.split(sep="\n", maxsplit=1), None, None]
@@ -293,6 +302,7 @@ class ExamplesSection(Section):
                 [ 6586976, 22740995]])
     """
 
+    @override
     def parse(self, text: str) -> Iterable[DocstringExample]:
         """Parse ``DocstringExample`` objects from the body of this section.
 
@@ -456,7 +466,7 @@ def parse(text: Optional[str]) -> Docstring:
 
 
 def compose(  # noqa: PLR0915
-    # pylint: disable=W0613
+    # pylint: disable=W0613,R0915
     docstring: Docstring,
     rendering_style: RenderingStyle = RenderingStyle.COMPACT,  # noqa: ARG001
     indent: str = "    ",

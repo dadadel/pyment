@@ -55,7 +55,6 @@ class PyComment:
         List[ElementDocstring]
             List of information about module, classes and functions.
         """
-        # TODO manage decorators
         ast_parser = AstAnalyzer(self.input_lines)
         self.docs_list = sorted(
             ast_parser.parse_from_ast(), key=lambda element: element.lines
@@ -170,17 +169,8 @@ class PyComment:
         """
         list_from, list_to, _ = self.compute_before_after()
 
-        if source_path.startswith(os.sep):
-            source_path = source_path[1:]
-        if source_path and not source_path.endswith(os.sep):
-            source_path += os.sep
-        if target_path.startswith(os.sep):
-            target_path = target_path[1:]
-        if target_path and not target_path.endswith(os.sep):
-            target_path += os.sep
-
-        fromfile = f"a/{source_path}{os.path.basename(self.input_file)}"
-        tofile = f"b/{target_path}{os.path.basename(self.input_file)}"
+        fromfile = f"a/{source_path}"
+        tofile = f"b/{target_path}"
         diff_lines = []
         for line in difflib.unified_diff(list_from, list_to, fromfile, tofile):
             # Work around https://bugs.python.org/issue2142

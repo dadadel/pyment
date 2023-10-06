@@ -227,7 +227,56 @@ class GoogleParser:
         self.sections[section.title] = section
         self._setup()
 
-    def parse(self, text: Optional[str]) -> Docstring:  # noqa: PLR0912
+    def _split_description(self, docstring: Docstring, desc_chunk: str) -> None:
+        """Break description into short and long parts."""
+        parts = desc_chunk.split("\n", 1)
+        docstring.short_description = parts[0] or None
+        if len(parts) > 1:
+            long_desc_chunk = parts[1] or ""
+            docstring.blank_after_short_description = long_desc_chunk.startswith("\n")
+            docstring.blank_after_long_description = long_desc_chunk.endswith("\n\n")
+            docstring.long_description = long_desc_chunk.strip() or None
+
+    def _split_sections(self, meta_chunk: str) -> Mapping[str, str]:
+        chunks: Mapping[str, str] = OrderedDict()
+
+        matches = list(self.titles_re.finditer(meta_chunk))
+        if not matches:
+            return chunks
+        splits = [
+            (matches[j].end(), matches[j + 1].start()) for j in range(len(matches) - 1)
+        ]
+        splits.append((matches[-1].end(), len(meta_chunk)))
+
+        for j, (start, end) in enumerate(splits):
+            title = matches[j].group(1)
+            if title not in self.sections:
+                continue
+
+            # Clear Any Unknown Meta
+            # Ref: https://github.com/rr-/docstring_parser/issues/29
+            meta_details = meta_chunk[start:end]
+            unknown_meta = re.search(r"\n\S", meta_details)
+            if unknown_meta is not None:
+                meta_details = meta_details[: unknown_meta.start()]
+
+            chunks[title] = meta_details.strip("\n")
+        return chunks
+
+    def _determine_indent(self, chunk: str) -> str:
+        """Determine indent."""
+        indent_match = re.search(r"^\s*", chunk)
+        if not indent_match:
+            msg = f"Can't infer indent from '{chunk}'"
+            raise ParseError(msg)
+        return indent_match.group()
+
+    def _get_chunks(self, text: str) -> tuple[str, str]:
+        if match := self.titles_re.search(text):
+            return text[: match.start()], text[match.start() :]
+        return text, ""
+
+    def parse(self, text: Optional[str]) -> Docstring:
         """Parse the Google-style docstring into its components.
 
         Parameters
@@ -247,56 +296,21 @@ class GoogleParser:
         # Clean according to PEP-0257
         text = inspect.cleandoc(text)
 
-        if match := self.titles_re.search(text):
-            desc_chunk = text[: match.start()]
-            meta_chunk = text[match.start() :]
-        else:
-            desc_chunk = text
-            meta_chunk = ""
+        desc_chunk, meta_chunk = self._get_chunks(text)
 
         # Break description into short and long parts
-        parts = desc_chunk.split("\n", 1)
-        ret.short_description = parts[0] or None
-        if len(parts) > 1:
-            long_desc_chunk = parts[1] or ""
-            ret.blank_after_short_description = long_desc_chunk.startswith("\n")
-            ret.blank_after_long_description = long_desc_chunk.endswith("\n\n")
-            ret.long_description = long_desc_chunk.strip() or None
+        self._split_description(ret, desc_chunk)
 
         # Split by sections determined by titles
-        matches = list(self.titles_re.finditer(meta_chunk))
-        if not matches:
-            return ret
-        splits = [
-            (matches[j].end(), matches[j + 1].start()) for j in range(len(matches) - 1)
-        ]
-        splits.append((matches[-1].end(), len(meta_chunk)))
+        chunks = self._split_sections(meta_chunk)
 
-        chunks: Mapping[str, str] = OrderedDict()
-        for j, (start, end) in enumerate(splits):
-            title = matches[j].group(1)
-            if title not in self.sections:
-                continue
-
-            # Clear Any Unknown Meta
-            # Ref: https://github.com/rr-/docstring_parser/issues/29
-            meta_details = meta_chunk[start:end]
-            unknown_meta = re.search(r"\n\S", meta_details)
-            if unknown_meta is not None:
-                meta_details = meta_details[: unknown_meta.start()]
-
-            chunks[title] = meta_details.strip("\n")
         if not chunks:
             return ret
 
         # Add elements from each chunk
         for title, chunk in chunks.items():
             # Determine indent
-            indent_match = re.search(r"^\s*", chunk)
-            if not indent_match:
-                msg = f'Can\'t infer indent from "{chunk}"'
-                raise ParseError(msg)
-            indent = indent_match.group()
+            indent = self._determine_indent(chunk)
 
             # Check for singular elements
             if self.sections[title].type_info in [
@@ -308,8 +322,7 @@ class GoogleParser:
                 continue
 
             # Split based on lines which have exactly that indent
-            _re = rf"^{indent}(?=\S)"
-            c_matches = list(re.finditer(_re, chunk, flags=re.M))
+            c_matches = list(re.finditer(rf"^{indent}(?=\S)", chunk, flags=re.M))
             if not c_matches:
                 msg = f'No specification for "{title}": "{chunk}"'
                 raise ParseError(msg)
