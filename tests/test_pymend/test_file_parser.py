@@ -16,8 +16,7 @@ class C:
     def __init__(self):
         self._x = None
         self.test1 = "test"
-        self.test2 = None
-        self.test2 = 1
+        self.test2: Optional[int] = None
         self.test1 = "a"
         self.test3 = self.test4 = None
 
