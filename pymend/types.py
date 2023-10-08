@@ -73,6 +73,8 @@ class DocstringInfo:
     def _fix_types(self, docstring: dsp.Docstring) -> None:
         """Set empty types for parameters and returns."""
         for param in docstring.params:
+            if param.args[0] == "method":
+                continue
             param.type_name = param.type_name or self.default_type
         for returned in docstring.many_returns:
             returned.type_name = returned.type_name or self.default_type
