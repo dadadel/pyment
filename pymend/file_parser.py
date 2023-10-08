@@ -50,8 +50,12 @@ class AstAnalyzer:
             List of information about module, classes and functions.
         """
         nodes_of_interest: list[ElementDocstring] = []
-
-        for node in ast.walk(ast.parse(self.file_content)):
+        try:
+            file_ast = ast.parse(self.file_content)
+        except Exception as exc:  # noqa: BLE001
+            msg = f"Failed to parse source file AST: {exc}\n"
+            raise AssertionError(msg) from exc
+        for node in ast.walk(file_ast):
             if isinstance(node, ast.Module):
                 nodes_of_interest.append(self.handle_module(node))
             elif isinstance(node, ast.ClassDef):
@@ -135,6 +139,7 @@ class AstAnalyzer:
                 node.body
                 and isinstance(first_element := node.body[0], ast.Expr)
                 and isinstance(docnode := first_element.value, ast.Constant)
+                and isinstance(docnode.value, str)
             ):
                 msg = (
                     "Expected first entry in body to be the "

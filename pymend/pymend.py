@@ -1,10 +1,12 @@
 """Module for general management of writing docstrings of multiple files."""
 
+import ast
 import difflib
 import os
 import platform
 import sys
 import tempfile
+import traceback
 from pathlib import Path
 
 from typing_extensions import Self
@@ -162,7 +164,72 @@ class PyComment:
             raise AssertionError(msg)
 
     def assert_equality(self, src: list[str], dst: list[str]) -> None:
-        """Assert that running pymend does not change functional ast."""
+        """Assert that running pymend does not change functional ast.
+
+        Done by comparing the asts for the original and produced outputs
+        while ignoring the docstrings themselves.
+        """
+        src_lines = "".join(src)
+        dst_lines = "".join(dst)
+        try:
+            src_ast = ast.parse(src_lines)
+        except Exception as exc:  # noqa: BLE001
+            msg = f"Failed to parse source file AST: {exc}\n"
+            raise AssertionError(msg) from exc
+        try:
+            dst_ast = ast.parse(dst_lines)
+        except Exception as exc:  # noqa: BLE001
+            log = self.dump_to_file(
+                "".join(traceback.format_tb(exc.__traceback__)), dst_lines
+            )
+            msg = (
+                f"INTERNAL ERROR: PyMend produced invalid code: {exc}. "
+                "Please report a bug on"
+                " https://github.com/JanEricNitschke/pymend/issues."
+                f"  This invalid output might be helpful: {log}"
+            )
+            raise AssertionError(msg) from None
+        src_ast_list = self._stringify_ast(src_ast)
+        dst_ast_list = self._stringify_ast(dst_ast)
+        if src_ast_list != dst_ast_list:
+            log = self.dump_to_file(
+                "".join(self._pure_diff(src_ast_list, dst_ast_list, "src", "dst"))
+            )
+            msg = (
+                "INTERNAL ERROR: PyMend produced code that is not equivalent to the"
+                " source.  Please report a bug on "
+                "https://github.com/JanEricNitschke/pymend/issues."
+                f"  This diff might be helpful: {log}"
+            )
+            raise AssertionError(msg) from None
+
+    def _strip_ast(self, ast_node: ast.AST) -> None:
+        """Remove all docstrings from the ast."""
+        for node in ast.walk(ast_node):
+            # let's work only on functions & classes definitions
+            if not isinstance(
+                node, (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef, ast.Module)
+            ):
+                continue
+
+            if not node.body:
+                continue
+
+            if not isinstance(first_element := node.body[0], ast.Expr):
+                continue
+
+            if not isinstance(docnode := first_element.value, ast.Constant):
+                continue
+
+            if not isinstance(docnode.value, str):
+                continue
+
+            node.body = node.body[1:]
+
+    def _stringify_ast(self, node: ast.AST) -> list[str]:
+        """Turn ast into string representation with all docstrings removed."""
+        self._strip_ast(node)
+        return ast.dump(node, indent=1).splitlines(keepends=True)
 
     def dump_to_file(self, *output: str, ensure_final_newline: bool = True) -> str:
         """Dump `output` to a temporary file. Return path to the file."""
