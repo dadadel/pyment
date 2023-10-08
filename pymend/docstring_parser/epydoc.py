@@ -20,6 +20,18 @@ from .common import (
 
 
 def _clean_str(string: str) -> Optional[str]:
+    """Strip the string and return None if it is empty then.
+
+    Parameters
+    ----------
+    string : str
+        String to cleaned.
+
+    Returns
+    -------
+    Optional[str]
+        Stripped string or None of the string is now empty.
+    """
     string = string.strip()
     return string if string != "" else None
 
@@ -43,6 +55,20 @@ class SectionMatch(NamedTuple):
 
 
 def _get_matches_for_chunk(chunk: str, patterns: SectionPattern) -> SectionMatch:
+    """Apply a search for each pattern to the chunk.
+
+    Parameters
+    ----------
+    chunk : str
+        Chunk to match the patterns against.
+    patterns : SectionPattern
+        Collection of regex patterns to match against the chunk.
+
+    Returns
+    -------
+    SectionMatch
+        Tuple of matches of the patterns against the chunk.
+    """
     return SectionMatch(
         param=re.search(patterns.param, chunk),
         raises=re.search(patterns.raises, chunk),
@@ -66,14 +92,29 @@ def _tokenize(
 ) -> list[StreamToken]:
     """Return the tokenized stream according to the regex patterns.
 
+    Parameters
+    ----------
+    meta_chunk : str
+        Chunk to tokenize.
+    patterns : SectionPattern
+        Collection of patterns for different sections.
+
     Returns
     -------
-    List[Tuple[str, str, List[str], str]]
+    list[StreamToken]
         (base, key, args, desc)
         base: Literal['param', 'raise', 'return', 'meta']
         key: str:
         args: List[str]
         desc: str: Description
+
+    Raises
+    ------
+    ParseError
+        If none of the patterns match against the chunk.
+    ParseError
+        If we match a section in the general meta case that should have already
+        been matched in a specific section.
     """
     stream: list[StreamToken] = []
     for chunk_match in re.finditer(r"(^@.*?)(?=^@|\Z)", meta_chunk, flags=re.S | re.M):
@@ -129,6 +170,20 @@ def _tokenize(
 
 
 def _combine_params(stream: list[StreamToken]) -> dict[str, dict[str, Optional[str]]]:
+    """Group the list of tokens into sections based on section and information..
+
+    Parameters
+    ----------
+    stream : list[StreamToken]
+        List of tokens to group into dict.
+
+    Returns
+    -------
+    dict[str, dict[str, Optional[str]]]
+        Dictionary grouping parsed param sections
+        by section (param name, "return", "yield") and
+        information they represent (type_name, description)
+    """
     params: dict[str, dict[str, Optional[str]]] = {}
     for base, key, args, desc in stream:
         if base not in ["param", "return", "yield"]:
@@ -145,6 +200,22 @@ def _add_meta_information(
     params: dict[str, dict[str, Optional[str]]],
     ret: Docstring,
 ) -> None:
+    """Add the meta information into the docstring instance.
+
+    Parameters
+    ----------
+    stream : list[StreamToken]
+        Stream of tokens of the string-
+    params : dict[str, dict[str, Optional[str]]]
+        Grouped information about each section.
+    ret : Docstring
+        Docstring instance to add the information to.
+
+    Raises
+    ------
+    ParseError
+        If an unexpected section is encountered.
+    """
     is_done: dict[str, bool] = {}
     for token in stream:
         if token.base == "param" and not is_done.get(token.args[0], False):
@@ -218,7 +289,7 @@ def parse(text: Optional[str]) -> Docstring:
 
     Parameters
     ----------
-    text : str
+    text : Optional[str]
         docstring to parse
 
     Returns
@@ -288,6 +359,20 @@ def compose(
     """
 
     def process_desc(desc: Optional[str], *, is_type: bool) -> str:
+        """Process a description section.
+
+        Parameters
+        ----------
+        desc : Optional[str]
+            Description to process
+        is_type : bool
+            Whether the description represent type information.
+
+        Returns
+        -------
+        str
+            The properly rendered description information.
+        """
         if not desc:
             return ""
 
