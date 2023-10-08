@@ -4,6 +4,8 @@ import ast
 import re
 from typing import Optional, Union
 
+from typing_extensions import TypeGuard
+
 from .docstring_parser.attrdoc import ast_unparse
 from .types import (
     ClassDocstring,
@@ -335,26 +337,43 @@ class AstAnalyzer:
                 return True
         return False
 
+    def _check_if_node_is_self_attributes(
+        self, node: ast.expr
+    ) -> TypeGuard[ast.Attribute]:
+        """Check whether the node represents a public attribute of self (self.abc)."""
+        return (
+            isinstance(node, ast.Attribute)
+            and isinstance(node.value, ast.Name)
+            and node.value.id == "self"
+            and not node.attr.startswith("_")
+        )
+
+    def _check_and_handle_assign_node(
+        self, target: ast.expr, attributes: list[Parameter]
+    ) -> None:
+        """Check if the assignment node contains assignments to self.X."""
+        if isinstance(target, (ast.Tuple, ast.List)):
+            for node in target.elts:
+                if self._check_if_node_is_self_attributes(node):
+                    attributes.append(Parameter(node.attr, "_type_", None))
+        elif self._check_if_node_is_self_attributes(target):
+            attributes.append(Parameter(target.attr, "_type_", None))
+
     def _get_attributes_from_init(
         self, init: Union[ast.FunctionDef, ast.AsyncFunctionDef]
     ) -> list[Parameter]:
         """Iterate over body and grab every assignment `self.abc = XYZ`."""
         attributes: list[Parameter] = []
         for node in init.body:
-            if not isinstance(node, ast.Assign):
-                continue
-            # Targets is a list in case of multiple assignent
-            # a = b = 3  # noqa: ERA001
-            for target in node.targets:
-                if (
-                    # We only care about assignments self.abc
-                    isinstance(target, ast.Attribute)
-                    and isinstance(target.value, ast.Name)
-                    and target.value.id == "self"
-                    # Skip private attributes like self._x
-                    and not target.attr.startswith("_")
-                ):
-                    attributes.append(Parameter(target.attr, "_type_", None))
+            if isinstance(node, ast.Assign):
+                # Targets is a list in case of multiple assignent
+                # a = b = 3  # noqa: ERA001
+                for target in node.targets:
+                    self._check_and_handle_assign_node(target, attributes)
+            # Also handle annotated assignments
+            # c: int = "Test"  # noqa: ERA001
+            elif isinstance(node, ast.AnnAssign):
+                self._check_and_handle_assign_node(node.target, attributes)
         return attributes
 
     def _get_method_signature(
