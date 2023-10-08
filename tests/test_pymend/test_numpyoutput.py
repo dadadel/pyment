@@ -122,3 +122,7 @@ class TestNumpyOutput:
     def test_class_body(self) -> None:
         """Correctly parse and compose class from body information."""
         check_expected_diff("class_body")
+
+    def test_quote_default(self) -> None:
+        """Test that default values of triple quotes do not cause issues."""
+        check_expected_diff("quote_default")

@@ -211,6 +211,15 @@ class FunctionDocstring(DocstringInfo):
         self._adjust_yields(docstring)
         self._adjust_raises(docstring)
 
+    def _escape_default_value(self, default_value: str) -> str:
+        r"""Escape the default value so that the docstring remains fully valid.
+
+        Currently only escapes triple quotes '\"\"\"'.
+        """
+        if '"""' in default_value:
+            return default_value.replace('"""', r"\"\"\"")
+        return default_value
+
     def _adjust_parameters(self, docstring: dsp.Docstring) -> None:
         """Overwrite or create param docstring entries based on signature.
 
@@ -237,13 +246,15 @@ class FunctionDocstring(DocstringInfo):
                         and "default" not in param_doc.description.lower()
                     ):
                         param_doc.description += (
-                            f" (Default value = {param_sig.default})"
+                            f" (Default value = "
+                            f"{self._escape_default_value(param_sig.default)})"
                         )
             else:
                 place_holder_description = self.default_description
                 if param_sig.default:
                     place_holder_description += (
-                        f" (Default value = {param_sig.default})"
+                        f" (Default value = "
+                        f"{self._escape_default_value(param_sig.default)})"
                     )
                 docstring.meta.append(
                     dsp.DocstringParam(
