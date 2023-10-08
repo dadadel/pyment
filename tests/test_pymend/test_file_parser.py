@@ -19,6 +19,7 @@ class C:
         self.test2: Optional[int] = None
         self.test1 = "a"
         self.test3 = self.test4 = None
+        self.test5, self.test6 = 1, 2
 
     @property
     def x(self) -> str | None:
@@ -50,6 +51,8 @@ class C:
             Parameter("test2", "_type_", None),
             Parameter("test3", "_type_", None),
             Parameter("test4", "_type_", None),
+            Parameter("test5", "_type_", None),
+            Parameter("test6", "_type_", None),
             Parameter("x", "str | None", None),
         ]
         expected_methods = ["c(c)"]
