@@ -181,6 +181,7 @@ class PyComment:
         before, after, changed = comment.get_changes()
         if changed or not (dst == before and dst == after):
             log = self.dump_to_file(
+                "INTERNAL ERROR: PyMend produced docstrings on the second pass.\n"
                 "Changed:\n",
                 "\n".join(changed),
                 "".join(self._pure_diff(src, dst, "source", "first pass")),
@@ -191,7 +192,7 @@ class PyComment:
                 " PyMend produced docstrings on the second pass."
                 " Please report a bug on"
                 " https://github.com/JanEricNitschke/pymend/issues."
-                f"  This diff might be helpful: {log}"
+                f" This diff might be helpful: {log}"
             )
             raise AssertionError(msg)
 
@@ -229,7 +230,9 @@ class PyComment:
             dst_ast = ast.parse(dst_lines)
         except Exception as exc:  # noqa: BLE001
             log = self.dump_to_file(
-                "".join(traceback.format_tb(exc.__traceback__)), dst_lines
+                "INTERNAL ERROR: PyMend produced invalid code:\n",
+                "".join(traceback.format_tb(exc.__traceback__)),
+                dst_lines,
             )
             msg = (
                 f"INTERNAL ERROR: PyMend produced invalid code: {exc}. "
@@ -242,7 +245,9 @@ class PyComment:
         dst_ast_list = self._stringify_ast(dst_ast)
         if src_ast_list != dst_ast_list:
             log = self.dump_to_file(
-                "".join(self._pure_diff(src_ast_list, dst_ast_list, "src", "dst"))
+                "INTERNAL ERROR: PyMend produced code "
+                "that is not equivalent to the source\n",
+                "".join(self._pure_diff(src_ast_list, dst_ast_list, "src", "dst")),
             )
             msg = (
                 "INTERNAL ERROR: PyMend produced code that is not equivalent to the"

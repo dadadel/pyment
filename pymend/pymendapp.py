@@ -22,11 +22,11 @@ def run(
     overwrite: bool = False,
     output_style: dsp.DocstringStyle = dsp.DocstringStyle.NUMPYDOC,
 ) -> None:
-    r"""_summary_.
+    r"""Run pymend over the list of files..
 
     Parameters
     ----------
-    files : List[str]
+    files : list[str]
         List of files to analyze and fix.
     overwrite : bool
         Whether to overwrite the source file directly instead of creating
@@ -34,6 +34,12 @@ def run(
     output_style : dsp.DocstringStyle
         Output style to use for the modified docstrings.
         (Default value = dsp.DocstringStyle.NUMPYDOC)
+
+    Raises
+    ------
+    AssertionError
+        If the input and output lines are identical but pyment reports
+        some elements to have changed.
     """
     for file in files:
         comment = PyComment(
@@ -48,12 +54,22 @@ def run(
         if overwrite:
             list_from, lines_to_write, list_changed = comment.compute_before_after()
             if (list_from == lines_to_write) != (len(list_changed) == 0):
+                log = comment.dump_to_file(
+                    "INTERNAL ERROR: "
+                    "Pymend reported some elements to have changed "
+                    "but the output is identical to the input.\n",
+                    "List of changed elements:\n",
+                    "\n".join(list_changed),
+                    "Original file\n",
+                    "".join(list_from),
+                )
                 msg = (
-                    f"The file {file} having changed should be identical "
-                    "to any function having changed! "
-                    f"However the list of changed functions was {list_changed}"
-                    " but the difference between the files "
-                    f"was {list(set(list_from) ^ set(lines_to_write))}!"
+                    "INTERNAL ERROR: "
+                    "Pymend reported some elements to have changed "
+                    "but the output is identical to the input. "
+                    " Please report a bug on"
+                    " https://github.com/JanEricNitschke/pymend/issues."
+                    f" This invalid output might be helpful: {log}"
                 )
                 raise AssertionError(msg)
             if file == "-":
