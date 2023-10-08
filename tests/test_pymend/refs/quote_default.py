@@ -22,3 +22,18 @@ def ex2(
         The quotes to use.
     """
     print(x)
+
+def ex3(
+    docstring: str,
+    quotes: str = '"""',
+) -> None:
+    """_summary_.
+
+    Parameters
+    ----------
+    docstring : str
+        The input docstring
+    quotes : str
+        The quotes to use. (Default value = '\"\"\"')
+    """
+    print(x)
