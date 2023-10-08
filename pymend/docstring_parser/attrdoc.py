@@ -25,7 +25,18 @@ ast_constant_attr = {
 def ast_get_constant_value(
     node: Union[ast.Str, ast.Num, ast.NameConstant, ast.Constant]
 ) -> Any:  # noqa: ANN401
-    """Return the constant's value if the given node is a constant."""
+    """Return the constant's value if the given node is a constant.
+
+    Parameters
+    ----------
+    node : Union[ast.Str, ast.Num, ast.NameConstant, ast.Constant]
+        Node to get the constant value from.
+
+    Returns
+    -------
+    Any
+        Actual value contained by the node.
+    """
     return getattr(node, ast_constant_attr[node.__class__])
 
 
@@ -40,14 +51,37 @@ def ast_unparse(node: ast.AST) -> str:
 
 
 def ast_unparse(node: Optional[ast.AST]) -> Optional[str]:
-    """Convert the AST node to source code as a string."""
+    """Convert the AST node to source code as a string.
+
+    Parameters
+    ----------
+    node : Optional[ast.AST]
+        Node to unparse.
+
+    Returns
+    -------
+    Optional[str]
+        `None` if `node` was `None`.
+        Otherwise the unparsed node.
+    """
     if node is None:
         return None
     return ast.unparse(node)
 
 
 def ast_is_literal_str(node: ast.AST) -> TypeGuard[ast.Expr]:
-    """Return True if the given node is a literal string."""
+    """Return True if the given node is a literal string.
+
+    Parameters
+    ----------
+    node : ast.AST
+        Node to check.
+
+    Returns
+    -------
+    TypeGuard[ast.Expr]
+        True if the node represents a string literal.
+    """
     return (
         isinstance(node, ast.Expr)
         and isinstance(node.value, (ast.Constant, ast.Str))
@@ -58,7 +92,19 @@ def ast_is_literal_str(node: ast.AST) -> TypeGuard[ast.Expr]:
 def ast_get_attribute(
     node: ast.AST,
 ) -> Optional[tuple[str, Optional[str], Optional[str]]]:
-    """Return name, type and default if the given node is an attribute."""
+    """Return name, type and default if the given node is an attribute.
+
+    Parameters
+    ----------
+    node : ast.AST
+        Node to get the attribute from
+
+    Returns
+    -------
+    Optional[tuple[str, Optional[str], Optional[str]]]
+        None if the node does not represent an assignment.
+        Otherwise a tuple of name, type and default value.
+    """
     if isinstance(node, (ast.Assign, ast.AnnAssign)):
         target = node.targets[0] if isinstance(node, ast.Assign) else node.target
         if isinstance(target, ast.Name):
@@ -78,7 +124,13 @@ class AttributeDocstrings(ast.NodeVisitor):
 
     @override
     def visit(self, node: ast.AST) -> None:
-        """Visit a node and collect its attribute docstrings."""
+        """Visit a node and collect its attribute docstrings.
+
+        Parameters
+        ----------
+        node : ast.AST
+            Node to visit.
+        """
         if self.prev_attr and self.attr_docs is not None and ast_is_literal_str(node):
             attr_name, attr_type, attr_default = self.prev_attr
             # This is save because `ast_is_literal_str`
@@ -106,9 +158,9 @@ class AttributeDocstrings(ast.NodeVisitor):
 
         Returns
         -------
-        Dict[str, Tuple[str, Optional[str], Optional[str]]]
-            for each attribute docstring, a tuple with (description,
-            type, default)
+        dict[str, tuple[str, Optional[str], Optional[str]]]
+            for each attribute docstring, a tuple with
+            (description, type, default)
         """
         self.attr_docs = {}
         self.prev_attr = None
