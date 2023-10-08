@@ -128,7 +128,13 @@ class Docstring:
         self,
         style: Optional[DocstringStyle] = None,
     ) -> None:
-        """Initialize self."""
+        """Initialize self.
+
+        Parameters
+        ----------
+        style : Optional[DocstringStyle]
+            Style that this docstring was formatted in. (Default value = None)
+        """
         self.short_description: Optional[str] = None
         self.long_description: Optional[str] = None
         self.blank_after_short_description: bool = False
@@ -138,12 +144,24 @@ class Docstring:
 
     @property
     def params(self) -> list[DocstringParam]:
-        """Return a list of information on function params."""
+        """Return a list of information on function params.
+
+        Returns
+        -------
+        list[DocstringParam]
+            list of information on function params
+        """
         return [item for item in self.meta if isinstance(item, DocstringParam)]
 
     @property
     def raises(self) -> list[DocstringRaises]:
-        """Return a list of the exceptions that the function may raise."""
+        """Return a list of the exceptions that the function may raise.
+
+        Returns
+        -------
+        list[DocstringRaises]
+            list of the exceptions that the function may raise.
+        """
         return [item for item in self.meta if isinstance(item, DocstringRaises)]
 
     @property
@@ -151,6 +169,11 @@ class Docstring:
         """Return a single information on function return.
 
         Takes the first return information.
+
+        Returns
+        -------
+        Optional[DocstringReturns]
+            Single information on function return.
         """
         return next(
             (item for item in self.meta if isinstance(item, DocstringReturns)),
@@ -159,7 +182,13 @@ class Docstring:
 
     @property
     def many_returns(self) -> list[DocstringReturns]:
-        """Return a list of information on function return."""
+        """Return a list of information on function return.
+
+        Returns
+        -------
+        list[DocstringReturns]
+            list of information on function return.
+        """
         return [item for item in self.meta if isinstance(item, DocstringReturns)]
 
     @property
@@ -167,6 +196,11 @@ class Docstring:
         """Return information on function yield.
 
         Takes the first generator information.
+
+        Returns
+        -------
+        Optional[DocstringYields]
+            Single information on function yield.
         """
         return next(
             (
@@ -179,12 +213,24 @@ class Docstring:
 
     @property
     def many_yields(self) -> list[DocstringYields]:
-        """Return a list of information on function yields."""
+        """Return a list of information on function yields.
+
+        Returns
+        -------
+        list[DocstringYields]
+            list of information on function yields.
+        """
         return [item for item in self.meta if isinstance(item, DocstringYields)]
 
     @property
     def deprecation(self) -> Optional[DocstringDeprecated]:
-        """Return a single information on function deprecation notes."""
+        """Return a single information on function deprecation notes.
+
+        Returns
+        -------
+        Optional[DocstringDeprecated]
+            single information on function deprecation notes.
+        """
         return next(
             (item for item in self.meta if isinstance(item, DocstringDeprecated)),
             None,
@@ -192,5 +238,11 @@ class Docstring:
 
     @property
     def examples(self) -> list[DocstringExample]:
-        """Return a list of information on function examples."""
+        """Return a list of information on function examples.
+
+        Returns
+        -------
+        list[DocstringExample]
+            list of information on function examples.
+        """
         return [item for item in self.meta if isinstance(item, DocstringExample)]
