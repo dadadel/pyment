@@ -12,5 +12,5 @@ def raises():
     """
     raise ValueError
     raise KeyError
-    raise TypeError
+    raise TypeError(msg)
     raise ValueError

@@ -223,8 +223,14 @@ class AstAnalyzer:
                 ):
                     yields.add(self._get_ids_from_returns(node.value.elts))
             elif isinstance(node, ast.Raise):
-                if node.exc and isinstance(node.exc, ast.Name):
+                if not node.exc:
+                    raises.append("")
+                elif isinstance(node.exc, ast.Name):
                     raises.append(node.exc.id)
+                elif isinstance(node.exc, ast.Call) and isinstance(
+                    node.exc.func, ast.Name
+                ):
+                    raises.append(node.exc.func.id)
                 else:
                     raises.append("")
         return FunctionBody(
