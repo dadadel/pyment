@@ -44,7 +44,7 @@ def _clean_str(string: str) -> Optional[str]:
 
 
 KV_REGEX = re.compile(r"^[^\s].*$", flags=re.M)
-PARAM_KEY_REGEX = re.compile(r"^(?P<name>.*?)(?:\s*:\s*(?P<type>.*?))?$")
+PARAM_KEY_REGEX = re.compile(r"^(?P<name>.*?)(?:\s+:\s*(?P<type>.*?))?$")
 PARAM_OPTIONAL_REGEX = re.compile(r"(?P<type>.*?)(?:, optional|\(optional\))$")
 
 # numpydoc format has no formal grammar for this,
