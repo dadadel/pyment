@@ -80,10 +80,10 @@ class GoogleParser:
 
         Parameters
         ----------
-        sections : Optional[List[Section]]
+        sections : Optional[list[Section]]
             Recognized sections or None to defaults.
-        title_colon : _type_
-            require colon after section title. (Default value = True)
+        title_colon : bool
+            Require colon after section title. (Default value = True)
         """
         if not sections:
             sections = DEFAULT_SECTIONS
@@ -92,6 +92,7 @@ class GoogleParser:
         self._setup()
 
     def _setup(self) -> None:
+        """Set up parser with the colon type and title regex."""
         colon = ":" if self.title_colon else ""
         self.titles_re = re.compile(
             "^("
@@ -147,6 +148,26 @@ class GoogleParser:
 
     @staticmethod
     def _build_single_meta(section: Section, desc: str) -> DocstringMeta:
+        """Build docstring element for single line sections.
+
+        Parameters
+        ----------
+        section : Section
+            The section that is being processed.
+        desc : str
+            docstring element text
+
+        Returns
+        -------
+        DocstringMeta
+            Docstring meta wrapper.
+
+        Raises
+        ------
+        ParseError
+            If the section represents a parameter section.
+            In that case we would not expect to be in the single line function.
+        """
         if section.key in RETURNS_KEYWORDS:
             return DocstringReturns(
                 args=[section.key],
@@ -172,6 +193,22 @@ class GoogleParser:
 
     @staticmethod
     def _build_multi_meta(section: Section, before: str, desc: str) -> DocstringMeta:
+        """Build docstring element for multi line sections.
+
+        Parameters
+        ----------
+        section : Section
+            The section that is being processed.
+        before : str
+            Part before the first colon in the docstring text.
+        desc : str
+            Rest of the description.
+
+        Returns
+        -------
+        DocstringMeta
+            Docstring meta wrapper around.
+        """
         if section.key in PARAM_KEYWORDS:
             match = GOOGLE_TYPED_ARG_REGEX.match(before)
             if match:
@@ -222,13 +259,24 @@ class GoogleParser:
     def add_section(self, section: Section) -> None:
         """Add or replace a section.
 
-        :param section: The new section.
+        Parameters
+        ----------
+        section : Section
+            The new section.
         """
         self.sections[section.title] = section
         self._setup()
 
     def _split_description(self, docstring: Docstring, desc_chunk: str) -> None:
-        """Break description into short and long parts."""
+        """Break description into short and long parts.
+
+        Parameters
+        ----------
+        docstring : Docstring
+            Docstring to fill with description information.
+        desc_chunk : str
+            Chunk of the raw docstring representing the description.
+        """
         parts = desc_chunk.split("\n", 1)
         docstring.short_description = parts[0] or None
         if len(parts) > 1:
@@ -238,6 +286,18 @@ class GoogleParser:
             docstring.long_description = long_desc_chunk.strip() or None
 
     def _split_sections(self, meta_chunk: str) -> Mapping[str, str]:
+        """Split the cunk into sections as determined by the titles..
+
+        Parameters
+        ----------
+        meta_chunk : str
+            Part of the docstring NOT holding the description.
+
+        Returns
+        -------
+        Mapping[str, str]
+            Mapping between sectrion title and part of the docstring that deals with it.
+        """
         chunks: Mapping[str, str] = OrderedDict()
 
         matches = list(self.titles_re.finditer(meta_chunk))
@@ -264,7 +324,23 @@ class GoogleParser:
         return chunks
 
     def _determine_indent(self, chunk: str) -> str:
-        """Determine indent."""
+        """Determine indent.
+
+        Parameters
+        ----------
+        chunk : str
+            Chunk to determine the indent for.
+
+        Returns
+        -------
+        str
+            String representing the indent.
+
+        Raises
+        ------
+        ParseError
+            If no indent could be determined.
+        """
         indent_match = re.search(r"^\s*", chunk)
         if not indent_match:
             msg = f"Can't infer indent from '{chunk}'"
@@ -272,6 +348,18 @@ class GoogleParser:
         return indent_match.group()
 
     def _get_chunks(self, text: str) -> tuple[str, str]:
+        """Split docstring into description and meta part.
+
+        Parameters
+        ----------
+        text : str
+            Docstring text to split.
+
+        Returns
+        -------
+        tuple[str, str]
+            Docstring representing the description and the rest.
+        """
         if match := self.titles_re.search(text):
             return text[: match.start()], text[match.start() :]
         return text, ""
@@ -281,13 +369,18 @@ class GoogleParser:
 
         Parameters
         ----------
-        text : str
+        text : Optional[str]
             docstring text
 
         Returns
         -------
         Docstring
             parsed docstring
+
+        Raises
+        ------
+        ParseError
+            If no specification could be found for a title, chunk pair.
         """
         ret = Docstring(style=DocstringStyle.GOOGLE)
         if not text:
@@ -341,7 +434,15 @@ class GoogleParser:
 def parse(text: Optional[str]) -> Docstring:
     """Parse the Google-style docstring into its components.
 
-    :returns: parsed docstring
+    Parameters
+    ----------
+    text : Optional[str]
+        docstring text
+
+    Returns
+    -------
+    Docstring
+        parsed docstring
     """
     return GoogleParser().parse(text)
 
@@ -370,6 +471,13 @@ def compose(  # noqa: PLR0915
     """
 
     def process_one(one: MainSections) -> None:
+        """Build the output text for one entry in a section.
+
+        Parameters
+        ----------
+        one : MainSections
+            Docstring for which to build the raw text.
+        """
         head = ""
 
         if isinstance(one, DocstringParam):
@@ -405,6 +513,15 @@ def compose(  # noqa: PLR0915
             parts.append(head)
 
     def process_sect(name: str, args: Sequence[MainSections]) -> None:
+        """Build the output for a docstring section.
+
+        Parameters
+        ----------
+        name : str
+            Section for which to build the output.
+        args : Sequence[MainSections]
+            List of individual elements of that section.
+        """
         if args:
             parts.append(name)
             for arg in args:
