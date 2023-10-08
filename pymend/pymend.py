@@ -4,7 +4,10 @@ import difflib
 import os
 import platform
 import sys
+import tempfile
 from pathlib import Path
+
+from typing_extensions import Self
 
 import pymend.docstring_parser as dsp
 
@@ -50,6 +53,14 @@ class PyComment:
         self.docs_list = []
         self.parsed = False
 
+    def __copy_from_line_list(self, lines: list[str]) -> Self:
+        py_comment = PyComment.__new__(PyComment)
+        py_comment.input_lines = "".join(lines)
+        py_comment.output_style = self.output_style
+        py_comment.parsed = False
+        py_comment.docs_list = []
+        return py_comment
+
     def _parse(self) -> list[ElementDocstring]:
         """Parse input file's content and generates a list of its elements/docstrings.
 
@@ -65,40 +76,19 @@ class PyComment:
         self.parsed = True
         return self.docs_list
 
-    def _get_modifier(self, line: str) -> str:
-        """Get the string modifier from the start of a docstring.
+    def get_changes(self) -> tuple[list[str], list[str], list[str]]:
+        r"""Compute the list of lines before and after the proposed docstring changes.
 
-        Parameters
-        ----------
-        line : str
-            Line to check
+        Elements of the list already contain '\n' at the end.
 
         Returns
         -------
-        str
-            Modifier(s) of the string.
-        """
-        line = line.strip()
-        delimiters = ['"""', "'''"]
-        modifiers = ["r", "u", "f"]
-        if not line:
-            return ""
-        if line[:3] in delimiters:
-            return ""
-        if line[0] in modifiers and line[1:4] in delimiters:
-            return line[0]
-        if line[0] in modifiers and line[1] in modifiers and line[2:5] in delimiters:
-            return line[:2]
-        return ""
-
-    def compute_before_after(self) -> tuple[list[str], list[str], list[str]]:
-        """Compute the list of lines before and after the proposed docstring changes.
-
-        Returns
-        -------
-        Tuple[List[str], List[str], List[str]]
-            Tuple of before, after, changed,
-            where each is a list of lines of python code.
+        list_from : list[str]
+            Original file as list of lines.
+        list_to : list[str]
+            Modified content as list of lines.
+        list_changed : list[str]
+            List of names of elements that were changed.
         """
         if not self.parsed:
             self._parse()
@@ -117,14 +107,13 @@ class PyComment:
             in_docstring = e.docstring
             old_line = list_from[start]
             leading_whitespace = old_line[: -len(old_line.lstrip())]
-            modifier = self._get_modifier(old_line)
             raw_out = e.output_docstring(style=self.output_style)
             out_docstring = self._add_quotes_indentation_modifier(
                 raw_out,
                 indentation=leading_whitespace,
-                modifier=modifier,
+                modifier=e.modifier,
             )
-            if in_docstring != out_docstring.strip()[3:-3]:
+            if in_docstring != out_docstring.strip()[3 + len(e.modifier) : -3]:
                 list_changed.append(e.name)
             list_to.extend(list_from[last:start])
             list_to.extend(out_docstring.splitlines(keepends=True))
@@ -133,8 +122,58 @@ class PyComment:
             last = end + 1
         if last < len(list_from):
             list_to.extend(list_from[last:])
-
         return list_from, list_to, list_changed
+
+    def compute_before_after(self) -> tuple[list[str], list[str], list[str]]:
+        r"""Compute the before and after and assert equality and stability.
+
+        Make sure that pymend is idempotent.
+        Make sure that the original and final Ast's are the same (except for docstring.)
+
+        Returns
+        -------
+        Tuple[List[str], List[str], List[str]]
+            Tuple of before, after, changed,
+        """
+        list_from, list_to, list_changed = self.get_changes()
+        self.assert_stability(list_from, list_to)
+        self.assert_equality(list_from, list_to)
+        return list_from, list_to, list_changed
+
+    def assert_stability(self, src: list[str], dst: list[str]) -> None:
+        """Assert that running pymend on its own output does not change anything."""
+        comment = self.__copy_from_line_list(dst)
+        comment.proceed()
+        before, after, changed = comment.get_changes()
+        if changed or not (dst == before and dst == after):
+            log = self.dump_to_file(
+                "Changed:\n",
+                "\n".join(changed),
+                "".join(self._pure_diff(src, dst, "source", "first pass")),
+                "".join(self._pure_diff(dst, after, "first pass", "second pass")),
+            )
+            msg = (
+                "INTERNAL ERROR:"
+                " PyMend produced docstrings on the second pass."
+                " Please report a bug on"
+                " https://github.com/JanEricNitschke/pymend/issues."
+                f"  This diff might be helpful: {log}"
+            )
+            raise AssertionError(msg)
+
+    def assert_equality(self, src: list[str], dst: list[str]) -> None:
+        """Assert that running pymend does not change functional ast."""
+
+    def dump_to_file(self, *output: str, ensure_final_newline: bool = True) -> str:
+        """Dump `output` to a temporary file. Return path to the file."""
+        with tempfile.NamedTemporaryFile(
+            mode="w", prefix="blk_", suffix=".log", delete=False, encoding="utf8"
+        ) as f:
+            for lines in output:
+                f.write(lines)
+                if ensure_final_newline and lines and lines[-1] != "\n":
+                    f.write("\n")
+        return f.name
 
     def _add_quotes_indentation_modifier(
         self,
@@ -174,8 +213,17 @@ class PyComment:
 
         fromfile = f"a/{source_path}"
         tofile = f"b/{target_path}"
+        return self._pure_diff(list_from, list_to, fromfile, tofile)
+
+    def _pure_diff(
+        self,
+        src: list[str],
+        dst: list[str],
+        source_path: str = "",
+        target_path: str = "",
+    ) -> list[str]:
         diff_lines: list[str] = []
-        for line in difflib.unified_diff(list_from, list_to, fromfile, tofile):
+        for line in difflib.unified_diff(src, dst, source_path, target_path):
             # Work around https://bugs.python.org/issue2142
             # See:
             # https://www.gnu.org/software/diffutils/manual/html_node/Incomplete-Lines.html

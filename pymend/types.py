@@ -24,6 +24,7 @@ class DocstringInfo:
     name: str
     docstring: str
     lines: tuple[int, Optional[int]]
+    modifier: str
     default_description: ClassVar[str] = "_description_"
     default_type: ClassVar[str] = "_type_"
     default_summary: ClassVar[str] = "_summary_."
@@ -32,9 +33,15 @@ class DocstringInfo:
         self, style: dsp.DocstringStyle = dsp.DocstringStyle.NUMPYDOC
     ) -> str:
         """Parse and fix input docstrings, then compose output docstring."""
+        self._escape_triple_quotes()
         parsed = dsp.parse(self.docstring)
         self.fix_docstring(parsed)
         return dsp.compose(parsed, style=style)
+
+    def _escape_triple_quotes(self) -> None:
+        r"""Escape \"\"\" in the docstring."""
+        if '"""' in self.docstring:
+            self.docstring = self.docstring.replace('"""', r"\"\"\"")
 
     def fix_docstring(self, docstring: dsp.Docstring) -> None:
         """Fix docstrings.
@@ -42,10 +49,16 @@ class DocstringInfo:
         Default are to add missing dots, blank lines and give defaults for
         descriptions and types.
         """
+        self._fix_backslashes()
         self._fix_short_description(docstring)
         self._fix_blank_lines(docstring)
         self._fix_descriptions(docstring)
         self._fix_types(docstring)
+
+    def _fix_backslashes(self) -> None:
+        """If there is any backslash in the docstring set it as raw."""
+        if "\\" in self.docstring and "r" not in self.modifier:
+            self.modifier = "r" + self.modifier
 
     def _fix_short_description(self, docstring: dsp.Docstring) -> None:
         """Set default summary."""
@@ -219,6 +232,8 @@ class FunctionDocstring(DocstringInfo):
         Currently only escapes triple quotes '\"\"\"'.
         """
         if '"""' in default_value:
+            if "r" not in self.modifier:
+                self.modifier = "r" + self.modifier
             return default_value.replace('"""', r"\"\"\"")
         return default_value
 

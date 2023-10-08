@@ -71,9 +71,17 @@ class AstAnalyzer:
         docstring_info = self.get_docstring_info(module)
         if docstring_info is None:
             docstring_line = self._get_docstring_line()
-            return ModuleDocstring("Module", "", (docstring_line, docstring_line))
+            return ModuleDocstring(
+                "Module",
+                docstring="",
+                lines=(docstring_line, docstring_line),
+                modifier="",
+            )
         return ModuleDocstring(
-            docstring_info.name, docstring_info.docstring, docstring_info.lines
+            docstring_info.name,
+            docstring_info.docstring,
+            docstring_info.lines,
+            docstring_info.modifier,
         )
 
     def handle_class(self, cls: ast.ClassDef) -> ClassDocstring:
@@ -84,6 +92,7 @@ class AstAnalyzer:
             docstring.name,
             docstring.docstring,
             docstring.lines,
+            docstring.modifier,
             attributes=attributes,
             methods=methods,
         )
@@ -100,6 +109,7 @@ class AstAnalyzer:
             docstring.name,
             docstring.docstring,
             docstring.lines,
+            docstring.modifier,
             signature=signature,
             body=body,
         )
@@ -115,7 +125,7 @@ class AstAnalyzer:
                 msg = "Function body was unexpectedly completely empty."
                 raise ValueError(msg)
             lines = (elem.body[0].lineno, elem.body[0].lineno)
-            return DocstringInfo(elem.name, "", lines)
+            return DocstringInfo(name=elem.name, docstring="", lines=lines, modifier="")
         return docstring_info
 
     def get_docstring_info(self, node: NodeOfInterest) -> Optional[DocstringInfo]:
@@ -131,6 +141,9 @@ class AstAnalyzer:
                     "docstring, but found nothing or something else."
                 )
                 raise ValueError(msg)
+            modifier = self._get_modifier(
+                self.file_content.splitlines()[docnode.lineno - 1]
+            )
             return DocstringInfo(
                 # Can not use DefinitionNodes in isinstance checks before 3.10
                 node.name
@@ -140,8 +153,35 @@ class AstAnalyzer:
                 else "Module",
                 str(docnode.value),
                 (docnode.lineno, docnode.end_lineno),
+                modifier,
             )
         return None
+
+    def _get_modifier(self, line: str) -> str:
+        """Get the string modifier from the start of a docstring.
+
+        Parameters
+        ----------
+        line : str
+            Line to check
+
+        Returns
+        -------
+        str
+            Modifier(s) of the string.
+        """
+        line = line.strip()
+        delimiters = ['"""', "'''"]
+        modifiers = ["r", "u", "f"]
+        if not line:
+            return ""
+        if line[:3] in delimiters:
+            return ""
+        if line[0] in modifiers and line[1:4] in delimiters:
+            return line[0]
+        if line[0] in modifiers and line[1] in modifiers and line[2:5] in delimiters:
+            return line[:2]
+        return ""
 
     def _get_docstring_line(self) -> int:
         """Get the line where the docstring should start."""

@@ -6,7 +6,7 @@
      docstring: str,
      quotes: str = '"""',
  ) -> None:
-+    """_summary_.
++    r"""_summary_.
 +
 +    Parameters
 +    ----------
@@ -18,11 +18,46 @@
      pass
  
  
-@@ -19,6 +28,6 @@
-     docstring : str
-         The input docstring
-     quotes : str
+@@ -12,22 +21,7 @@
+     docstring: str,
+     quotes: str = '"""',
+ ) -> None:
+-    """_summary_.
+-
+-    Parameters
+-    ----------
+-    docstring : str
+-        The input docstring
+-    quotes : str
 -        The quotes to use.
-+        The quotes to use. (Default value = '\"\"\"')
+-    """
+-    print(x)
+-
+-def ex3(
+-    docstring: str,
+-    quotes: str = '"""',
+-) -> None:
+-    """_summary_.
++    r"""_summary_.
+ 
+     Parameters
+     ----------
+@@ -37,3 +31,18 @@
+         The quotes to use. (Default value = '\"\"\"')
      """
      print(x)
++
++def ex3(
++    docstring: str,
++    quotes: str = '"""',
++) -> None:
++    r"""_summary_.
++
++    Parameters
++    ----------
++    docstring : str
++        The input docstring
++    quotes : str
++        The quotes to use. (Default value = '\"\"\"')
++    """
++    print(x)
