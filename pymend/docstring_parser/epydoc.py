@@ -16,24 +16,8 @@ from .common import (
     DocstringYields,
     ParseError,
     RenderingStyle,
+    clean_str,
 )
-
-
-def _clean_str(string: str) -> Optional[str]:
-    """Strip the string and return None if it is empty then.
-
-    Parameters
-    ----------
-    string : str
-        String to cleaned.
-
-    Returns
-    -------
-    Optional[str]
-        Stripped string or None of the string is now empty.
-    """
-    string = string.strip()
-    return string if string != "" else None
 
 
 class SectionPattern(NamedTuple):
@@ -144,7 +128,7 @@ def _tokenize(
         else:
             base = "meta"
             key: str = match.group(1)
-            token = _clean_str(match.group(2).strip())
+            token = clean_str(match.group(2).strip())
             args = [] if token is None else re.split(r"\s+", token)
 
             # Make sure we didn't match some existing keyword in an incorrect

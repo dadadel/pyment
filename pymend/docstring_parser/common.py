@@ -24,6 +24,23 @@ YIELDS_KEYWORDS = {"yield", "yields"}
 EXAMPLES_KEYWORDS = {"example", "examples"}
 
 
+def clean_str(string: str) -> Optional[str]:
+    """_summary_.
+
+    Parameters
+    ----------
+    string : str
+        _description_
+
+    Returns
+    -------
+    Optional[str]
+        _description_
+    """
+    string = string.strip()
+    return string if string != "" else None
+
+
 class ParseError(RuntimeError):
     """Base class for all parsing related errors."""
 
