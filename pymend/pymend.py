@@ -124,7 +124,7 @@ class PyComment:
                 indentation=leading_whitespace,
                 modifier=modifier,
             )
-            if in_docstring != out_docstring.strip()[3:-3]:
+            if in_docstring != out_docstring.strip()[3 + len(modifier) : -3]:
                 list_changed.append(e.name)
             list_to.extend(list_from[last:start])
             list_to.extend(out_docstring.splitlines(keepends=True))
