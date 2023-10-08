@@ -37,6 +37,9 @@ class PyComment:
         ----------
         input_file : str
             path name (file or folder)
+        output_style : dsp.DocstringStyle
+            Output style to use for docstring.
+            (Default value = dsp.DocstringStyle.NUMPYDOC)
         """
         self.input_file = input_file
         self.output_style = output_style

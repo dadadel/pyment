@@ -43,7 +43,6 @@ class DocstringInfo:
         descriptions and types.
         """
         self._fix_short_description(docstring)
-        self._fix_long_description(docstring)
         self._fix_blank_lines(docstring)
         self._fix_descriptions(docstring)
         self._fix_types(docstring)
@@ -53,13 +52,7 @@ class DocstringInfo:
         docstring.short_description = (
             docstring.short_description or self.default_summary
         )
-
-    def _fix_long_description(self, docstring: dsp.Docstring) -> None:
-        """Add '.' to end of description if missing."""
-        if (
-            docstring.short_description
-            and not docstring.short_description.rstrip().endswith(".")
-        ):
+        if not docstring.short_description.rstrip().endswith("."):
             docstring.short_description = f"{docstring.short_description.rstrip()}."
 
     def _fix_blank_lines(self, docstring: dsp.Docstring) -> None:
