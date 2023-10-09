@@ -33,8 +33,26 @@ def combine_docstrings(
     default to the wrapped function's value (when available) and otherwise use
     the rightmost definition from ``others``.
 
-    The following example illustrates its usage:
+    Parameters
+    ----------
+    *others : _Func
+        callables from which to parse docstrings.
+    exclude : Iterable[type[DocstringMeta]]
+        an iterable of ``DocstringMeta`` subclasses to exclude when
+        combining docstrings. (Default value = ())
+    style : DocstringStyle
+        Style that the docstrings are currently in. Default will infer style.
+        (Default value = DocstringStyle.AUTO)
+    rendering_style : RenderingStyle
+        Rendering style to use. (Default value = RenderingStyle.COMPACT)
 
+    Returns
+    -------
+    _Func
+        the decorated function with a modified docstring.
+
+    Examples
+    --------
     >>> def fun1(a, b, c, d):
     ...    '''short_description: fun1
     ...
@@ -79,17 +97,21 @@ def combine_docstrings(
     :param b: fun1
     :param c: fun2
     :param e: fun2
-
-    :param others: callables from which to parse docstrings.
-    :param exclude: an iterable of ``DocstringMeta`` subclasses to exclude when
-        combining docstrings.
-    :param style: style composed docstring. The default will infer the style
-        from the decorated function.
-    :param rendering_style: The rendering style used to compose a docstring.
-    :return: the decorated function with a modified docstring.
     """
 
     def wrapper(func: _Func) -> _Func:
+        """Wrap the function.
+
+        Parameters
+        ----------
+        func : _Func
+            Function to wrap.
+
+        Returns
+        -------
+        _Func
+            Wrapped function
+        """
         sig = Signature.from_callable(func)
 
         comb_doc = parse(func.__doc__ or "")

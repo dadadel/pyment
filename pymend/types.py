@@ -116,6 +116,9 @@ class DocstringInfo:
             Docstring whose descriptions need fixing.
         """
         for ele in docstring.meta:
+            # Description works a bit different for examples.
+            if isinstance(ele, dsp.DocstringExample):
+                continue
             ele.description = ele.description or self.default_description
 
     def _fix_types(self, docstring: dsp.Docstring) -> None:

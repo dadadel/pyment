@@ -425,13 +425,29 @@ class ExamplesSection(Section):
     """Parser for numpydoc examples sections.
 
     E.g. any section that looks like this:
+
+        Optional description for the following example. Always preceded
+        and followed by an empty line. Except for the first description.
+
         >>> import numpy.matlib
         >>> np.matlib.empty((2, 2))    # filled with random data
         matrix([[  6.76425276e-320,   9.79033856e-307], # random
                 [  7.39337286e-309,   3.22135945e-309]])
-        >>> np.matlib.empty((2, 2), dtype=int)
-        matrix([[ 6600475,        0], # random
-                [ 6586976, 22740995]])
+
+        Description for the second example.
+
+        >>> d = np.zeros((5,2))
+        >>> for i in range(5):
+        ...   for j in range(2):
+        ...     for k in range(3):
+        ...       for n in range(4):
+        ...         d[i,j] += a[k,n,i] * b[n,k,j]
+        >>> c == d
+        array([[ True,  True],
+            [ True,  True],
+            [ True,  True],
+            [ True,  True],
+            [ True,  True]])
     """
 
     @override
@@ -449,14 +465,33 @@ class ExamplesSection(Section):
         DocstringExample
             Docstring example sections
         """
-        lines = dedent(text).strip().splitlines()
+        # Reverse so that we can efficiently pop from the back
+        # instead of doing constant pops from the front.
+        # Could also use a deque
+        # ---
+        # We add a newline to the end to not have to special case the first
+        # description.
+        lines = [*list(reversed(dedent(text).strip().splitlines())), "\n"]
         while lines:
             snippet_lines: list[str] = []
             description_lines: list[str] = []
-            while lines and lines[0].startswith(">>>"):
-                snippet_lines.append(lines.pop(0))
-            while lines and not lines[0].startswith(">>>"):
-                description_lines.append(lines.pop(0))
+            # Empty lines before the description
+            while lines and lines[-1].strip() == "":
+                lines.pop()
+            # Description. Should not start with ">>>". if that were the case
+            # Then there was no description.
+            while lines and lines[-1].strip() != "" and not lines[-1].startswith(">>>"):
+                description_lines.append(lines.pop())
+            # Empty lines after description
+            while lines and lines[-1].strip() == "":
+                lines.pop()
+            # Here the actual example starts.
+            # We take any line.
+            # The code part starts with ">>>" or "..."
+            # but the result part can be anything.
+            # Just keeping until an empty line which should indicate the next example.
+            while lines and lines[-1].strip() != "":
+                snippet_lines.append(lines.pop())
             yield DocstringExample(
                 [self.key],
                 snippet="\n".join(snippet_lines) if snippet_lines else None,
@@ -516,7 +551,7 @@ class NumpydocParser:
         self._setup()
 
     def _setup(self) -> None:
-        """_summary_."""
+        """Set up parser title regex."""
         self.titles_re = re.compile(
             r"|".join(s.title_pattern for s in self.sections.values()),
             flags=re.M,
@@ -592,6 +627,37 @@ def parse(text: Optional[str]) -> Docstring:
     return NumpydocParser().parse(text)
 
 
+def process_examples(examples: list[DocstringExample], parts: list[str]) -> None:
+    """Add string representation of examples section to parts.
+
+    Parameters
+    ----------
+    examples : list[DocstringExample]
+        DocstringExamples to add to parts.
+    parts : list[str]
+        List of strings representing the final output of compose().
+    indent : str
+        the characters used as indentation in the docstring string
+        (Default value = '    ')
+    """
+    if examples:
+        parts.append("")
+        parts.append("Examples")
+        parts.append("-" * len(parts[-1]))
+        for i, example in enumerate(examples):
+            # Leave out newline for first example
+            if i != 0:
+                parts.append("\n")
+            if example.description:
+                parts.append("\n".join(example.description.splitlines()))
+                # Only add a new line if we have an actual example snippet here.
+                # If not the next description will handle it.
+                if example.snippet:
+                    parts.append("\n")
+            if example.snippet:
+                parts.append("\n".join(example.snippet.splitlines()))
+
+
 def compose(  # noqa: PLR0915
     # pylint: disable=W0613,R0915
     docstring: Docstring,
@@ -649,7 +715,7 @@ def compose(  # noqa: PLR0915
         else:
             parts.append(head)
 
-    def process_sect(name: str, args: list[MainSections]) -> None:
+    def process_sect(name: str, args: Iterable[MainSections]) -> None:
         """Build the output for a docstring section.
 
         Parameters
@@ -662,7 +728,7 @@ def compose(  # noqa: PLR0915
         if args:
             parts.append("")
             parts.append(name)
-            parts.append("-" * len(parts[-1]))
+            parts.append("-" * len(name))
             for arg in args:
                 process_one(arg)
 
@@ -739,6 +805,8 @@ def compose(  # noqa: PLR0915
         [item for item in docstring.raises or [] if item.args[0] == "warns"],
     )
 
+    process_examples(docstring.examples, parts)
+
     for meta in docstring.meta:
         if isinstance(
             meta,
@@ -748,6 +816,7 @@ def compose(  # noqa: PLR0915
                 DocstringReturns,
                 DocstringRaises,
                 DocstringYields,
+                DocstringExample,
             ),
         ):
             continue  # Already handled
