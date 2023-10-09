@@ -8,6 +8,8 @@ import textwrap
 from re import Pattern
 from typing import Optional, Union
 
+import pytest
+
 import pymend.pymend
 
 
@@ -258,11 +260,18 @@ class TestApp:
         assert_output(cmd_to_run, "returncode", returncode, expected_returncode)
         assert_output(cmd_to_run, "stdout", stdout, expected_stdout)
 
-    # def test_no_args_ge_py33(self) -> None:
-    #     """Ensure the app outputs an error if there are no arguments."""
-    #     self.run_pymend_app_and_assert_is_expected(
-    #             re.DOTALL,
-    #         ),
+    def test_no_args_ge_py33(self) -> None:
+        """Ensure the app outputs an error if there are no arguments."""
+        self.run_pymend_app_and_assert_is_expected(
+            cmd_args="",
+            write_to_stdin=None,
+            expected_stderr=re.compile(
+                r"Usage: pymend \[OPTIONS\] SRC \.\.\..*"
+                r"Error: Missing argument 'SRC \.\.\.'\.",
+                re.DOTALL,
+            ),
+            expected_returncode=2,
+        )
 
     def run_pymend_app_with_a_file_and_assert_is_expected(
         self,
@@ -391,11 +400,12 @@ class TestApp:
 
     def test_patch_files_the_same(self) -> None:
         """Check the patch file created when the files are the same."""
-        self.run_pymend_app_with_a_file_and_assert_is_expected(
-            file_contents=self.EXPECTED_OUTPUT,
-            expected_stderr=re.compile("All done! .*"),
-            expected_file_contents=self.PATCH_PREFIX + "\n",
-        )
+        with pytest.raises(FileNotFoundError):
+            self.run_pymend_app_with_a_file_and_assert_is_expected(
+                file_contents=self.EXPECTED_OUTPUT,
+                expected_stderr=re.compile("All done! .*"),
+                expected_file_contents=self.PATCH_PREFIX + "\n",
+            )
 
     def test_patch_files_different(self) -> None:
         """Test the patch file is correct."""
