@@ -32,6 +32,18 @@ def find_project_root(srcs: Sequence[str]) -> tuple[Path, str]:
     Returns a two-tuple with the first element as the project root path and
     the second element as a string describing the method by which the
     project root was discovered.
+
+    Parameters
+    ----------
+    srcs : Sequence[str]
+        Source files that will be considered by pymend.
+
+    Returns
+    -------
+    directory : Path
+        Projects root path
+    method : str
+        Method by which the root path was determined.
     """
     if not srcs:
         srcs = [str(Path.cwd().resolve())]
@@ -70,7 +82,18 @@ def find_project_root(srcs: Sequence[str]) -> tuple[Path, str]:
 
 
 def find_pyproject_toml(path_search_start: tuple[str, ...]) -> Optional[str]:
-    """Find the absolute filepath to a pyproject.toml if it exists."""
+    """Find the absolute filepath to a pyproject.toml if it exists.
+
+    Parameters
+    ----------
+    path_search_start : tuple[str, ...]
+        Tuple of paths to consider in the search for pyproject.toml
+
+    Returns
+    -------
+    Optional[str]
+        Path to pypyproject.toml or None if it could not be found.
+    """
     path_project_root, _ = find_project_root(path_search_start)
     path_pyproject_toml = path_project_root / "pyproject.toml"
     if path_pyproject_toml.is_file():
@@ -83,6 +106,16 @@ def parse_pyproject_toml(path_config: str) -> dict[str, Any]:
     """Parse a pyproject toml file, pulling out relevant parts for pymend.
 
     If parsing fails, will raise a tomllib.TOMLDecodeError.
+
+    Parameters
+    ----------
+    path_config : str
+        Path to the pyproject.toml file.
+
+    Returns
+    -------
+    dict[str, Any]
+        Configuration dictionary parsed from pyproject.toml
     """
     with open(path_config, "rb") as f:
         pyproject_toml: dict[str, Any] = tomllib.load(f)

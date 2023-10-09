@@ -421,12 +421,13 @@ class PyComment:
         """
         if not self.fixed:
             self.proceed()
-        lines_to_write = self._get_patch_lines()
+        if self._changed:
+            lines_to_write = self._get_patch_lines()
 
-        if self.input_file == "-":
-            sys.stdout.writelines(lines_to_write)
-        else:
-            self._write_patch_file(lines_to_write)
+            if self.input_file == "-":
+                sys.stdout.writelines(lines_to_write)
+            else:
+                self._write_patch_file(lines_to_write)
         return Changed.YES if bool(self._changed) else Changed.NO
 
     def output_fix(self) -> Changed:
