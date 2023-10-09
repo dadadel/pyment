@@ -181,7 +181,8 @@ class PyComment:
         before, after, changed = comment.get_changes()
         if changed or not (dst == before and dst == after):
             log = self.dump_to_file(
-                "INTERNAL ERROR: PyMend produced docstrings on the second pass.\n"
+                "INTERNAL ERROR: PyMend produced different "
+                "docstrings on the second pass.\n"
                 "Changed:\n",
                 "\n".join(changed),
                 "".join(self._pure_diff(src, dst, "source", "first pass")),
@@ -189,7 +190,7 @@ class PyComment:
             )
             msg = (
                 "INTERNAL ERROR:"
-                " PyMend produced docstrings on the second pass."
+                " PyMend produced different docstrings on the second pass."
                 " Please report a bug on"
                 " https://github.com/JanEricNitschke/pymend/issues."
                 f" This diff might be helpful: {log}"

@@ -394,12 +394,17 @@ class AstAnalyzer:
                 ):
                     yields.add(self._get_ids_from_returns(node.value.elts))
             elif isinstance(node, ast.Raise):
+                pascal_case_regex = r"^(?:[A-Z][a-z]+)+$"
                 if not node.exc:
                     raises.append("")
-                elif isinstance(node.exc, ast.Name):
+                elif isinstance(node.exc, ast.Name) and re.match(
+                    pascal_case_regex, node.exc.id
+                ):
                     raises.append(node.exc.id)
-                elif isinstance(node.exc, ast.Call) and isinstance(
-                    node.exc.func, ast.Name
+                elif (
+                    isinstance(node.exc, ast.Call)
+                    and isinstance(node.exc.func, ast.Name)
+                    and re.match(pascal_case_regex, node.exc.func.id)
                 ):
                     raises.append(node.exc.func.id)
                 else:

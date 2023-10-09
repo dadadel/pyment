@@ -512,6 +512,13 @@ class FunctionDocstring(DocstringInfo):
         for raised in docstring.raises:
             if raised.type_name in raised_in_body:
                 raised_in_body.remove(raised.type_name)
+            # If this specific Error is not in the body but the body contains
+            # unknown exceptions then remove one of those instead.
+            # For example when exception stored in variable and raised later.
+            # We want people to be able to specific them by name and not have
+            # pyment constantly forced unnamed raises on them.
+            elif "" in raised_in_body:
+                raised_in_body.remove("")
         for missing_raise in raised_in_body:
             docstring.meta.append(
                 dsp.DocstringRaises(
