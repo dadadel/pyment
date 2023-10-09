@@ -344,7 +344,7 @@ def read_pyproject_toml(
     "src",
     nargs=-1,
     type=click.Path(
-        exists=True, file_okay=True, dir_okay=False, readable=True, allow_dash=True
+        exists=True, file_okay=True, dir_okay=False, readable=True, allow_dash=False
     ),
     required=True,
     is_eager=True,
