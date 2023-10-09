@@ -24,7 +24,7 @@ jobs:
       - name: Installation
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install .
           pip install -r tests/requirements.txt
 
       - name: Check formatting with black
@@ -38,7 +38,7 @@ jobs:
       - name: Typecheck with pyright
         uses: jakebailey/pyright-action@v1
         with:
-          version: 1.1.329
+          version: 1.1.330
 
       - name: Thorough check with pylint
         run: pylint pymend

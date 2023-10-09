@@ -1,7 +1,6 @@
 """Module for general management of writing docstrings of multiple files."""
 
 import ast
-import difflib
 import os
 import platform
 import sys
@@ -15,6 +14,8 @@ from typing_extensions import Self
 import pymend.docstring_parser as dsp
 
 from .file_parser import AstAnalyzer
+from .output import diff
+from .report import Changed
 from .types import ElementDocstring
 
 __author__ = "J-E. Nitschke"
@@ -62,10 +63,7 @@ class PyComment:
         """
         self.input_file = input_file
         self.output_style = output_style
-        if self.input_file == "-":
-            input_lines = sys.stdin.read()
-        else:
-            input_lines = Path(self.input_file).read_text(encoding="utf-8")
+        input_lines = Path(self.input_file).read_text(encoding="utf-8")
         self._input = FileContentRepresentation(
             input_lines.splitlines(keepends=True), input_lines
         )
@@ -232,8 +230,8 @@ class PyComment:
                 "docstrings on the second pass.\n"
                 "Changed:\n",
                 "\n".join(changed),
-                "".join(self._diff(src, dst, "source", "first pass")),
-                "".join(self._diff(dst, after, "first pass", "second pass")),
+                "".join(diff(src, dst, "source", "first pass")),
+                "".join(diff(dst, after, "first pass", "second pass")),
             )
             msg = (
                 "INTERNAL ERROR:"
@@ -293,7 +291,7 @@ class PyComment:
             log = self.dump_to_file(
                 "INTERNAL ERROR: PyMend produced code "
                 "that is not equivalent to the source\n",
-                "".join(self._diff(src_ast_list, dst_ast_list, "src", "dst")),
+                "".join(diff(src_ast_list, dst_ast_list, "src", "dst")),
             )
             msg = (
                 "INTERNAL ERROR: PyMend produced code that is not equivalent to the"
@@ -406,52 +404,21 @@ class PyComment:
         list[str]
             The resulting diff
         """
-        return self._diff(
+        return diff(
             self._input.lst,
             self._output.lst,
             f"a/{self.input_file}",
             f"b/{self.input_file}",
         )
 
-    def _diff(
-        self,
-        src: list[str],
-        dst: list[str],
-        source_path: str = "",
-        target_path: str = "",
-    ) -> list[str]:
-        """Get the direct diff between two lists of strings..
-
-        Parameters
-        ----------
-        src : list[str]
-            Source for the diff
-        dst : list[str]
-            Target for the diff.
-        source_path : str
-            Path to the source file of the diff. (Default value = '')
-        target_path : str
-            Path to the target file of the diff. (Default value = '')
+    def output_patch(self) -> Changed:
+        """Output the patch. Either to stdout or a file depending on input file.
 
         Returns
         -------
-        list[str]
-            The resulting diff
+        Changed
+            Whether there were any changes.
         """
-        diff_lines: list[str] = []
-        for line in difflib.unified_diff(src, dst, source_path, target_path):
-            # Work around https://bugs.python.org/issue2142
-            # See:
-            # https://www.gnu.org/software/diffutils/manual/html_node/Incomplete-Lines.html
-            if line[-1] == "\n":
-                diff_lines.append(line)
-            else:
-                diff_lines.append(line + "\n")
-                diff_lines.append("\\ No newline at end of file\n")
-        return diff_lines
-
-    def output_patch(self) -> None:
-        """Output the patch. Either to stdout or a file depending on input file."""
         if not self.fixed:
             self.proceed()
         lines_to_write = self._get_patch_lines()
@@ -460,9 +427,16 @@ class PyComment:
             sys.stdout.writelines(lines_to_write)
         else:
             self._write_patch_file(lines_to_write)
+        return Changed.YES if bool(self._changed) else Changed.NO
 
-    def output_fix(self) -> None:
-        """Output the fixed file. Either to stdout or the file."""
+    def output_fix(self) -> Changed:
+        """Output the fixed file. Either to stdout or the file.
+
+        Returns
+        -------
+        Changed
+            Whether there were any changes.
+        """
         if not self.fixed:
             self.proceed()
         if (self._input.lines == self._output.lines) != (len(self._changed) == 0):
@@ -493,6 +467,7 @@ class PyComment:
                 f'({", ".join(self._changed)}) in file {self.input_file}.'
             )
             self._overwrite_source_file()
+        return Changed.YES if bool(self._changed) else Changed.NO
 
     def _get_patch_lines(self) -> list[str]:
         r"""Return the diff between source_path and target_path.
@@ -509,9 +484,10 @@ class PyComment:
         list[str]
             the diff as a list of \n terminated lines
         """
-        diff = self._docstring_diff()
-
-        return [f"# Patch generated by Pymend v{__version__}\n\n", *diff]
+        return [
+            f"# Patch generated by Pymend v{__version__}\n\n",
+            *self._docstring_diff(),
+        ]
 
     def _write_patch_file(self, lines_to_write: list[str]) -> None:
         r"""Write lines_to_write to a the file called patch_file.

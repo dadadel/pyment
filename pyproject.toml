@@ -23,7 +23,11 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
 ]
-dependencies = ["typing-extensions>=4.0,<5.0"]
+dependencies = [
+    "typing-extensions>=4.0,<5.0",
+    "tomli>=1.1.0; python_version < '3.11'",
+    "click>=8.0.0",
+]
 
 [project.urls]
 "Homepage"      = "https://github.com/JanEricNitschke/pymend"
@@ -127,6 +131,7 @@ target-version = "py39"
 "__init__.py"                     = ["E402", "F401"]
 "tests/*/test_*.py"               = ["S101", "SLF001", "ANN101", "ANN102", "PLR2004"]
 "pymend/docstring_parser/rest.py" = ["PLR2004"]
+"pymend/const.py"                 = ["E501"]
 
 [tool.ruff.pydocstyle]
 convention = "numpy" # Accepts: "google", "numpy", or "pep257".
@@ -171,7 +176,6 @@ reportAssertAlwaysTrue             = "error"
 reportUnnecessaryTypeIgnoreComment = "error"
 reportImplicitOverride             = "error"
 reportShadowedImports              = "error"
-pythonVersion                      = "3.9"
 
 [tool.pylint.main]
 # Specify a score threshold under which the program will exit with error.
@@ -185,7 +189,7 @@ typevar-rgx         = "^_{0,2}(?!T[A-Z])([A-Z]|T[0-9]?)(?:[A-Z]*[0-9]*)?(?:_co(?
 
 [tool.pylint.design]
 # Maximum number of arguments for function / method.
-max-args = 5
+max-args = 10
 
 # Maximum number of attributes for a class (see R0902).
 # Should be lowered to 7 but got no time for that atm

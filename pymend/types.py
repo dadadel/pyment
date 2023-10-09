@@ -4,11 +4,13 @@ import ast
 import re
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
-from typing import ClassVar, Optional, Union
+from typing import Optional, Union
 
 from typing_extensions import TypeAlias, override
 
 import pymend.docstring_parser as dsp
+
+from .const import DEFAULT_DESCRIPTION, DEFAULT_SUMMARY, DEFAULT_TYPE
 
 __author__ = "J-E. Nitschke"
 __copyright__ = "Copyright 2023-2023"
@@ -25,9 +27,6 @@ class DocstringInfo:
     docstring: str
     lines: tuple[int, Optional[int]]
     modifier: str
-    default_description: ClassVar[str] = "_description_"
-    default_type: ClassVar[str] = "_type_"
-    default_summary: ClassVar[str] = "_summary_."
 
     def output_docstring(
         self, style: dsp.DocstringStyle = dsp.DocstringStyle.NUMPYDOC
@@ -85,9 +84,7 @@ class DocstringInfo:
         docstring : dsp.Docstring
             Docstring to set the default summary for.
         """
-        docstring.short_description = (
-            docstring.short_description or self.default_summary
-        )
+        docstring.short_description = docstring.short_description or DEFAULT_SUMMARY
         if not docstring.short_description.rstrip().endswith("."):
             docstring.short_description = f"{docstring.short_description.rstrip()}."
 
@@ -119,7 +116,7 @@ class DocstringInfo:
             # Description works a bit different for examples.
             if isinstance(ele, dsp.DocstringExample):
                 continue
-            ele.description = ele.description or self.default_description
+            ele.description = ele.description or DEFAULT_DESCRIPTION
 
     def _fix_types(self, docstring: dsp.Docstring) -> None:
         """Set empty types for parameters and returns.
@@ -132,9 +129,9 @@ class DocstringInfo:
         for param in docstring.params:
             if param.args[0] == "method":
                 continue
-            param.type_name = param.type_name or self.default_type
+            param.type_name = param.type_name or DEFAULT_TYPE
         for returned in docstring.many_returns:
-            returned.type_name = returned.type_name or self.default_type
+            returned.type_name = returned.type_name or DEFAULT_TYPE
 
 
 @dataclass
@@ -224,9 +221,9 @@ class ClassDocstring(DocstringInfo):
             docstring.meta.append(
                 dsp.DocstringParam(
                     args=["attribute", attribute.arg_name],
-                    description=self.default_description,
+                    description=DEFAULT_DESCRIPTION,
                     arg_name=attribute.arg_name,
-                    type_name=self.default_type,
+                    type_name=DEFAULT_TYPE,
                     is_optional=False,
                     default=None,
                 )
@@ -251,7 +248,7 @@ class ClassDocstring(DocstringInfo):
             docstring.meta.append(
                 dsp.DocstringParam(
                     args=["method", method],
-                    description=self.default_description,
+                    description=DEFAULT_DESCRIPTION,
                     arg_name=method,
                     type_name=None,
                     is_optional=False,
@@ -369,7 +366,7 @@ class FunctionDocstring(DocstringInfo):
                             f"{self._escape_default_value(param_sig.default)})"
                         )
             else:
-                place_holder_description = self.default_description
+                place_holder_description = DEFAULT_DESCRIPTION
                 if param_sig.default:
                     place_holder_description += (
                         f" (Default value = "
@@ -380,7 +377,7 @@ class FunctionDocstring(DocstringInfo):
                         args=["param", name],
                         description=place_holder_description,
                         arg_name=name,
-                        type_name=param_sig.type_name or self.default_type,
+                        type_name=param_sig.type_name or DEFAULT_TYPE,
                         is_optional=False,
                         default=param_sig.default,
                     )
@@ -419,8 +416,8 @@ class FunctionDocstring(DocstringInfo):
             docstring.meta.append(
                 dsp.DocstringReturns(
                     args=["returns"],
-                    description=self.default_description,
-                    type_name=sig_return or self.default_type,
+                    description=DEFAULT_DESCRIPTION,
+                    type_name=sig_return or DEFAULT_TYPE,
                     is_generator=False,
                     return_name=None,
                 )
@@ -441,8 +438,8 @@ class FunctionDocstring(DocstringInfo):
                     docstring.meta.append(
                         dsp.DocstringReturns(
                             args=["returns"],
-                            description=self.default_description,
-                            type_name=self.default_type,
+                            description=DEFAULT_DESCRIPTION,
+                            type_name=DEFAULT_TYPE,
                             is_generator=False,
                             return_name=body_name,
                         )
@@ -477,8 +474,8 @@ class FunctionDocstring(DocstringInfo):
             docstring.meta.append(
                 dsp.DocstringYields(
                     args=["yields"],
-                    description=self.default_description,
-                    type_name=sig_return or self.default_type,
+                    description=DEFAULT_DESCRIPTION,
+                    type_name=sig_return or DEFAULT_TYPE,
                     is_generator=True,
                     yield_name=None,
                 )
@@ -493,8 +490,8 @@ class FunctionDocstring(DocstringInfo):
                     docstring.meta.append(
                         dsp.DocstringYields(
                             args=["yields"],
-                            description=self.default_description,
-                            type_name=self.default_type,
+                            description=DEFAULT_DESCRIPTION,
+                            type_name=DEFAULT_TYPE,
                             is_generator=True,
                             yield_name=body_name,
                         )
@@ -526,7 +523,7 @@ class FunctionDocstring(DocstringInfo):
             docstring.meta.append(
                 dsp.DocstringRaises(
                     args=["raises", missing_raise],
-                    description=self.default_description,
+                    description=DEFAULT_DESCRIPTION,
                     type_name=missing_raise,
                 )
             )
