@@ -250,9 +250,9 @@ class PyComment:
 
         Parameters
         ----------
-        src : str
+        src_lines : str
             Lines from the input file.
-        dst : str
+        dst_lines : str
             Lines that pymend produced.
 
         Raises
@@ -437,6 +437,12 @@ class PyComment:
         -------
         Changed
             Whether there were any changes.
+
+        Raises
+        ------
+        AssertionError
+            If the input and output lines are identical but pyment reports
+            some elements to have changed.
         """
         if not self.fixed:
             self.proceed()

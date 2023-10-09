@@ -715,7 +715,7 @@ def compose(  # noqa: PLR0915
         else:
             parts.append(head)
 
-    def process_sect(name: str, args: Iterable[MainSections]) -> None:
+    def process_sect(name: str, args: list[MainSections]) -> None:
         """Build the output for a docstring section.
 
         Parameters

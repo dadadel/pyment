@@ -57,13 +57,13 @@ def diff(a: list[str], b: list[str], a_name: str, b_name: str) -> list[str]:
 
     Parameters
     ----------
-    src : list[str]
+    a : list[str]
         Source for the diff
-    dst : list[str]
+    b : list[str]
         Target for the diff.
-    source_path : str
+    a_name : str
         Path to the source file of the diff. (Default value = '')
-    target_path : str
+    b_name : str
         Path to the target file of the diff. (Default value = '')
 
     Returns
