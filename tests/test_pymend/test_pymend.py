@@ -103,8 +103,7 @@ class TestDocStrings:
     def test_parsed_javadoc(self) -> None:
         """Test that javadoc comments get parsed."""
         comment = pym.PyComment(self.inifile)
-        comment._parse()
-        assert comment.parsed
+        assert comment.fixed
 
     def test_windows_rename(self) -> None:
         """Check that renaming works correctly."""
@@ -115,7 +114,7 @@ class TestDocStrings:
         comment._windows_rename(bar)
         assert not os.path.isfile(bar)
         assert os.path.isfile(self.foo)
-        foo_txt = pathlib.Path(self.foo).read_text()
+        foo_txt = pathlib.Path(self.foo).read_text(encoding="utf-8")
         assert foo_txt == "bar"
 
 
@@ -141,9 +140,7 @@ class TestFilesConversions:
     def test_case_free_testing(self) -> None:
         """Test correct handling for case where input style in ambiguous."""
         comment = pym.PyComment(absdir("refs/free_cases.py"))
-        comment._parse()
-        assert comment.parsed
-        result = "".join(comment.diff())
+        result = "".join(comment._docstring_diff())
         assert result == ""
 
     def test_case_gen_all_params_numpydoc(self) -> None:
@@ -154,9 +151,7 @@ class TestFilesConversions:
         """
         expected = get_expected_patch("params.py.patch.numpydoc.expected")
         comment = pym.PyComment(absdir("refs/params.py"))
-        comment._parse()
-        assert comment.parsed
-        result = "".join(comment.diff())
+        result = "".join(comment._docstring_diff())
         assert remove_diff_header(result) == remove_diff_header(expected)
 
     def test_case_no_gen_docs_already_numpydoc(self) -> None:
@@ -166,7 +161,5 @@ class TestFilesConversions:
         so no docstring should be produced.
         """
         comment = pym.PyComment(absdir("refs/docs_already_numpydoc.py"))
-        comment._parse()
-        assert comment.parsed
-        result = "".join(comment.diff())
+        result = "".join(comment._docstring_diff())
         assert result == ""

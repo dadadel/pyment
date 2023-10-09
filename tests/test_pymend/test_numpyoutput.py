@@ -70,9 +70,7 @@ def check_expected_diff(test_name: str) -> None:
     """Check that the patch on source_file equals the expected patch."""
     expected = get_expected_patch(f"{test_name}.py.patch.numpydoc.expected")
     comment = pym.PyComment(absdir(f"refs/{test_name}.py"))
-    comment._parse()
-    assert comment.parsed
-    result = "".join(comment.diff())
+    result = "".join(comment._docstring_diff())
     assert remove_diff_header(result) == remove_diff_header(expected)
 
 
