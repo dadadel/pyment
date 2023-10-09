@@ -479,7 +479,10 @@ class AstAnalyzer:
             arguments.append(
                 Parameter(f"**{kwarg.arg}", ast_unparse(kwarg.annotation), None)
             )
-        return arguments
+        # Filter out unused arguments.
+        return [
+            argument for argument in arguments if not argument.arg_name.startswith("_")
+        ]
 
     @staticmethod
     def is_shebang_or_pragma(line: str) -> bool:

@@ -28,7 +28,20 @@ def path_is_excluded(
     normalized_path: str,
     pattern: Optional[Pattern[str]],
 ) -> bool:
-    """Check if a path is excluded because it matches and exclusion regex."""
+    """Check if a path is excluded because it matches and exclusion regex.
+
+    Parameters
+    ----------
+    normalized_path : str
+        Normalized path to check
+    pattern : Optional[Pattern[str]]
+        Optionally a regex pattern to check against
+
+    Returns
+    -------
+    bool
+        True if the path is excluded by the regex.
+    """
     match = pattern.search(normalized_path) if pattern else None
     return bool(match and match.group(0))
 
@@ -36,7 +49,18 @@ def path_is_excluded(
 def output_stye_option_callback(
     _c: click.Context, _p: Union[click.Option, click.Parameter], style: str
 ) -> dsp.DocstringStyle:
-    """Compute the output style from a --output_stye flag."""
+    """Compute the output style from a --output_stye flag.
+
+    Parameters
+    ----------
+    style : str
+        String representation of the style to use.
+
+    Returns
+    -------
+    dsp.DocstringStyle
+        Style to use.
+    """
     return STRING_TO_STYLE[style]
 
 
@@ -44,6 +68,16 @@ def re_compile_maybe_verbose(regex: str) -> Pattern[str]:
     """Compile a regular expression string in `regex`.
 
     If it contains newlines, use verbose mode.
+
+    Parameters
+    ----------
+    regex : str
+        _description_
+
+    Returns
+    -------
+    Pattern[str]
+        _description_
     """
     if "\n" in regex:
         regex = "(?x)" + regex
@@ -56,7 +90,23 @@ def validate_regex(
     _param: click.Parameter,
     value: Optional[str],
 ) -> Optional[Pattern[str]]:
-    """Validate the regex from command line."""
+    """Validate the regex from command line.
+
+    Parameters
+    ----------
+    value : Optional[str]
+        Regex pattern to validate.
+
+    Returns
+    -------
+    Optional[Pattern[str]]
+        Compiled regex pattern or None if the input was None.
+
+    Raises
+    ------
+    click.BadParameter
+        If the value is not a valid regex.
+    """
     try:
         return re_compile_maybe_verbose(value) if value is not None else None
     except re.error as e:
@@ -77,7 +127,7 @@ def run(
 
     Parameters
     ----------
-    files : list[str]
+    files : tuple[str, ...]
         List of files to analyze and fix.
     overwrite : bool
         Whether to overwrite the source file directly instead of creating
@@ -85,6 +135,13 @@ def run(
     output_style : dsp.DocstringStyle
         Output style to use for the modified docstrings.
         (Default value = dsp.DocstringStyle.NUMPYDOC)
+    exclude : Optional[Pattern[str]]
+        Optional regex pattern to use to exclude files from reformatting.
+    extend_exclude : Optional[Pattern[str]]
+        Additional regexes to add onto the exclude pattern.
+        Useful if one just wants to add some to the existing default.
+    report : Report
+        Reporter for pretty communication with the user.
 
     Raises
     ------
@@ -123,6 +180,27 @@ def read_pyproject_toml(
 
     Returns the path to a successfully found and read configuration file, None
     otherwise.
+
+    Parameters
+    ----------
+    ctx : click.Context
+        Context containing preexisting default values.
+    value : Optional[str]
+        Optionally path to the config file.
+
+    Returns
+    -------
+    Optional[str]
+        Path to the config file if one was found or specified.
+
+    Raises
+    ------
+    click.FileError
+        If there was a problem reading the configuration file.
+    click.BadOptionUsage
+        If the value passed for `exclude` was not a string.
+    click.BadOptionUsage
+        If the value passed for `extended_exclude` was not a string.
     """
     if not value:
         value = find_pyproject_toml(ctx.params.get("src", ()))
@@ -276,7 +354,37 @@ def main(  # pylint: disable=too-many-arguments
     src: tuple[str, ...],
     config: Optional[str],
 ) -> None:
-    """Create, update or convert docstrings."""
+    """Create, update or convert docstrings.
+
+    Parameters
+    ----------
+    ctx : click.Context
+        Currently only used to exit the application.
+    write : bool
+        Whether to overwrite files directly
+    output_style : dsp.DocstringStyle
+        Which output style to use.
+    check : bool
+        CURRENTLY DOES NOTHING! TODO!
+        Whether to perform a check if all docstrings are properly formatted.
+        Works alongside --write and is stricter than it as it considers
+        pymend default values as not properly formatted.
+    quiet : bool
+        Silence output as much as possible.
+    verbose : bool
+        Increase output to include a lot more information.
+    exclude : Optional[Pattern[str]]
+        Optional regex pattern to use to exclude files from reformatting.
+    extend_exclude : Optional[Pattern[str]]
+        Additional regexes to add onto the exclude pattern.
+        Useful if one just wants to add some to the existing default.
+    src : tuple[str, ...]
+        Source files to fix.
+    config : Optional[str]
+        Path to config file to use. If None is provided a pyproject.toml
+        file is looked for in the source files common parents paths.
+    """
+    ctx.ensure_object(dict)
     # Temp to turn off unused variable warnings.
     if f"{check, config}":
         pass
