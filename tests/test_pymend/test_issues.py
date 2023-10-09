@@ -36,10 +36,8 @@ class TestIssues:
         # if file starting with a function/class definition, patching the file
         # will remove the first line!
         comment = pym.PyComment(absdir("refs/issue30.py"))
-        comment._parse()
-        assert comment.parsed
         try:
-            comment.diff()
+            comment._docstring_diff()
         except Exception as e:  # noqa: BLE001
             pytest.fail(f'Raised exception: "{e}"')
 
@@ -52,7 +50,5 @@ class TestIssues:
         # If the last section in a numpydoc docstring is a `Raises` section,
         # it will be removed if the output format is also set to numpydoc
         comment = pym.PyComment(absdir("refs/issue49.py"))
-        comment._parse()
-        assert comment.parsed
-        result = "".join(comment.diff())
+        result = "".join(comment._docstring_diff())
         assert result == ""
