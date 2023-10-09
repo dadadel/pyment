@@ -33,7 +33,15 @@ class Report:
     failure_count: int = 0
 
     def done(self, src: str, changed: Changed) -> None:
-        """Increment the counter for successful reformatting. Write out a message."""
+        """Increment the counter for successful reformatting. Write out a message.
+
+        Parameters
+        ----------
+        src : str
+            Source file that was successfully fixed.
+        changed : Changed
+            Whether the file was changed.
+        """
         if changed is Changed.YES:
             reformatted = "would reformat" if not self.diff else "reformatted"
             if self.verbose or not self.quiet:
@@ -49,12 +57,28 @@ class Report:
             self.same_count += 1
 
     def failed(self, src: str, message: str) -> None:
-        """Increment the counter for failed reformatting. Write out a message."""
+        """Increment the counter for failed reformatting. Write out a message.
+
+        Parameters
+        ----------
+        src : str
+            File that failed to reformat.
+        message : str
+            Custom message to output. Should be the reason for the failure.
+        """
         err(f"error: cannot format {src}: {message}")
         self.failure_count += 1
 
     def path_ignored(self, path: str, message: str) -> None:
-        """Write out a message if a specific path was ignored."""
+        """Write out a message if a specific path was ignored.
+
+        Parameters
+        ----------
+        path : str
+            Path that was ignored.
+        message : str
+            Reason the path was ignored.
+        """
         if self.verbose:
             out(f"{path} ignored: {message}", bold=False)
 
@@ -66,6 +90,11 @@ class Report:
         - if there were any failures, return 123;
         - if any files were changed and --check is being used, return 1;
         - otherwise return 0.
+
+        Returns
+        -------
+        int
+            return code.
         """
         # According to http://tldp.org/LDP/abs/html/exitcodes.html starting with
         # 126 we have special return codes reserved by the shell.
@@ -82,6 +111,11 @@ class Report:
         """Render a color report of the current state.
 
         Use `click.unstyle` to remove colors.
+
+        Returns
+        -------
+        str
+            Pretty string representation of the report.
         """
         if self.diff:
             reformatted = "would be reformatted"
