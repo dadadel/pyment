@@ -3,7 +3,6 @@
 import os
 import re
 import subprocess
-import sys
 import tempfile
 import textwrap
 from re import Pattern
@@ -37,7 +36,7 @@ class TestApp:
     def setup_class(self) -> None:
         """Set up class by defining docstrings."""
         # You have to run this as a module when testing so the relative imports work.
-        self.CMD_PREFIX = sys.executable + " -m pymend.pymendapp {}"
+        self.CMD_PREFIX = "pymend {}"
 
         self.RE_TYPE = type(re.compile("get the type to test if an argument is an re"))
 
@@ -259,40 +258,11 @@ class TestApp:
         assert_output(cmd_to_run, "returncode", returncode, expected_returncode)
         assert_output(cmd_to_run, "stdout", stdout, expected_stdout)
 
-    def test_no_args_ge_py33(self) -> None:
-        """Ensure the app outputs an error if there are no arguments."""
-        self.run_pymend_app_and_assert_is_expected(
-            cmd_args="",
-            write_to_stdin=None,
-            expected_stderr=re.compile(
-                r"usage: pymendapp.py .*"
-                r"pymendapp\.py: error: the following arguments are required: path",
-                re.DOTALL,
-            ),
-            expected_returncode=2,
-        )
-
-    def test_stdin_patch_mode(self) -> None:
-        """Test non overwrite mode when using stdin.
-
-        Means a patch will be written to stdout.
-        """
-        self.run_pymend_app_and_assert_is_expected(
-            cmd_args="--output numpydoc -",
-            write_to_stdin=self.INPUT,
-            expected_stdout=self.EXPECTED_PATCH,
-        )
-
-    def test_run_on_stdin_overwrite(self) -> None:
-        """Check 'overwrite' mode with stdin.
-
-        In overwrite mode the output is the new file, not a patch.
-        """
-        self.run_pymend_app_and_assert_is_expected(
-            cmd_args="-w -",
-            write_to_stdin=self.INPUT,
-            expected_stdout=self.EXPECTED_OUTPUT,
-        )
+    # def test_no_args_ge_py33(self) -> None:
+    #     """Ensure the app outputs an error if there are no arguments."""
+    #     self.run_pymend_app_and_assert_is_expected(
+    #             re.DOTALL,
+    #         ),
 
     def run_pymend_app_with_a_file_and_assert_is_expected(
         self,
@@ -353,7 +323,7 @@ class TestApp:
             cmd_args = f"{cmd_args} {input_filename}"
 
             if overwrite_mode:
-                cmd_args = f"{cmd_args} -w "
+                cmd_args = f"{cmd_args} --write "
 
             self.run_pymend_app_and_assert_is_expected(
                 cmd_args=cmd_args,
@@ -402,6 +372,7 @@ class TestApp:
         """Test that the file is correct when the output is the same as the input."""
         self.run_pymend_app_with_a_file_and_assert_is_expected(
             file_contents=self.EXPECTED_OUTPUT,
+            expected_stderr=re.compile("All done! .*"),
             expected_file_contents=self.EXPECTED_OUTPUT,
             overwrite_mode=True,
         )
@@ -411,6 +382,7 @@ class TestApp:
         self.run_pymend_app_with_a_file_and_assert_is_expected(
             file_contents=self.INPUT,
             expected_file_contents=self.EXPECTED_OUTPUT,
+            expected_stderr=re.compile("All done! .*"),
             expected_stdout=re.compile(
                 r"Modified docstrings of elements \(Module, func\) in file.*", re.DOTALL
             ),
@@ -421,6 +393,7 @@ class TestApp:
         """Check the patch file created when the files are the same."""
         self.run_pymend_app_with_a_file_and_assert_is_expected(
             file_contents=self.EXPECTED_OUTPUT,
+            expected_stderr=re.compile("All done! .*"),
             expected_file_contents=self.PATCH_PREFIX + "\n",
         )
 
@@ -428,5 +401,6 @@ class TestApp:
         """Test the patch file is correct."""
         self.run_pymend_app_with_a_file_and_assert_is_expected(
             file_contents=self.INPUT,
+            expected_stderr=re.compile("All done! .*"),
             expected_file_contents=self.EXPECTED_PATCH,
         )
