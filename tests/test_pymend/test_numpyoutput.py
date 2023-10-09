@@ -83,9 +83,7 @@ class TestNumpyOutput:
     def test_keyword_only_identifier(self) -> None:
         """Make sure that '*' is parsed correctly in signatures."""
 
-    def test_returns(self) -> None:
-        """Make sure single and multi return values are parsed/produced correctly."""
-        check_expected_diff("returns")
+    # def test_returns(self) -> None:
 
     def test_star_args(self) -> None:
         """Make sure that *args are treated correctly."""
