@@ -41,8 +41,9 @@ pymend = "pymend.pymendapp:main"
 
 [tool.pymend]
 extend-exclude = "docs/|tests/|apples/"
-output-style = "numpydoc"
-input-style = "numpydoc"
+output-style   = "numpydoc"
+input-style    = "numpydoc"
+
 
 [tool.ruff]
 # Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.

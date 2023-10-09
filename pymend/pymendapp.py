@@ -123,7 +123,7 @@ def run(
     overwrite: bool = False,
     output_style: dsp.DocstringStyle = dsp.DocstringStyle.NUMPYDOC,
     input_style: dsp.DocstringStyle = dsp.DocstringStyle.AUTO,
-    exclude: Optional[Pattern[str]],
+    exclude: Pattern[str],
     extend_exclude: Optional[Pattern[str]],
     report: Report,
 ) -> None:
@@ -144,7 +144,7 @@ def run(
         Auto means that the style is detected automatically. Can cause issues when
         styles are mixed in examples or descriptions."
         (Default value = dsp.DocstringStyle.AUTO)
-    exclude : Optional[Pattern[str]]
+    exclude : Pattern[str]
         Optional regex pattern to use to exclude files from reformatting.
     extend_exclude : Optional[Pattern[str]]
         Additional regexes to add onto the exclude pattern.
@@ -415,7 +415,6 @@ def main(  # pylint: disable=too-many-arguments, too-many-locals  # noqa: PLR091
         file is looked for in the source files common parents paths.
     """
     ctx.ensure_object(dict)
-
     # Temp to turn off unused variable warnings.
     if verbose and config:
         config_source = ctx.get_parameter_source("config")
@@ -437,7 +436,7 @@ def main(  # pylint: disable=too-many-arguments, too-many-locals  # noqa: PLR091
         overwrite=write,
         output_style=output_style,
         input_style=input_style,
-        exclude=exclude,
+        exclude=exclude or DEFAULT_EXCLUDES,
         extend_exclude=extend_exclude,
         report=report,
     )
