@@ -25,17 +25,17 @@ EXAMPLES_KEYWORDS = {"example", "examples"}
 
 
 def clean_str(string: str) -> Optional[str]:
-    """_summary_.
+    """Strip a string and return None if it is now empty.
 
     Parameters
     ----------
     string : str
-        _description_
+        String to clean
 
     Returns
     -------
     Optional[str]
-        _description_
+        None of the stripped string is empty. Otherwise the stripped string.
     """
     string = string.strip()
     return string if string != "" else None
@@ -263,3 +263,43 @@ class Docstring:
             list of information on function examples.
         """
         return [item for item in self.meta if isinstance(item, DocstringExample)]
+
+
+def split_description(docstring: Docstring, desc_chunk: str) -> None:
+    """Break description into short and long parts.
+
+    Parameters
+    ----------
+    docstring : Docstring
+        Docstring to fill with description information.
+    desc_chunk : str
+        Chunk of the raw docstring representing the description.
+    """
+    parts = desc_chunk.split("\n", 1)
+    docstring.short_description = parts[0] or None
+    if len(parts) > 1:
+        long_desc_chunk = parts[1] or ""
+        docstring.blank_after_short_description = long_desc_chunk.startswith("\n")
+        docstring.blank_after_long_description = long_desc_chunk.endswith("\n\n")
+        docstring.long_description = long_desc_chunk.strip() or None
+
+
+def append_description(docstring: Docstring, parts: list[str]) -> None:
+    """Append the docstrings description to the output stream.
+
+    Parameters
+    ----------
+    docstring : Docstring
+        Docstring whose information should be added.
+    parts : list[str]
+        List of strings representing the output of compose().
+        Descriptions should be added to this.
+    """
+    if docstring.short_description:
+        parts.append(docstring.short_description)
+    if docstring.blank_after_short_description:
+        parts.append("")
+    if docstring.long_description:
+        parts.append(docstring.long_description)
+    if docstring.blank_after_long_description:
+        parts.append("")

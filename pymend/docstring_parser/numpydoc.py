@@ -28,6 +28,7 @@ from .common import (
     ParseError,
     RenderingStyle,
     clean_str,
+    split_description,
 )
 
 _T = TypeVar("_T")
@@ -560,13 +561,7 @@ class NumpydocParser:
             meta_chunk = ""
 
         # Break description into short and long parts
-        parts = desc_chunk.split("\n", 1)
-        ret.short_description = parts[0] or None
-        if len(parts) > 1:
-            long_desc_chunk = parts[1] or ""
-            ret.blank_after_short_description = long_desc_chunk.startswith("\n")
-            ret.blank_after_long_description = long_desc_chunk.endswith("\n\n")
-            ret.long_description = long_desc_chunk.strip() or None
+        split_description(ret, desc_chunk)
 
         for match, nextmatch in _pairwise(self.titles_re.finditer(meta_chunk)):
             title = next(g for g in match.groups() if g is not None)

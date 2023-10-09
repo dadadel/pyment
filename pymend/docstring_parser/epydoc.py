@@ -16,7 +16,9 @@ from .common import (
     DocstringYields,
     ParseError,
     RenderingStyle,
+    append_description,
     clean_str,
+    split_description,
 )
 
 
@@ -293,13 +295,7 @@ def parse(text: Optional[str]) -> Docstring:
         desc_chunk = text
         meta_chunk = ""
 
-    parts = desc_chunk.split("\n", 1)
-    ret.short_description = parts[0] or None
-    if len(parts) > 1:
-        long_desc_chunk = parts[1] or ""
-        ret.blank_after_short_description = long_desc_chunk.startswith("\n")
-        ret.blank_after_long_description = long_desc_chunk.endswith("\n\n")
-        ret.long_description = long_desc_chunk.strip() or None
+    split_description(ret, desc_chunk)
 
     patterns = SectionPattern(
         param=re.compile(r"(param|keyword|type)(\s+[_A-z][_A-z0-9]*\??):"),
@@ -370,14 +366,7 @@ def compose(
         return "\n".join([f" {first}"] + [indent + line for line in rest])
 
     parts: list[str] = []
-    if docstring.short_description:
-        parts.append(docstring.short_description)
-    if docstring.blank_after_short_description:
-        parts.append("")
-    if docstring.long_description:
-        parts.append(docstring.long_description)
-    if docstring.blank_after_long_description:
-        parts.append("")
+    append_description(docstring, parts)
 
     for meta in docstring.meta:
         if isinstance(meta, DocstringParam):

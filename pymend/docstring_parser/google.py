@@ -24,6 +24,8 @@ from .common import (
     MainSections,
     ParseError,
     RenderingStyle,
+    append_description,
+    split_description,
 )
 
 
@@ -267,24 +269,6 @@ class GoogleParser:
         self.sections[section.title] = section
         self._setup()
 
-    def _split_description(self, docstring: Docstring, desc_chunk: str) -> None:
-        """Break description into short and long parts.
-
-        Parameters
-        ----------
-        docstring : Docstring
-            Docstring to fill with description information.
-        desc_chunk : str
-            Chunk of the raw docstring representing the description.
-        """
-        parts = desc_chunk.split("\n", 1)
-        docstring.short_description = parts[0] or None
-        if len(parts) > 1:
-            long_desc_chunk = parts[1] or ""
-            docstring.blank_after_short_description = long_desc_chunk.startswith("\n")
-            docstring.blank_after_long_description = long_desc_chunk.endswith("\n\n")
-            docstring.long_description = long_desc_chunk.strip() or None
-
     def _split_sections(self, meta_chunk: str) -> Mapping[str, str]:
         """Split the cunk into sections as determined by the titles..
 
@@ -392,7 +376,7 @@ class GoogleParser:
         desc_chunk, meta_chunk = self._get_chunks(text)
 
         # Break description into short and long parts
-        self._split_description(ret, desc_chunk)
+        split_description(ret, desc_chunk)
 
         # Split by sections determined by titles
         chunks = self._split_sections(meta_chunk)
@@ -529,15 +513,7 @@ def compose(  # noqa: PLR0915
             parts.append("")
 
     parts: list[str] = []
-    if docstring.short_description:
-        parts.append(docstring.short_description)
-    if docstring.blank_after_short_description:
-        parts.append("")
-
-    if docstring.long_description:
-        parts.append(docstring.long_description)
-    if docstring.blank_after_long_description:
-        parts.append("")
+    append_description(docstring, parts)
 
     process_sect("Args:", [p for p in docstring.params or [] if p.args[0] == "param"])
 
