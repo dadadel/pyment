@@ -1,6 +1,8 @@
 """Numpydoc-style docstring parsing.
 
-:see: https://numpydoc.readthedocs.io/en/latest/format.html
+See
+---
+https://numpydoc.readthedocs.io/en/latest/format.html
 """
 
 import inspect
@@ -25,6 +27,8 @@ from .common import (
     MainSections,
     ParseError,
     RenderingStyle,
+    clean_str,
+    split_description,
 )
 
 _T = TypeVar("_T")
@@ -33,14 +37,23 @@ _T = TypeVar("_T")
 def _pairwise(
     iterable: Iterable[_T], end: Optional[_T] = None
 ) -> Iterator[tuple[_T, Optional[_T]]]:
+    """Iterate over successive pairs with overhang for last element.
+
+    Parameters
+    ----------
+    iterable : Iterable[_T]
+        Iterable to iterate over.
+    end : Optional[_T]
+        Value for the overhang (Default value = None)
+
+    Returns
+    -------
+    Iterator[tuple[_T, Optional[_T]]]
+        Iterator yielding the successive pairs.
+    """
     left, right = itertools.tee(iterable)
     next(right, None)
     return zip(left, itertools.chain(right, [end]))
-
-
-def _clean_str(string: str) -> Optional[str]:
-    string = string.strip()
-    return string if string != "" else None
 
 
 KV_REGEX = re.compile(r"^[^\s].*$", flags=re.M)
@@ -57,20 +70,21 @@ RETURN_KEY_REGEX = re.compile(r"^(?:(?P<name>.*?)\s*:\s*)?(?P<type>.*?)$")
 
 
 class Section:
-    """Numpydoc section parser.
-
-    Parameters
-    ----------
-    title : str
-        section title. For most sections, this is a heading like
-        "Parameters" which appears on its own line, underlined by
-        en-dashes ('-') on the following line.
-    key : str
-        meta key string. In the parsed ``DocstringMeta`` instance this
-        will be the first element of the ``args`` attribute list.
-    """
+    """Numpydoc section parser."""
 
     def __init__(self, title: str, key: str) -> None:
+        """Initialize a section.
+
+        Parameters
+        ----------
+        title : str
+            section title. For most sections, this is a heading like
+            "Parameters" which appears on its own line, underlined by
+            en-dashes ('-') on the following line.
+        key : str
+            meta key string. In the parsed ``DocstringMeta`` instance this
+            will be the first element of the ``args`` attribute list.
+        """
         self.title = title
         self.key = key
 
@@ -80,6 +94,11 @@ class Section:
 
         This pattern will match this instance's ``title`` attribute in
         an anonymous group.
+
+        Returns
+        -------
+        str
+            Regex pattern as a string.
         """
         dashes = "-" * len(self.title)
         return rf"^({self.title})\s*?\n{dashes}\s*$"
@@ -98,7 +117,7 @@ class Section:
         DocstringMeta
             object from this section body.
         """
-        yield DocstringMeta([self.key], description=_clean_str(text))
+        yield DocstringMeta([self.key], description=clean_str(text))
 
 
 class _KVSection(Section):
@@ -113,10 +132,36 @@ class _KVSection(Section):
     """
 
     def _parse_item(self, key: str, value: str) -> DocstringMeta:
+        """_summary_.
+
+        Parameters
+        ----------
+        key : str
+            Key of the item to parse
+        value : str
+            Value of the item to parse
+
+        Raises
+        ------
+        NotImplementedError
+            To be implemented by child classes.
+        """
         raise NotImplementedError
 
     @override
     def parse(self, text: str) -> Iterable[DocstringMeta]:
+        """Parse all items in the docstring text.
+
+        Parameters
+        ----------
+        text : str
+            Docstring text to parse.
+
+        Yields
+        ------
+        DocstringMeta
+            Items parsed from the docstring.
+        """
         for match, next_match in _pairwise(KV_REGEX.finditer(text)):
             start = match.end()
             end = next_match.start() if next_match is not None else None
@@ -135,6 +180,13 @@ class _SphinxSection(Section):
     @property
     @override
     def title_pattern(self) -> str:
+        """Title pattern used by sphinx sections.
+
+        Returns
+        -------
+        str
+            Regex pattern as a string.
+        """
         return rf"^\.\.\s*({self.title})\s*::"
 
 
@@ -151,6 +203,27 @@ class ParamSection(_KVSection):
 
     @override
     def _parse_item(self, key: str, value: str) -> DocstringParam:
+        """Parse item from a parameter section.
+
+        Parameters
+        ----------
+        key : str
+            Key of the item. Contains parameter name and optionally type information.
+        value : str
+            Description for the item. Also possibly contains default value.
+
+        Returns
+        -------
+        DocstringParam
+            Parsed representation of the parameter item.
+
+        Raises
+        ------
+        ParseError
+            If no key could be parsed.
+        ParseError
+            If mandatory parts of the section were parsed incorrectly.
+        """
         match = PARAM_KEY_REGEX.match(key)
         arg_name = type_name = is_optional = None
         if match is None:
@@ -182,7 +255,7 @@ class ParamSection(_KVSection):
 
         return DocstringParam(
             args=[self.key, arg_name],
-            description=_clean_str(value),
+            description=clean_str(value),
             arg_name=arg_name,
             type_name=type_name,
             is_optional=is_optional,
@@ -200,9 +273,23 @@ class RaisesSection(_KVSection):
 
     @override
     def _parse_item(self, key: str, value: str) -> DocstringRaises:
+        """Parse an item in the raises section.
+
+        Parameters
+        ----------
+        key : str
+            Key of the item to be parsed. Usually name of the exception raised.
+        value : str
+            Description of the item.
+
+        Returns
+        -------
+        DocstringRaises
+            Parsed representation of the raises item.
+        """
         return DocstringRaises(
             args=[self.key, key],
-            description=_clean_str(value),
+            description=clean_str(value),
             type_name=key if key != "" else None,
         )
 
@@ -221,6 +308,20 @@ class ReturnsSection(_KVSection):
 
     @override
     def _parse_item(self, key: str, value: str) -> DocstringReturns:
+        """Parse an item from the return section.
+
+        Parameters
+        ----------
+        key : str
+            Key of the item (usually type, possibly name + type)
+        value : str
+            Description of the return value.
+
+        Returns
+        -------
+        DocstringReturns
+            Parsed representation of the return item.
+        """
         match = RETURN_KEY_REGEX.match(key)
         if match is not None:
             return_name = match.group("name")
@@ -231,7 +332,7 @@ class ReturnsSection(_KVSection):
 
         return DocstringReturns(
             args=[self.key],
-            description=_clean_str(value),
+            description=clean_str(value),
             type_name=type_name,
             is_generator=self.is_generator,
             return_name=return_name,
@@ -245,6 +346,20 @@ class YieldsSection(_KVSection):
 
     @override
     def _parse_item(self, key: str, value: str) -> DocstringYields:
+        """Parse an item from the yield section.
+
+        Parameters
+        ----------
+        key : str
+            Key of the item (usually type, possibly name + type)
+        value : str
+            Description of the yielded value.
+
+        Returns
+        -------
+        DocstringYields
+            Parsed representation of the yield item.
+        """
         match = RETURN_KEY_REGEX.match(key)
         if match is not None:
             yield_name = match.group("name")
@@ -255,7 +370,7 @@ class YieldsSection(_KVSection):
 
         return DocstringYields(
             args=[self.key],
-            description=_clean_str(value),
+            description=clean_str(value),
             type_name=type_name,
             is_generator=self.is_generator,
             yield_name=yield_name,
@@ -273,7 +388,24 @@ class DeprecationSection(_SphinxSection):
 
     @override
     def parse(self, text: str) -> Iterable[DocstringDeprecated]:
-        """Parse ``DocstringDeprecated`` objects from the body of this section."""
+        """Parse ``DocstringDeprecated`` objects from the body of this section.
+
+        Parameters
+        ----------
+        text : str
+            Text of the deprecation section.
+
+        Yields
+        ------
+        DocstringDeprecated
+            Parsed representation of the deprecation item.
+
+        Raises
+        ------
+        ParseError
+            If the parsed version number was unexpectedly `None`.
+            Usually a lack of version number would be represented by an empty string.
+        """
         version, desc, *_ = [*text.split(sep="\n", maxsplit=1), None, None]
         if version is None:
             msg = (
@@ -282,10 +414,10 @@ class DeprecationSection(_SphinxSection):
             )
             raise ParseError(msg)
         if desc is not None:
-            desc = _clean_str(inspect.cleandoc(desc))
+            desc = clean_str(inspect.cleandoc(desc))
 
         yield DocstringDeprecated(
-            args=[self.key], description=desc, version=_clean_str(version)
+            args=[self.key], description=desc, version=clean_str(version)
         )
 
 
@@ -293,13 +425,29 @@ class ExamplesSection(Section):
     """Parser for numpydoc examples sections.
 
     E.g. any section that looks like this:
+
+        Optional description for the following example. Always preceded
+        and followed by an empty line. Except for the first description.
+
         >>> import numpy.matlib
         >>> np.matlib.empty((2, 2))    # filled with random data
         matrix([[  6.76425276e-320,   9.79033856e-307], # random
                 [  7.39337286e-309,   3.22135945e-309]])
-        >>> np.matlib.empty((2, 2), dtype=int)
-        matrix([[ 6600475,        0], # random
-                [ 6586976, 22740995]])
+
+        Description for the second example.
+
+        >>> d = np.zeros((5,2))
+        >>> for i in range(5):
+        ...   for j in range(2):
+        ...     for k in range(3):
+        ...       for n in range(4):
+        ...         d[i,j] += a[k,n,i] * b[n,k,j]
+        >>> c == d
+        array([[ True,  True],
+            [ True,  True],
+            [ True,  True],
+            [ True,  True],
+            [ True,  True]])
     """
 
     @override
@@ -314,17 +462,36 @@ class ExamplesSection(Section):
 
         Yields
         ------
-        DocstringMeta
+        DocstringExample
             Docstring example sections
         """
-        lines = dedent(text).strip().splitlines()
+        # Reverse so that we can efficiently pop from the back
+        # instead of doing constant pops from the front.
+        # Could also use a deque
+        # ---
+        # We add a newline to the end to not have to special case the first
+        # description.
+        lines = [*list(reversed(dedent(text).strip().splitlines())), "\n"]
         while lines:
             snippet_lines: list[str] = []
             description_lines: list[str] = []
-            while lines and lines[0].startswith(">>>"):
-                snippet_lines.append(lines.pop(0))
-            while lines and not lines[0].startswith(">>>"):
-                description_lines.append(lines.pop(0))
+            # Empty lines before the description
+            while lines and lines[-1].strip() == "":
+                lines.pop()
+            # Description. Should not start with ">>>". if that were the case
+            # Then there was no description.
+            while lines and lines[-1].strip() != "" and not lines[-1].startswith(">>>"):
+                description_lines.append(lines.pop())
+            # Empty lines after description
+            while lines and lines[-1].strip() == "":
+                lines.pop()
+            # Here the actual example starts.
+            # We take any line.
+            # The code part starts with ">>>" or "..."
+            # but the result part can be anything.
+            # Just keeping until an empty line which should indicate the next example.
+            while lines and lines[-1].strip() != "":
+                snippet_lines.append(lines.pop())
             yield DocstringExample(
                 [self.key],
                 snippet="\n".join(snippet_lines) if snippet_lines else None,
@@ -377,13 +544,14 @@ class NumpydocParser:
 
         Parameters
         ----------
-        sections : Optional[Dict[str, Section]]
+        sections : Optional[Iterable[Section]]
             Recognized sections or None to defaults.
         """
         self.sections = {s.title: s for s in (sections or DEFAULT_SECTIONS)}
         self._setup()
 
     def _setup(self) -> None:
+        """Set up parser title regex."""
         self.titles_re = re.compile(
             r"|".join(s.title_pattern for s in self.sections.values()),
             flags=re.M,
@@ -405,7 +573,7 @@ class NumpydocParser:
 
         Parameters
         ----------
-        text : str
+        text : Optional[str]
             docstring text
 
         Returns
@@ -428,13 +596,7 @@ class NumpydocParser:
             meta_chunk = ""
 
         # Break description into short and long parts
-        parts = desc_chunk.split("\n", 1)
-        ret.short_description = parts[0] or None
-        if len(parts) > 1:
-            long_desc_chunk = parts[1] or ""
-            ret.blank_after_short_description = long_desc_chunk.startswith("\n")
-            ret.blank_after_long_description = long_desc_chunk.endswith("\n\n")
-            ret.long_description = long_desc_chunk.strip() or None
+        split_description(ret, desc_chunk)
 
         for match, nextmatch in _pairwise(self.titles_re.finditer(meta_chunk)):
             title = next(g for g in match.groups() if g is not None)
@@ -454,7 +616,7 @@ def parse(text: Optional[str]) -> Docstring:
 
     Parameters
     ----------
-    text : str
+    text : Optional[str]
         docstring text
 
     Returns
@@ -463,6 +625,37 @@ def parse(text: Optional[str]) -> Docstring:
         parsed docstring
     """
     return NumpydocParser().parse(text)
+
+
+def process_examples(examples: list[DocstringExample], parts: list[str]) -> None:
+    """Add string representation of examples section to parts.
+
+    Parameters
+    ----------
+    examples : list[DocstringExample]
+        DocstringExamples to add to parts.
+    parts : list[str]
+        List of strings representing the final output of compose().
+    indent : str
+        the characters used as indentation in the docstring string
+        (Default value = '    ')
+    """
+    if examples:
+        parts.append("")
+        parts.append("Examples")
+        parts.append("-" * len(parts[-1]))
+        for i, example in enumerate(examples):
+            # Leave out newline for first example
+            if i != 0:
+                parts.append("\n")
+            if example.description:
+                parts.append("\n".join(example.description.splitlines()))
+                # Only add a new line if we have an actual example snippet here.
+                # If not the next description will handle it.
+                if example.snippet:
+                    parts.append("\n")
+            if example.snippet:
+                parts.append("\n".join(example.snippet.splitlines()))
 
 
 def compose(  # noqa: PLR0915
@@ -490,6 +683,13 @@ def compose(  # noqa: PLR0915
     """
 
     def process_one(one: MainSections) -> None:
+        """Build the output text for one entry in a section.
+
+        Parameters
+        ----------
+        one : MainSections
+            Docstring for which to build the raw text.
+        """
         if isinstance(one, DocstringParam):
             head = one.arg_name
         elif isinstance(one, DocstringReturns):
@@ -515,11 +715,20 @@ def compose(  # noqa: PLR0915
         else:
             parts.append(head)
 
-    def process_sect(name: str, args: list[MainSections]) -> None:
+    def process_sect(name: str, args: Iterable[MainSections]) -> None:
+        """Build the output for a docstring section.
+
+        Parameters
+        ----------
+        name : str
+            Section for which to build the output.
+        args : list[MainSections]
+            List of individual elements of that section.
+        """
         if args:
             parts.append("")
             parts.append(name)
-            parts.append("-" * len(parts[-1]))
+            parts.append("-" * len(name))
             for arg in args:
                 process_one(arg)
 
@@ -596,6 +805,8 @@ def compose(  # noqa: PLR0915
         [item for item in docstring.raises or [] if item.args[0] == "warns"],
     )
 
+    process_examples(docstring.examples, parts)
+
     for meta in docstring.meta:
         if isinstance(
             meta,
@@ -605,6 +816,7 @@ def compose(  # noqa: PLR0915
                 DocstringReturns,
                 DocstringRaises,
                 DocstringYields,
+                DocstringExample,
             ),
         ):
             continue  # Already handled

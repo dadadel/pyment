@@ -27,7 +27,7 @@ def parse(
 
     Parameters
     ----------
-    text : str
+    text : Optional[str]
         docstring text to parse
     style : DocstringStyle
         docstring style (Default value = DocstringStyle.AUTO)
@@ -58,7 +58,7 @@ def parse(
     if not rets and exc:
         raise exc
 
-    return sorted(rets, key=lambda d: len(d.meta), reverse=True)[0]
+    return sorted(rets, key=lambda d: (len(d.examples), len(d.meta)), reverse=True)[0]
 
 
 def parse_from_object(
@@ -118,12 +118,17 @@ def compose(
         the characters used as indentation in the docstring string
         (Default value = '    ')
     rendering_style : RenderingStyle
-        _description_ (Default value = RenderingStyle.COMPACT)
+        The rendering style to use. (Default value = RenderingStyle.COMPACT)
 
     Returns
     -------
     str
         docstring text
+
+    Raises
+    ------
+    ValueError
+        If no output style could be determined.
     """
     if style == DocstringStyle.AUTO:
         if docstring.style is None:

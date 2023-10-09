@@ -32,7 +32,19 @@ class DocstringInfo:
     def output_docstring(
         self, style: dsp.DocstringStyle = dsp.DocstringStyle.NUMPYDOC
     ) -> str:
-        """Parse and fix input docstrings, then compose output docstring."""
+        """Parse and fix input docstrings, then compose output docstring.
+
+        Parameters
+        ----------
+        style : dsp.DocstringStyle
+            Output style to use for the docstring.
+            (Default value = dsp.DocstringStyle.NUMPYDOC)
+
+        Returns
+        -------
+        str
+            String representing the updated docstring.
+        """
         self._escape_triple_quotes()
         parsed = dsp.parse(self.docstring)
         self.fix_docstring(parsed)
@@ -48,6 +60,11 @@ class DocstringInfo:
 
         Default are to add missing dots, blank lines and give defaults for
         descriptions and types.
+
+        Parameters
+        ----------
+        docstring : dsp.Docstring
+            Docstring to fix.
         """
         self._fix_backslashes()
         self._fix_short_description(docstring)
@@ -61,7 +78,13 @@ class DocstringInfo:
             self.modifier = "r" + self.modifier
 
     def _fix_short_description(self, docstring: dsp.Docstring) -> None:
-        """Set default summary."""
+        """Set default summary.
+
+        Parameters
+        ----------
+        docstring : dsp.Docstring
+            Docstring to set the default summary for.
+        """
         docstring.short_description = (
             docstring.short_description or self.default_summary
         )
@@ -69,7 +92,13 @@ class DocstringInfo:
             docstring.short_description = f"{docstring.short_description.rstrip()}."
 
     def _fix_blank_lines(self, docstring: dsp.Docstring) -> None:
-        """Set blank lines after short and long description."""
+        """Set blank lines after short and long description.
+
+        Parameters
+        ----------
+        docstring : dsp.Docstring
+            Docstring to fix the blank lines for.
+        """
         # Set blank line after short description if a long one follows
         # If nothing follows we do not want one and other sections bring their own.
         docstring.blank_after_short_description = bool(docstring.long_description)
@@ -79,12 +108,27 @@ class DocstringInfo:
         docstring.blank_after_long_description = False
 
     def _fix_descriptions(self, docstring: dsp.Docstring) -> None:
-        """Everything should have a description."""
+        """Everything should have a description.
+
+        Parameters
+        ----------
+        docstring : dsp.Docstring
+            Docstring whose descriptions need fixing.
+        """
         for ele in docstring.meta:
+            # Description works a bit different for examples.
+            if isinstance(ele, dsp.DocstringExample):
+                continue
             ele.description = ele.description or self.default_description
 
     def _fix_types(self, docstring: dsp.Docstring) -> None:
-        """Set empty types for parameters and returns."""
+        """Set empty types for parameters and returns.
+
+        Parameters
+        ----------
+        docstring : dsp.Docstring
+            Docstring whose type information needs fixing
+        """
         for param in docstring.params:
             if param.args[0] == "method":
                 continue
@@ -107,12 +151,29 @@ class Parameter:
     default: Optional[str] = None
 
     def custom_hash(self) -> int:
-        """Implement custom has function for uniquefying."""
+        """Implement custom has function for uniquefying.
+
+        Returns
+        -------
+        int
+            Has value of the instance.
+        """
         return hash((self.arg_name, self.type_name, self.default))
 
     @staticmethod
     def uniquefy(lst: Iterable["Parameter"]) -> Iterator["Parameter"]:
-        """Remove duplicates while keeping order."""
+        """Remove duplicates while keeping order.
+
+        Parameters
+        ----------
+        lst : Iterable['Parameter']
+            Iterable of parameters that should be uniqueified.
+
+        Yields
+        ------
+        'Parameter'
+            Uniqueified parameters.
+        """
         seen: set[int] = set()
         for item in lst:
             if (itemhash := item.custom_hash()) not in seen:
@@ -132,6 +193,11 @@ class ClassDocstring(DocstringInfo):
         """Fix docstrings.
 
         Additionally adjust attributes and methods from body.
+
+        Parameters
+        ----------
+        docstring : dsp.Docstring
+            Docstring to fix.
         """
         super().fix_docstring(docstring)
         self._adjust_attributes(docstring)
@@ -144,6 +210,11 @@ class ClassDocstring(DocstringInfo):
 
         Do not add additional attributes and do not create the section
         if it did not exist.
+
+        Parameters
+        ----------
+        docstring : dsp.Docstring
+            Docstring to adjust parameters for.
         """
         # If a docstring or the section already exists we are done.
         # We already fixed empty types and descriptions in the super call.
@@ -162,7 +233,18 @@ class ClassDocstring(DocstringInfo):
             )
 
     def _adjust_methods(self, docstring: dsp.Docstring) -> None:
-        """If a new docstring is generated add a methods section."""
+        """If a new docstring is generated add a methods section.
+
+        Create the full list if there was no original docstring.
+
+        Do not add additional methods and do not create the section
+        if it did not exist.
+
+        Parameters
+        ----------
+        docstring : dsp.Docstring
+            Docstring to adjust methods for.
+        """
         if self.docstring:
             return
         for method in self.methods:
@@ -219,6 +301,11 @@ class FunctionDocstring(DocstringInfo):
             parameters from function signature.
             return and yield from signature and body.
             raises from body.
+
+        Parameters
+        ----------
+        docstring : dsp.Docstring
+            Docstring to fix.
         """
         super().fix_docstring(docstring)
         self._adjust_parameters(docstring)
@@ -230,6 +317,16 @@ class FunctionDocstring(DocstringInfo):
         r"""Escape the default value so that the docstring remains fully valid.
 
         Currently only escapes triple quotes '\"\"\"'.
+
+        Parameters
+        ----------
+        default_value : str
+            Value to escape.
+
+        Returns
+        -------
+        str
+            Optionally escaped value.
         """
         if '"""' in default_value:
             if "r" not in self.modifier:
@@ -246,7 +343,12 @@ class FunctionDocstring(DocstringInfo):
         If no entry exists then create one with name, type and default from the
         signature and place holder description.
 
+        Parameters
+        ----------
+        docstring : dsp.Docstring
+            Docstring to adjust parameters for.
         """
+        # Build dicts for faster lookup
         params_from_doc = {param.arg_name: param for param in docstring.params}
         params_from_sig = {param.arg_name: param for param in self.signature.params}
         for name, param_sig in params_from_sig.items():
@@ -298,9 +400,15 @@ class FunctionDocstring(DocstringInfo):
         If multiple were specified then leave them as is.
         They might very well be expanding on a return type like:
         Tuple[int, str, whatever]
+
+        Parameters
+        ----------
+        docstring : dsp.Docstring
+            Docstring to adjust return values for.
         """
         doc_returns = docstring.many_returns
         sig_return = self.signature.returns.type_name
+        # If the return type is a generator extract the actual return type from that.
         if sig_return and (
             matches := (re.match(r"Generator\[(\w+), (\w+), (\w+)\]", sig_return))
         ):
@@ -317,9 +425,15 @@ class FunctionDocstring(DocstringInfo):
                     return_name=None,
                 )
             )
+        # If there is only one return value specified and we do not
+        # yield anything then correct correct it with the actual return value.
         elif len(doc_returns) == 1 and not self.body.yields_value:
             doc_return = doc_returns[0]
             doc_return.type_name = sig_return or doc_return.type_name
+        # If we have multiple return values specified
+        # and we have only extracted one set of return values from the body.
+        # then update the multiple return values with the names from
+        # the actual return values.
         elif len(doc_returns) > 1 and len(self.body.returns) == 1:
             doc_names = {returned.return_name for returned in doc_returns}
             for body_name in next(iter(self.body.returns)):
@@ -339,9 +453,15 @@ class FunctionDocstring(DocstringInfo):
 
         Only difference is that the signature return type is not added
         to the docstring since it is a bit more complicated for generators.
+
+        Parameters
+        ----------
+        docstring : dsp.Docstring
+            Docstring to adjust yields for.
         """
         doc_yields = docstring.many_yields
         sig_return = self.signature.returns.type_name
+        # Extract actual return type from Iterators and Generators.
         if sig_return and (
             matches := (
                 re.match(r"(?:Iterable|Iterator)\[([^\]]+)\]", sig_return)
@@ -381,10 +501,27 @@ class FunctionDocstring(DocstringInfo):
                     )
 
     def _adjust_raises(self, docstring: dsp.Docstring) -> None:
+        """Adjust raises section based on parsed body.
+
+        Parameters
+        ----------
+        docstring : dsp.Docstring
+            Docstring to adjust raises section for.
+        """
+        # Only consider those raises that are not already raised in the body.
+        # We are potentially raising the same time of exception multiple times.
+        # Only remove the first of each type per one encountered in the docstring.
         raised_in_body = self.body.raises.copy()
         for raised in docstring.raises:
             if raised.type_name in raised_in_body:
                 raised_in_body.remove(raised.type_name)
+            # If this specific Error is not in the body but the body contains
+            # unknown exceptions then remove one of those instead.
+            # For example when exception stored in variable and raised later.
+            # We want people to be able to specific them by name and not have
+            # pyment constantly forced unnamed raises on them.
+            elif "" in raised_in_body:
+                raised_in_body.remove("")
         for missing_raise in raised_in_body:
             docstring.meta.append(
                 dsp.DocstringRaises(

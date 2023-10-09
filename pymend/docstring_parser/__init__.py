@@ -3,6 +3,7 @@
 from .common import (
     Docstring,
     DocstringDeprecated,
+    DocstringExample,
     DocstringMeta,
     DocstringParam,
     DocstringRaises,
@@ -30,6 +31,7 @@ __all__ = [
     "DocstringReturns",
     "DocstringYields",
     "DocstringDeprecated",
+    "DocstringExample",
     "DocstringStyle",
     "RenderingStyle",
     "Style",

@@ -799,56 +799,118 @@ def test_simple_sections() -> None:
     ("source", "expected_results"),
     [
         (
-            "Description\nExamples\n--------\nlong example\n\nmore here",
-            [
-                (None, "long example\n\nmore here"),
-            ],
-        ),
-        (
-            "Description\nExamples\n--------\n>>> test",
+            # fmt: off
+            "Description\n"
+            "Examples\n"
+            "--------\n"
+            ">>> test",
+            # fmt: on
             [
                 (">>> test", ""),
             ],
         ),
         (
-            "Description\nExamples\n--------\n>>> testa\n>>> testb",
+            # fmt: off
+            "Description\n"
+            "Examples\n"
+            "--------\n"
+            ">>> testa\n"
+            ">>> testb",
+            # fmt: on
             [
                 (">>> testa\n>>> testb", ""),
             ],
         ),
         (
-            "Description\nExamples\n--------\n>>> test1\ndesc1",
+            # fmt: off
+            "Description\n"
+            "Examples\n"
+            "--------\n"
+            "\n"
+            "desc1\n"
+            "\n"
+            ">>> test1",
+            # fmt: on
             [
                 (">>> test1", "desc1"),
             ],
         ),
         (
-            "Description\nExamples\n--------\n"
-            ">>> test1a\n>>> test1b\ndesc1a\ndesc1b",
+            # fmt: off
+            "Description\n"
+            "Examples\n"
+            "--------\n"
+            "\n"
+            "desc1a\n"
+            "desc1b\n"
+            "\n"
+            ">>> test1a\n"
+            ">>> test1b",
+            # fmt: on
             [
                 (">>> test1a\n>>> test1b", "desc1a\ndesc1b"),
             ],
         ),
         (
-            "Description\nExamples\n--------\n>>> test1\ndesc1\n>>> test2\ndesc2",
+            # fmt: off
+            "Description\n"
+            "Examples\n"
+            "--------\n"
+            "\n"
+            "desc1\n"
+            "\n"
+            ">>> test1\n"
+            "\n"
+            "desc2\n"
+            "\n"
+            ">>> test2",
+            # fmt: on
             [
                 (">>> test1", "desc1"),
                 (">>> test2", "desc2"),
             ],
         ),
         (
-            "Description\nExamples\n--------\n"
-            ">>> test1a\n>>> test1b\ndesc1a\ndesc1b\n"
-            ">>> test2a\n>>> test2b\ndesc2a\ndesc2b\n",
+            # fmt: off
+            "Description\n"
+            "Examples\n"
+            "--------\n"
+            "\n"
+            "desc1a\n"
+            "desc1b\n"
+            "\n"
+            ">>> test1a\n"
+            ">>> test1b\n"
+            "\n"
+            "desc2a\n"
+            "desc2b\n"
+            "\n"
+            ">>> test2a\n"
+            ">>> test2b",
+            # fmt: on
             [
                 (">>> test1a\n>>> test1b", "desc1a\ndesc1b"),
                 (">>> test2a\n>>> test2b", "desc2a\ndesc2b"),
             ],
         ),
         (
-            "Description\nExamples\n--------\n"
-            "    >>> test1a\n    >>> test1b\n    desc1a\n    desc1b\n"
-            "    >>> test2a\n    >>> test2b\n    desc2a\n    desc2b\n",
+            # fmt: off
+            "Description\n"
+            "Examples\n"
+            "--------\n"
+            "    \n"
+            "    desc1a\n"
+            "    desc1b\n"
+            "    \n"
+            "    >>> test1a\n"
+            "    >>> test1b\n"
+            "    \n"
+            "    desc2a\n"
+            "    desc2b\n"
+            "    \n"
+            "    >>> test2a\n"
+            "    >>> test2b",
+            # fmt: on
             [
                 (">>> test1a\n>>> test1b", "desc1a\ndesc1b"),
                 (">>> test2a\n>>> test2b", "desc2a\ndesc2b"),

@@ -56,6 +56,20 @@ class PyComment:
         self.parsed = False
 
     def __copy_from_line_list(self, lines: list[str]) -> Self:
+        """Create a new PyComment with the same output style and lines from the input.
+
+        Parameters
+        ----------
+        lines : list[str]
+            List of lines that should make up the `input_lines` of the copied
+            instance.
+
+        Returns
+        -------
+        Self
+            The new instance with the same output style and lines initialized
+            by the `lines` argument.
+        """
         py_comment = PyComment.__new__(PyComment)
         py_comment.input_lines = "".join(lines)
         py_comment.output_style = self.output_style
@@ -68,7 +82,7 @@ class PyComment:
 
         Returns
         -------
-        List[ElementDocstring]
+        list[ElementDocstring]
             List of information about module, classes and functions.
         """
         ast_parser = AstAnalyzer(self.input_lines)
@@ -91,6 +105,11 @@ class PyComment:
             Modified content as list of lines.
         list_changed : list[str]
             List of names of elements that were changed.
+
+        Raises
+        ------
+        ValueError
+            If the endline of a docstring was parsed as None.
         """
         if not self.parsed:
             self._parse()
@@ -134,7 +153,7 @@ class PyComment:
 
         Returns
         -------
-        Tuple[List[str], List[str], List[str]]
+        tuple[list[str], list[str], list[str]]
             Tuple of before, after, changed,
         """
         list_from, list_to, list_changed = self.get_changes()
@@ -143,12 +162,27 @@ class PyComment:
         return list_from, list_to, list_changed
 
     def assert_stability(self, src: list[str], dst: list[str]) -> None:
-        """Assert that running pymend on its own output does not change anything."""
+        """Assert that running pymend on its own output does not change anything.
+
+        Parameters
+        ----------
+        src : list[str]
+            List of lines from the input file.
+        dst : list[str]
+            List of lines that pymend produced.
+
+        Raises
+        ------
+        AssertionError
+            If a second run of pymend produces a different output than the first.
+        """
         comment = self.__copy_from_line_list(dst)
         comment.proceed()
         before, after, changed = comment.get_changes()
         if changed or not (dst == before and dst == after):
             log = self.dump_to_file(
+                "INTERNAL ERROR: PyMend produced different "
+                "docstrings on the second pass.\n"
                 "Changed:\n",
                 "\n".join(changed),
                 "".join(self._pure_diff(src, dst, "source", "first pass")),
@@ -156,10 +190,10 @@ class PyComment:
             )
             msg = (
                 "INTERNAL ERROR:"
-                " PyMend produced docstrings on the second pass."
+                " PyMend produced different docstrings on the second pass."
                 " Please report a bug on"
                 " https://github.com/JanEricNitschke/pymend/issues."
-                f"  This diff might be helpful: {log}"
+                f" This diff might be helpful: {log}"
             )
             raise AssertionError(msg)
 
@@ -168,6 +202,23 @@ class PyComment:
 
         Done by comparing the asts for the original and produced outputs
         while ignoring the docstrings themselves.
+
+        Parameters
+        ----------
+        src : list[str]
+            List of lines from the input file.
+        dst : list[str]
+            List of lines that pymend produced.
+
+        Raises
+        ------
+        AssertionError
+            If the content of the input file could not be parsed into an ast.
+        AssertionError
+            If the output from pymend could not be parsed into an ast.
+        AssertionError
+            If the output from pymend produces a different (reduced) ast
+            than the input.
         """
         src_lines = "".join(src)
         dst_lines = "".join(dst)
@@ -180,7 +231,9 @@ class PyComment:
             dst_ast = ast.parse(dst_lines)
         except Exception as exc:  # noqa: BLE001
             log = self.dump_to_file(
-                "".join(traceback.format_tb(exc.__traceback__)), dst_lines
+                "INTERNAL ERROR: PyMend produced invalid code:\n",
+                "".join(traceback.format_tb(exc.__traceback__)),
+                dst_lines,
             )
             msg = (
                 f"INTERNAL ERROR: PyMend produced invalid code: {exc}. "
@@ -193,7 +246,9 @@ class PyComment:
         dst_ast_list = self._stringify_ast(dst_ast)
         if src_ast_list != dst_ast_list:
             log = self.dump_to_file(
-                "".join(self._pure_diff(src_ast_list, dst_ast_list, "src", "dst"))
+                "INTERNAL ERROR: PyMend produced code "
+                "that is not equivalent to the source\n",
+                "".join(self._pure_diff(src_ast_list, dst_ast_list, "src", "dst")),
             )
             msg = (
                 "INTERNAL ERROR: PyMend produced code that is not equivalent to the"
@@ -204,7 +259,13 @@ class PyComment:
             raise AssertionError(msg) from None
 
     def _strip_ast(self, ast_node: ast.AST) -> None:
-        """Remove all docstrings from the ast."""
+        """Remove all docstrings from the ast.
+
+        Parameters
+        ----------
+        ast_node : ast.AST
+            Node representing the full ast.
+        """
         for node in ast.walk(ast_node):
             # let's work only on functions & classes definitions
             if not isinstance(
@@ -227,12 +288,37 @@ class PyComment:
             node.body = node.body[1:]
 
     def _stringify_ast(self, node: ast.AST) -> list[str]:
-        """Turn ast into string representation with all docstrings removed."""
+        """Turn ast into string representation with all docstrings removed.
+
+        Parameters
+        ----------
+        node : ast.AST
+            Node to turn into a reduced string representation.
+
+        Returns
+        -------
+        list[str]
+            List of lines making up the reduced string representation.
+        """
         self._strip_ast(node)
         return ast.dump(node, indent=1).splitlines(keepends=True)
 
     def dump_to_file(self, *output: str, ensure_final_newline: bool = True) -> str:
-        """Dump `output` to a temporary file. Return path to the file."""
+        """Dump `output` to a temporary file. Return path to the file.
+
+        Parameters
+        ----------
+        *output : str
+            List of strings to dump into the output.
+        ensure_final_newline : bool
+            Whether to make sure that every dumped string
+            ends in a new line. (Default value = True)
+
+        Returns
+        -------
+        str
+            Path to the produced temp file.
+        """
         with tempfile.NamedTemporaryFile(
             mode="w", prefix="blk_", suffix=".log", delete=False, encoding="utf8"
         ) as f:
@@ -249,6 +335,26 @@ class PyComment:
         indentation: str = "    ",
         modifier: str = "",
     ) -> str:
+        r"""Add quotes, indentation and modifiers to the docstring.
+
+        Parameters
+        ----------
+        docstring : str
+            The raw docstring to complete.
+        quotes : str
+            Quotes to use for the docstring. (Default value = '\"\"\"')
+        indentation : str
+            How much to indent the docstring lines (Default value = '    ')
+        modifier : str
+            Modifier to put before the opening triple quotes.
+            Any combination of ("r", "f", "u") (Default value = '')
+
+        Returns
+        -------
+        str
+            The properly indented docstring, wrapped in triple quotes
+            and preceded by the desired modifier.
+        """
         split = f"{modifier}{quotes}{docstring}".splitlines()
         # One line docstring get the quotes on the same line
         if len(split) > 1:
@@ -267,14 +373,14 @@ class PyComment:
         Parameters
         ----------
         source_path : str
-            (Default value = '')
+            Path to the source file of the diff. (Default value = '')
         target_path : str
-            (Default value = '')
+            Path to the target file of the diff. (Default value = '')
 
         Returns
         -------
-        List[str]
-            the resulted diff
+        list[str]
+            The resulting diff
         """
         list_from, list_to, _ = self.compute_before_after()
 
@@ -289,6 +395,24 @@ class PyComment:
         source_path: str = "",
         target_path: str = "",
     ) -> list[str]:
+        """Get the direct diff between two lists of strings..
+
+        Parameters
+        ----------
+        src : list[str]
+            Source for the diff
+        dst : list[str]
+            Target for the diff.
+        source_path : str
+            Path to the source file of the diff. (Default value = '')
+        target_path : str
+            Path to the target file of the diff. (Default value = '')
+
+        Returns
+        -------
+        list[str]
+            The resulting diff
+        """
         diff_lines: list[str] = []
         for line in difflib.unified_diff(src, dst, source_path, target_path):
             # Work around https://bugs.python.org/issue2142
@@ -313,7 +437,7 @@ class PyComment:
 
         Returns
         -------
-        List[str]
+        list[str]
             the diff as a list of \n terminated lines
         """
         diff = self.diff(source_path, target_path)
@@ -327,7 +451,7 @@ class PyComment:
         ----------
         patch_file : str
             file name of the patch to generate
-        lines_to_write : List[str]
+        lines_to_write : list[str]
             lines to write to the file - they should be \n terminated
         """
         with open(patch_file, "w", encoding="utf-8") as file:
@@ -338,7 +462,7 @@ class PyComment:
 
         Parameters
         ----------
-        lines_to_write : List[str]
+        lines_to_write : list[str]
             lines to write to the file - they should be \n terminated
         """
         tmp_filename = f"{self.input_file}.writing"

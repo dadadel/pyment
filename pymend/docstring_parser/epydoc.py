@@ -16,12 +16,10 @@ from .common import (
     DocstringYields,
     ParseError,
     RenderingStyle,
+    append_description,
+    clean_str,
+    split_description,
 )
-
-
-def _clean_str(string: str) -> Optional[str]:
-    string = string.strip()
-    return string if string != "" else None
 
 
 class SectionPattern(NamedTuple):
@@ -43,6 +41,20 @@ class SectionMatch(NamedTuple):
 
 
 def _get_matches_for_chunk(chunk: str, patterns: SectionPattern) -> SectionMatch:
+    """Apply a search for each pattern to the chunk.
+
+    Parameters
+    ----------
+    chunk : str
+        Chunk to match the patterns against.
+    patterns : SectionPattern
+        Collection of regex patterns to match against the chunk.
+
+    Returns
+    -------
+    SectionMatch
+        Tuple of matches of the patterns against the chunk.
+    """
     return SectionMatch(
         param=re.search(patterns.param, chunk),
         raises=re.search(patterns.raises, chunk),
@@ -66,14 +78,29 @@ def _tokenize(
 ) -> list[StreamToken]:
     """Return the tokenized stream according to the regex patterns.
 
+    Parameters
+    ----------
+    meta_chunk : str
+        Chunk to tokenize.
+    patterns : SectionPattern
+        Collection of patterns for different sections.
+
     Returns
     -------
-    List[Tuple[str, str, List[str], str]]
+    list[StreamToken]
         (base, key, args, desc)
         base: Literal['param', 'raise', 'return', 'meta']
         key: str:
         args: List[str]
         desc: str: Description
+
+    Raises
+    ------
+    ParseError
+        If none of the patterns match against the chunk.
+    ParseError
+        If we match a section in the general meta case that should have already
+        been matched in a specific section.
     """
     stream: list[StreamToken] = []
     for chunk_match in re.finditer(r"(^@.*?)(?=^@|\Z)", meta_chunk, flags=re.S | re.M):
@@ -103,7 +130,7 @@ def _tokenize(
         else:
             base = "meta"
             key: str = match.group(1)
-            token = _clean_str(match.group(2).strip())
+            token = clean_str(match.group(2).strip())
             args = [] if token is None else re.split(r"\s+", token)
 
             # Make sure we didn't match some existing keyword in an incorrect
@@ -129,6 +156,20 @@ def _tokenize(
 
 
 def _combine_params(stream: list[StreamToken]) -> dict[str, dict[str, Optional[str]]]:
+    """Group the list of tokens into sections based on section and information..
+
+    Parameters
+    ----------
+    stream : list[StreamToken]
+        List of tokens to group into dict.
+
+    Returns
+    -------
+    dict[str, dict[str, Optional[str]]]
+        Dictionary grouping parsed param sections
+        by section (param name, "return", "yield") and
+        information they represent (type_name, description)
+    """
     params: dict[str, dict[str, Optional[str]]] = {}
     for base, key, args, desc in stream:
         if base not in ["param", "return", "yield"]:
@@ -145,6 +186,22 @@ def _add_meta_information(
     params: dict[str, dict[str, Optional[str]]],
     ret: Docstring,
 ) -> None:
+    """Add the meta information into the docstring instance.
+
+    Parameters
+    ----------
+    stream : list[StreamToken]
+        Stream of tokens of the string-
+    params : dict[str, dict[str, Optional[str]]]
+        Grouped information about each section.
+    ret : Docstring
+        Docstring instance to add the information to.
+
+    Raises
+    ------
+    ParseError
+        If an unexpected section is encountered.
+    """
     is_done: dict[str, bool] = {}
     for token in stream:
         if token.base == "param" and not is_done.get(token.args[0], False):
@@ -218,7 +275,7 @@ def parse(text: Optional[str]) -> Docstring:
 
     Parameters
     ----------
-    text : str
+    text : Optional[str]
         docstring to parse
 
     Returns
@@ -238,13 +295,7 @@ def parse(text: Optional[str]) -> Docstring:
         desc_chunk = text
         meta_chunk = ""
 
-    parts = desc_chunk.split("\n", 1)
-    ret.short_description = parts[0] or None
-    if len(parts) > 1:
-        long_desc_chunk = parts[1] or ""
-        ret.blank_after_short_description = long_desc_chunk.startswith("\n")
-        ret.blank_after_long_description = long_desc_chunk.endswith("\n\n")
-        ret.long_description = long_desc_chunk.strip() or None
+    split_description(ret, desc_chunk)
 
     patterns = SectionPattern(
         param=re.compile(r"(param|keyword|type)(\s+[_A-z][_A-z0-9]*\??):"),
@@ -288,6 +339,20 @@ def compose(
     """
 
     def process_desc(desc: Optional[str], *, is_type: bool) -> str:
+        """Process a description section.
+
+        Parameters
+        ----------
+        desc : Optional[str]
+            Description to process
+        is_type : bool
+            Whether the description represent type information.
+
+        Returns
+        -------
+        str
+            The properly rendered description information.
+        """
         if not desc:
             return ""
 
@@ -301,14 +366,7 @@ def compose(
         return "\n".join([f" {first}"] + [indent + line for line in rest])
 
     parts: list[str] = []
-    if docstring.short_description:
-        parts.append(docstring.short_description)
-    if docstring.blank_after_short_description:
-        parts.append("")
-    if docstring.long_description:
-        parts.append(docstring.long_description)
-    if docstring.blank_after_long_description:
-        parts.append("")
+    append_description(docstring, parts)
 
     for meta in docstring.meta:
         if isinstance(meta, DocstringParam):

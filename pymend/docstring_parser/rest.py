@@ -20,10 +20,31 @@ from .common import (
     DocstringYields,
     ParseError,
     RenderingStyle,
+    append_description,
+    split_description,
 )
 
 
 def _build_param(args: list[str], desc: str) -> DocstringParam:
+    """Build parameter entry from supplied arguments.
+
+    Parameters
+    ----------
+    args : list[str]
+        List of strings describing the parameter (name, type)
+    desc : str
+        String representing the parameter description.
+
+    Returns
+    -------
+    DocstringParam
+        The docstring object combining and structuring the raw info.
+
+    Raises
+    ------
+    ParseError
+        If an unexpected number of arguments were found.
+    """
     if len(args) == 3:
         _, type_name, arg_name = args
         if type_name.endswith("?"):
@@ -53,6 +74,25 @@ def _build_param(args: list[str], desc: str) -> DocstringParam:
 
 
 def _build_return(args: list[str], desc: str) -> DocstringReturns:
+    """Build return entry from supplied arguments.
+
+    Parameters
+    ----------
+    args : list[str]
+        List of strings describing the return value (name, type)
+    desc : str
+        String representing the return description.
+
+    Returns
+    -------
+    DocstringReturns
+        The docstring object combining and structuring the raw info.
+
+    Raises
+    ------
+    ParseError
+        If an unexpected number of arguments were found.
+    """
     if len(args) == 2:
         type_name = args[1]
     elif len(args) == 1:
@@ -70,6 +110,25 @@ def _build_return(args: list[str], desc: str) -> DocstringReturns:
 
 
 def _build_yield(args: list[str], desc: str) -> DocstringYields:
+    """Build yield entry from supplied arguments.
+
+    Parameters
+    ----------
+    args : list[str]
+        List of strings describing the yielded value (name, type)
+    desc : str
+        String representing the yield value description.
+
+    Returns
+    -------
+    DocstringYields
+        The docstring object combining and structuring the raw info.
+
+    Raises
+    ------
+    ParseError
+        If an unexpected number of arguments were found.
+    """
     if len(args) == 2:
         type_name = args[1]
     elif len(args) == 1:
@@ -87,6 +146,20 @@ def _build_yield(args: list[str], desc: str) -> DocstringYields:
 
 
 def _build_deprecation(args: list[str], desc: str) -> DocstringDeprecated:
+    """Build deprecation entry from supplied arguments.
+
+    Parameters
+    ----------
+    args : list[str]
+        List of strings describing the deprecation
+    desc : str
+        Actual textual description.
+
+    Returns
+    -------
+    DocstringDeprecated
+        The docstring object combining and structuring the raw info.
+    """
     match = re.search(
         r"^(?P<version>v?((?:\d+)(?:\.[0-9a-z\.]+))) (?P<desc>.+)",
         desc,
@@ -100,6 +173,25 @@ def _build_deprecation(args: list[str], desc: str) -> DocstringDeprecated:
 
 
 def _build_raises(args: list[str], desc: str) -> DocstringRaises:
+    """Build raises entry from supplied arguments.
+
+    Parameters
+    ----------
+    args : list[str]
+        List of strings describing the raised value (name, type)
+    desc : str
+        String representing the raised value description.
+
+    Returns
+    -------
+    DocstringRaises
+        The docstring object combining and structuring the raw info.
+
+    Raises
+    ------
+    ParseError
+        If an unexpected number of arguments were found.
+    """
     if len(args) == 2:
         type_name = args[1]
     elif len(args) == 1:
@@ -111,6 +203,20 @@ def _build_raises(args: list[str], desc: str) -> DocstringRaises:
 
 
 def _build_meta(args: list[str], desc: str) -> DocstringMeta:
+    """Build a fottomg meta entry from supplied arguments.
+
+    Parameters
+    ----------
+    args : list[str]
+        List of strings describing entry.
+    desc : str
+        String representing the entry description.
+
+    Returns
+    -------
+    DocstringMeta
+        The docstring object combining and structuring the raw info.
+    """
     key = args[0]
 
     if key in PARAM_KEYWORDS:
@@ -132,23 +238,41 @@ def _build_meta(args: list[str], desc: str) -> DocstringMeta:
 
 
 def _get_chunks(text: str) -> tuple[str, str]:
+    """Split the text into args (key, type, ...) and description.
+
+    Parameters
+    ----------
+    text : str
+        Text to split into chunks.
+
+    Returns
+    -------
+    tuple[str, str]
+        Args and description.
+    """
     if match := re.search("^:", text, flags=re.M):
         return text[: match.start()], text[match.start() :]
     return text, ""
 
 
-def _split_description(docstring: Docstring, desc_chunk: str) -> None:
-    """Break description into short and long parts."""
-    parts = desc_chunk.split("\n", 1)
-    docstring.short_description = parts[0] or None
-    if len(parts) > 1:
-        long_desc_chunk = parts[1] or ""
-        docstring.blank_after_short_description = long_desc_chunk.startswith("\n")
-        docstring.blank_after_long_description = long_desc_chunk.endswith("\n\n")
-        docstring.long_description = long_desc_chunk.strip() or None
-
-
 def _get_split_chunks(chunk: str) -> tuple[list[str], str]:
+    """Split a entry into args and description.
+
+    Parameters
+    ----------
+    chunk : str
+        Entry string to split.
+
+    Returns
+    -------
+    tuple[list[str], str]
+        Arguments of the entry and its description.
+
+    Raises
+    ------
+    ParseError
+        If the chunk could not be split into args and description.
+    """
     try:
         args_chunk, desc_chunk = chunk.lstrip(":").split(":", 1)
     except ValueError as ex:
@@ -160,6 +284,24 @@ def _get_split_chunks(chunk: str) -> tuple[list[str], str]:
 def _extract_type_info(
     docstring: Docstring, meta_chunk: str
 ) -> tuple[dict[str, str], dict[Optional[str], str], dict[Optional[str], str]]:
+    """Extract type and description pairs and add other entries directly.
+
+    Parameters
+    ----------
+    docstring : Docstring
+        Docstring wrapper to add information to.
+    meta_chunk : str
+        Docstring text to extract information from.
+
+    Returns
+    -------
+    types : dict[str, str]
+        Dictionary matching parameters to their descriptions
+    rtypes : dict[Optional[str], str]
+        Dictionary matching return values to their descriptions
+    ytypes : dict[Optional[str], str]
+        Dictionary matching yielded values to their descriptions
+    """
     types: dict[str, str] = {}
     rtypes: dict[Optional[str], str] = {}
     ytypes: dict[Optional[str], str] = {}
@@ -191,7 +333,7 @@ def parse(text: Optional[str]) -> Docstring:
 
     Parameters
     ----------
-    text : str
+    text : Optional[str]
         docstring to parse
 
     Returns
@@ -211,7 +353,7 @@ def parse(text: Optional[str]) -> Docstring:
     text = inspect.cleandoc(text)
     desc_chunk, meta_chunk = _get_chunks(text)
 
-    _split_description(ret, desc_chunk)
+    split_description(ret, desc_chunk)
 
     types, rtypes, ytypes = _extract_type_info(ret, meta_chunk)
 
@@ -238,21 +380,25 @@ def parse(text: Optional[str]) -> Docstring:
     return ret
 
 
-def _append_description(docstring: Docstring, parts: list[str]) -> None:
-    if docstring.short_description:
-        parts.append(docstring.short_description)
-    if docstring.blank_after_short_description:
-        parts.append("")
-    if docstring.long_description:
-        parts.append(docstring.long_description)
-    if docstring.blank_after_long_description:
-        parts.append("")
-
-
 def process_desc(
     desc: Optional[str], rendering_style: RenderingStyle, indent: str = "    "
 ) -> str:
-    """Process the description fro one element."""
+    """Process the description for one element.
+
+    Parameters
+    ----------
+    desc : Optional[str]
+        Description to process
+    rendering_style : RenderingStyle
+        Rendering style to use.
+    indent : str
+        Indentation needed for that line (Default value = '    ')
+
+    Returns
+    -------
+    str
+        String representation of the docstrings description.
+    """
     if not desc:
         return ""
 
@@ -273,6 +419,19 @@ def _append_param(
     rendering_style: RenderingStyle,
     indent: str,
 ) -> None:
+    """Append one parameter entry to the output stream.
+
+    Parameters
+    ----------
+    param : DocstringParam
+        Structured representation of a parameter entry.
+    parts : list[str]
+        List of strings representing the final output of compose().
+    rendering_style : RenderingStyle
+        Rendering style to use.
+    indent : str
+        Indentation needed for that line.
+    """
     if param.type_name:
         type_text = (
             f" {param.type_name}? " if param.is_optional else f" {param.type_name} "
@@ -297,6 +456,19 @@ def _append_return(
     rendering_style: RenderingStyle,
     indent: str,
 ) -> None:
+    """Append one return/yield entry to the output stream.
+
+    Parameters
+    ----------
+    meta : Union[DocstringReturns, DocstringYields]
+        Structured representation of a return/yield entry.
+    parts : list[str]
+        List of strings representing the final output of compose().
+    rendering_style : RenderingStyle
+        Rendering style to use.
+    indent : str
+        Indentation needed for that line.
+    """
     type_text = f" {meta.type_name}" if meta.type_name else ""
     key = "yields" if isinstance(meta, DocstringYields) else "returns"
 
@@ -337,7 +509,7 @@ def compose(
         docstring text
     """
     parts: list[str] = []
-    _append_description(docstring, parts)
+    append_description(docstring, parts)
 
     for meta in docstring.meta:
         if isinstance(meta, DocstringParam):

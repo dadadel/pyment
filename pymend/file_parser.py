@@ -31,6 +31,18 @@ class AstAnalyzer:
     """Walk ast and extract module, class and function information."""
 
     def __init__(self, file_content: str) -> None:
+        """Initialize the Analyzer with the file contents.
+
+        The only reason this is a class is to have the raw
+        file_contents available at any point of the analysis to double check
+        something. Currently used for the module docstring and docstring
+        modifiers.
+
+        Parameters
+        ----------
+        file_content : str
+            File contents to store.
+        """
         self.file_content = file_content
 
     def parse_from_ast(
@@ -46,8 +58,13 @@ class AstAnalyzer:
 
         Returns
         -------
-        List[ElementDocstring]
+        list[ElementDocstring]
             List of information about module, classes and functions.
+
+        Raises
+        ------
+        AssertionError
+            If the source file content could not be parsed into an ast.
         """
         nodes_of_interest: list[ElementDocstring] = []
         try:
@@ -71,7 +88,18 @@ class AstAnalyzer:
         return nodes_of_interest
 
     def handle_module(self, module: ast.Module) -> ModuleDocstring:
-        """Extract information about module."""
+        """Extract information about module.
+
+        Parameters
+        ----------
+        module : ast.Module
+            Node representing the full module.
+
+        Returns
+        -------
+        ModuleDocstring
+            Docstring representation for the module.
+        """
         docstring_info = self.get_docstring_info(module)
         if docstring_info is None:
             docstring_line = self._get_docstring_line()
@@ -89,7 +117,18 @@ class AstAnalyzer:
         )
 
     def handle_class(self, cls: ast.ClassDef) -> ClassDocstring:
-        """Extract information about class docstring."""
+        """Extract information about class docstring.
+
+        Parameters
+        ----------
+        cls : ast.ClassDef
+            Node representing a class definition.
+
+        Returns
+        -------
+        ClassDocstring
+            Docstring representation for a class.
+        """
         docstring = self.handle_elem_docstring(cls)
         attributes, methods = self.handle_class_body(cls)
         return ClassDocstring(
@@ -105,7 +144,18 @@ class AstAnalyzer:
         self,
         func: Union[ast.FunctionDef, ast.AsyncFunctionDef],
     ) -> FunctionDocstring:
-        """Extract information from signature and docstring."""
+        """Extract information from signature and docstring.
+
+        Parameters
+        ----------
+        func : Union[ast.FunctionDef, ast.AsyncFunctionDef]
+            Node representing a function definition.
+
+        Returns
+        -------
+        FunctionDocstring
+            Docstring representation of a function.
+        """
         docstring = self.handle_elem_docstring(func)
         signature = self.handle_function_signature(func)
         body = self.handle_function_body(func)
@@ -122,7 +172,24 @@ class AstAnalyzer:
         self,
         elem: Union[ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef],
     ) -> DocstringInfo:
-        """Extract information about the docstring of the function."""
+        """Extract information about the docstring of the function.
+
+        Parameters
+        ----------
+        elem : Union[ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef]
+            Element representing a function or class definition.
+
+        Returns
+        -------
+        DocstringInfo
+            Return general information about the docstring of the element.
+
+        Raises
+        ------
+        ValueError
+            If the element did not have a body at all. This should not happen
+            for valid functions or classes.
+        """
         docstring_info = self.get_docstring_info(elem)
         if docstring_info is None:
             if not elem.body:
@@ -133,7 +200,26 @@ class AstAnalyzer:
         return docstring_info
 
     def get_docstring_info(self, node: NodeOfInterest) -> Optional[DocstringInfo]:
-        """Get docstring and line number if available."""
+        """Get docstring and line number if available.
+
+        Parameters
+        ----------
+        node : NodeOfInterest
+            Get general information about the docstring of any node
+            if interest.
+
+        Returns
+        -------
+        Optional[DocstringInfo]
+            Information about the docstring if the element contains one.
+            Or `None` if there was no docstring at all.
+
+        Raises
+        ------
+        ValueError
+            If the first element of the body is not a docstring after
+            `ast.get_docstring()` returned one.
+        """
         if ast.get_docstring(node):
             if not (
                 node.body
@@ -189,7 +275,13 @@ class AstAnalyzer:
         return ""
 
     def _get_docstring_line(self) -> int:
-        """Get the line where the docstring should start."""
+        """Get the line where the module docstring should start.
+
+        Returns
+        -------
+        int
+            Starting line (starts at 1) of the docstring.
+        """
         shebang_encoding_lines = 2
         for index, line in enumerate(
             self.file_content.splitlines()[:shebang_encoding_lines]
@@ -207,6 +299,18 @@ class AstAnalyzer:
 
         If the `__init__` method is encountered walk its body for attribute
         definitions.
+
+        Parameters
+        ----------
+        cls : ast.ClassDef
+            Node representing a class definition.
+
+        Returns
+        -------
+        attributes : list[Parameter]
+            List of the parameters that make up the classes attributes.
+        methods : list[str]
+            List of the method names in the class.
         """
         attributes: list[Parameter] = []
         methods: list[str] = []
@@ -235,7 +339,18 @@ class AstAnalyzer:
         self,
         func: Union[ast.FunctionDef, ast.AsyncFunctionDef],
     ) -> FunctionSignature:
-        """Extract information about the signature of the function."""
+        """Extract information about the signature of the function.
+
+        Parameters
+        ----------
+        func : Union[ast.FunctionDef, ast.AsyncFunctionDef]
+            Node representing a function definition
+
+        Returns
+        -------
+        FunctionSignature
+            Information extracted from the function signature
+        """
         parameters = self.get_parameters_sig(func)
         if parameters and parameters[0].arg_name == "self":
             parameters.pop(0)
@@ -246,7 +361,18 @@ class AstAnalyzer:
         self,
         func: Union[ast.FunctionDef, ast.AsyncFunctionDef],
     ) -> FunctionBody:
-        """Check the function body for yields, raises and value returns."""
+        """Check the function body for yields, raises and value returns.
+
+        Parameters
+        ----------
+        func : Union[ast.FunctionDef, ast.AsyncFunctionDef]
+            Node representing a function definition
+
+        Returns
+        -------
+        FunctionBody
+            Information extracted from the function body.
+        """
         returns: set[tuple[str, ...]] = set()
         returns_value = False
         yields: set[tuple[str, ...]] = set()
@@ -268,12 +394,17 @@ class AstAnalyzer:
                 ):
                     yields.add(self._get_ids_from_returns(node.value.elts))
             elif isinstance(node, ast.Raise):
+                pascal_case_regex = r"^(?:[A-Z][a-z]+)+$"
                 if not node.exc:
                     raises.append("")
-                elif isinstance(node.exc, ast.Name):
+                elif isinstance(node.exc, ast.Name) and re.match(
+                    pascal_case_regex, node.exc.id
+                ):
                     raises.append(node.exc.id)
-                elif isinstance(node.exc, ast.Call) and isinstance(
-                    node.exc.func, ast.Name
+                elif (
+                    isinstance(node.exc, ast.Call)
+                    and isinstance(node.exc.func, ast.Name)
+                    and re.match(pascal_case_regex, node.exc.func.id)
                 ):
                     raises.append(node.exc.func.id)
                 else:
@@ -289,14 +420,35 @@ class AstAnalyzer:
     def get_return_value_sig(
         self, func: Union[ast.FunctionDef, ast.AsyncFunctionDef]
     ) -> ReturnValue:
-        """Get information about return value from signature."""
-        return_node = func.returns
-        return ReturnValue(type_name=ast_unparse(return_node))
+        """Get information about return value from signature.
+
+        Parameters
+        ----------
+        func : Union[ast.FunctionDef, ast.AsyncFunctionDef]
+            Node representing a function definition
+
+        Returns
+        -------
+        ReturnValue
+            Return information extracted from the function signature.
+        """
+        return ReturnValue(type_name=ast_unparse(func.returns))
 
     def get_parameters_sig(
         self, func: Union[ast.FunctionDef, ast.AsyncFunctionDef]
     ) -> list[Parameter]:
-        """Get information about function parameters."""
+        """Get information about function parameters.
+
+        Parameters
+        ----------
+        func : Union[ast.FunctionDef, ast.AsyncFunctionDef]
+            Node representing a function definition
+
+        Returns
+        -------
+        list[Parameter]
+            Parameter information from the function signature.
+        """
         arguments: list[Parameter] = []
         pos_defaults = self.get_padded_args_defaults(func)
 
@@ -353,7 +505,18 @@ class AstAnalyzer:
         self,
         func: Union[ast.FunctionDef, ast.AsyncFunctionDef],
     ) -> list[Optional[str]]:
-        """Left-Pad the general args defaults to the length of the args."""
+        """Left-Pad the general args defaults to the length of the args.
+
+        Parameters
+        ----------
+        func : Union[ast.FunctionDef, ast.AsyncFunctionDef]
+            Node representing a function definition
+
+        Returns
+        -------
+        list[Optional[str]]
+            Left padded (with `None`) list of function arguments.
+        """
         pos_defaults = [ast_unparse(default) for default in func.args.defaults]
         return [None] * (len(func.args.args) - len(pos_defaults)) + pos_defaults
 
@@ -366,6 +529,17 @@ class AstAnalyzer:
             staticmethod
             classmethod
             property (and related)
+
+        Parameters
+        ----------
+        node : Union[ast.FunctionDef, ast.AsyncFunctionDef]
+            Node representing a function definition
+
+        Returns
+        -------
+        bool
+            Whether the function as any decorators that exclude it from
+            being recognized as a standard method.
         """
         decorators = node.decorator_list
         excluded_decorators = {"staticmethod", "classmethod", "property"}
@@ -391,7 +565,18 @@ class AstAnalyzer:
     def _check_if_node_is_self_attributes(
         self, node: ast.expr
     ) -> TypeGuard[ast.Attribute]:
-        """Check whether the node represents a public attribute of self (self.abc)."""
+        """Check whether the node represents a public attribute of self (self.abc).
+
+        Parameters
+        ----------
+        node : ast.expr
+            Node representing the expression to be checked.
+
+        Returns
+        -------
+        TypeGuard[ast.Attribute]
+            True if the node represents a public attribute of self.
+        """
         return (
             isinstance(node, ast.Attribute)
             and isinstance(node.value, ast.Name)
@@ -402,7 +587,17 @@ class AstAnalyzer:
     def _check_and_handle_assign_node(
         self, target: ast.expr, attributes: list[Parameter]
     ) -> None:
-        """Check if the assignment node contains assignments to self.X."""
+        """Check if the assignment node contains assignments to self.X.
+
+        Add it to the list of attributes if that is the case.
+
+        Parameters
+        ----------
+        target : ast.expr
+            Node representing an assignment
+        attributes : list[Parameter]
+            List of attributes the node attribute should be added to.
+        """
         if isinstance(target, (ast.Tuple, ast.List)):
             for node in target.elts:
                 if self._check_if_node_is_self_attributes(node):
@@ -413,7 +608,18 @@ class AstAnalyzer:
     def _get_attributes_from_init(
         self, init: Union[ast.FunctionDef, ast.AsyncFunctionDef]
     ) -> list[Parameter]:
-        """Iterate over body and grab every assignment `self.abc = XYZ`."""
+        """Iterate over body and grab every assignment `self.abc = XYZ`.
+
+        Parameters
+        ----------
+        init : Union[ast.FunctionDef, ast.AsyncFunctionDef]
+            _description_
+
+        Returns
+        -------
+        list[Parameter]
+            _description_
+        """
         attributes: list[Parameter] = []
         for node in init.body:
             if isinstance(node, ast.Assign):
@@ -430,7 +636,18 @@ class AstAnalyzer:
     def _get_method_signature(
         self, func: Union[ast.FunctionDef, ast.AsyncFunctionDef]
     ) -> str:
-        """Remove self from signature and return the unparsed string."""
+        """Remove self from signature and return the unparsed string.
+
+        Parameters
+        ----------
+        func : Union[ast.FunctionDef, ast.AsyncFunctionDef]
+            Node representing a function definition.
+
+        Returns
+        -------
+        str
+            String of the method signature with `self` removed.
+        """
         arguments = func.args
         if arguments.posonlyargs:
             arguments.posonlyargs = [
@@ -441,7 +658,18 @@ class AstAnalyzer:
         return f"{func.name}({ast.unparse(arguments)})"
 
     def _get_ids_from_returns(self, values: list[ast.expr]) -> tuple[str, ...]:
-        """Get the ids/names for all the expressions in the list."""
+        """Get the ids/names for all the expressions in the list.
+
+        Parameters
+        ----------
+        values : list[ast.expr]
+            List of expressions to extract the ids from.
+
+        Returns
+        -------
+        tuple[str, ...]
+            Tuple of ids of the original expressions.
+        """
         return tuple(
             value.id
             for value in values
