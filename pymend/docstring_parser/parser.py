@@ -58,7 +58,7 @@ def parse(
     if not rets and exc:
         raise exc
 
-    return sorted(rets, key=lambda d: len(d.meta), reverse=True)[0]
+    return sorted(rets, key=lambda d: (len(d.examples), len(d.meta)), reverse=True)[0]
 
 
 def parse_from_object(
