@@ -5,7 +5,7 @@ repos:
     hooks:
       - id: pymend
         language: python
-        args: ["--write", "--output-style=numpydoc", "--extend-exclude=docs/|tests/"]
+        args: ["--write"]
   - repo: "https://github.com/pre-commit/pre-commit-hooks"
     rev: v4.5.0
     hooks:

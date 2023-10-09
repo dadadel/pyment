@@ -8,6 +8,7 @@ import tempfile
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
+from typing import NamedTuple
 
 from typing_extensions import Self
 
@@ -33,6 +34,13 @@ class FileContentRepresentation:
     lines: str
 
 
+class Styles(NamedTuple):
+    """Container for input and output style."""
+
+    input_style: dsp.DocstringStyle
+    output_style: dsp.DocstringStyle
+
+
 class PyComment:
     """Manage several python scripts docstrings.
 
@@ -46,6 +54,7 @@ class PyComment:
         input_file: str,
         *,
         output_style: dsp.DocstringStyle = dsp.DocstringStyle.NUMPYDOC,
+        input_style: dsp.DocstringStyle = dsp.DocstringStyle.AUTO,
         proceed_directly: bool = True,
     ) -> None:
         r"""Set the configuration including the source to proceed and options.
@@ -57,12 +66,17 @@ class PyComment:
         output_style : dsp.DocstringStyle
             Output style to use for docstring.
             (Default value = dsp.DocstringStyle.NUMPYDOC)
+        input_style : dsp.DocstringStyle
+            Input docstring style.
+            Auto means that the style is detected automatically. Can cause issues when
+            styles are mixed in examples or descriptions."
+            (Default value = dsp.DocstringStyle.AUTO)
         proceed_directly : bool
             Whether the file should be parsed directly with the call of
             the constructor. (Default value = True)
         """
         self.input_file = input_file
-        self.output_style = output_style
+        self.style = Styles(input_style, output_style)
         input_lines = Path(self.input_file).read_text(encoding="utf-8")
         self._input = FileContentRepresentation(
             input_lines.splitlines(keepends=True), input_lines
@@ -149,7 +163,9 @@ class PyComment:
             in_docstring = e.docstring
             old_line = list_from[start]
             leading_whitespace = old_line[: -len(old_line.lstrip())]
-            raw_out = e.output_docstring(style=self.output_style)
+            raw_out = e.output_docstring(
+                output_style=self.style.output_style, input_style=self.style.input_style
+            )
             out_docstring = self._add_quotes_indentation_modifier(
                 raw_out,
                 indentation=leading_whitespace,
@@ -322,7 +338,7 @@ class PyComment:
             self._output.lst.copy(), self._output.lines
         )
         py_comment._output = FileContentRepresentation([], "")  # noqa: SLF001
-        py_comment.output_style = self.output_style
+        py_comment.style = self.style
         py_comment.docs_list = []
         return py_comment
 
