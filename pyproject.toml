@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pymend"
-version = "1.0.4"
+version = "1.0.5"
 authors = [{ name = "Jan-Eric Nitschke", email = "janericnitschke@gmail.com" }]
 maintainers = [{ name = "Jan-Eric Nitschke", email = "janericnitschke@gmail.com" }]
 license = { text = "GPL-3.0-or-later" }
@@ -44,6 +44,7 @@ extend-exclude    = "docs/|tests/|apples/"
 output-style      = "numpydoc"
 input-style       = "numpydoc"
 ignored-functions = ["main"]
+check             = true
 
 [tool.ruff]
 # Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.

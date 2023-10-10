@@ -76,12 +76,12 @@ def re_compile_maybe_verbose(regex: str) -> Pattern[str]:
     Parameters
     ----------
     regex : str
-        _description_
+        Regex to compile.
 
     Returns
     -------
     Pattern[str]
-        _description_
+        Compiled regex.
     """
     if "\n" in regex:
         regex = "(?x)" + regex
@@ -176,12 +176,15 @@ def run(
                 input_style=input_style,
                 fixer_settings=fixer_settings,
             )
+            n_issues, issue_report = comment.report_issues()
             # Not using ternary when the calls have side effects
             if overwrite:  # noqa: SIM108
                 changed = comment.output_fix()
             else:
                 changed = comment.output_patch()
-            report.done(file, changed)
+            report.done(
+                file, changed=changed, issues=bool(n_issues), issue_report=issue_report
+            )
         except Exception as exc:  # noqa: BLE001
             if report.verbose:
                 traceback.print_exc()
@@ -294,9 +297,9 @@ def read_pyproject_toml(
     is_flag=True,
     help=(
         "Perform check if file is properly docstringed."
-        " Can be used alongside --write and also reports negatively on pymend defaults."
-        " Return code 0 means"
-        " nothing would change. Return code 1 means some files would be reformatted."
+        " Also reports negatively on pymend defaults."
+        " Return code 0 means everything was perfect."
+        " Return code 1 means some files would has issues."
         " Return code 123 means there was an internal error."
     ),
 )
@@ -432,6 +435,13 @@ def read_pyproject_toml(
     " Only exact matches are ignored. This is not a regex pattern.",
 )
 @click.option(
+    "--force-defaults/--unforce-defaults",
+    is_flag=True,
+    default=True,
+    help="Whether to enforce descriptions need to"
+    " name/explain the default value of their parameter.",
+)
+@click.option(
     "-q",
     "--quiet",
     is_flag=True,
@@ -494,6 +504,7 @@ def main(  # pylint: disable=too-many-arguments, too-many-locals  # noqa: PLR091
     ignored_decorators: list[str],
     ignored_functions: list[str],
     ignored_classes: list[str],
+    force_defaults: bool,
     quiet: bool,
     verbose: bool,
     src: tuple[str, ...],
@@ -533,6 +544,7 @@ def main(  # pylint: disable=too-many-arguments, too-many-locals  # noqa: PLR091
         ignored_decorators=ignored_decorators,
         ignored_functions=ignored_functions,
         ignored_classes=ignored_classes,
+        force_defaults=force_defaults,
     )
 
     run(

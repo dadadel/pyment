@@ -568,3 +568,25 @@ class PyComment:
         if os.path.isfile(self.input_file):
             os.remove(self.input_file)
         os.rename(tmp_filename, self.input_file)
+
+    def report_issues(self) -> tuple[int, str]:
+        """Produce a report of all found issues with the docstrings in the file.
+
+        Returns
+        -------
+        tuple[int, str]
+            The number of elements that had issues as well as
+            a string representation of those.
+        """
+        issues: list[str] = []
+        for elem in self.docs_list:
+            n_issues, report = elem.report_issues()
+            if n_issues:
+                issues.append(report)
+        if not issues:
+            return 0, ""
+        report = (
+            f"The following issues were found in file {self.input_file}:\n"
+            + "\n".join(issues)
+        )
+        return len(issues), report
