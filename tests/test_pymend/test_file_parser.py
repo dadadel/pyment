@@ -3,7 +3,7 @@
 import ast
 
 from pymend.file_parser import AstAnalyzer
-from pymend.types import Parameter
+from pymend.types import FixerSettings, Parameter
 
 
 class TestAstAnalyzer:
@@ -42,7 +42,7 @@ class C:
         pass
 '''
         class_node = ast.parse(class_definition).body[0]
-        analyzer = AstAnalyzer(class_definition)
+        analyzer = AstAnalyzer(class_definition, settings=FixerSettings())
 
         attributes, methods = analyzer.handle_class_body(class_node)
 

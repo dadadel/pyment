@@ -1,7 +1,13 @@
 exclude: refs|doc/
 repos:
-  - repo: 'https://github.com/pre-commit/pre-commit-hooks'
-    rev: v4.4.0
+  - repo: https://github.com/JanEricNitschke/pymend
+    rev: "v1.0.4"
+    hooks:
+      - id: pymend
+        language: python
+        args: ["--write"]
+  - repo: "https://github.com/pre-commit/pre-commit-hooks"
+    rev: v4.5.0
     hooks:
       - id: check-yaml
         language: python
@@ -23,14 +29,14 @@ repos:
         language: python
       - id: check-builtin-literals
         language: python
-  - repo: 'https://github.com/charliermarsh/ruff-pre-commit'
+  - repo: "https://github.com/charliermarsh/ruff-pre-commit"
     rev: v0.0.292
     hooks:
       - id: ruff
         args:
-          - '--fix'
-          - '--exit-non-zero-on-fix'
-  - repo: 'https://github.com/psf/black'
+          - "--fix"
+          - "--exit-non-zero-on-fix"
+  - repo: "https://github.com/psf/black"
     rev: 23.9.1
     hooks:
       - id: black
@@ -56,8 +62,7 @@ repos:
         language: system
         types: [python]
         pass_filenames: false
-        args:
-          [
+        args: [
             "-rn", # Only display messages
             "-sn", # Don't display the score
           ]

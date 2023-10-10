@@ -3,7 +3,7 @@
 import ast
 import re
 from collections.abc import Iterable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional, Union
 
 from typing_extensions import TypeAlias, override
@@ -19,6 +19,23 @@ __version__ = "1.0.0"
 __maintainer__ = "J-E. Nitschke"
 
 
+@dataclass(frozen=True)
+class FixerSettings:
+    """Settings to influence which sections are required and when."""
+
+    force_params: bool = True
+    force_return: bool = True
+    force_methods: bool = False
+    force_attributes: bool = False
+    force_single_param: bool = True
+    force_params_length: int = 0
+    ignore_privates: bool = True
+    ignore_unused_arguments: bool = True
+    ignore_decorators: list[str] = field(default_factory=lambda: ["overload"])
+    ignore_functions: list[str] = field(default_factory=list)
+    ignore_classes: list[str] = field(default_factory=list)
+
+
 @dataclass
 class DocstringInfo:
     """Wrapper around raw docstring."""
@@ -29,15 +46,20 @@ class DocstringInfo:
     modifier: str
 
     def output_docstring(
-        self, style: dsp.DocstringStyle = dsp.DocstringStyle.NUMPYDOC
+        self,
+        output_style: dsp.DocstringStyle = dsp.DocstringStyle.NUMPYDOC,
+        input_style: dsp.DocstringStyle = dsp.DocstringStyle.AUTO,
     ) -> str:
         """Parse and fix input docstrings, then compose output docstring.
 
         Parameters
         ----------
-        style : dsp.DocstringStyle
+        output_style : dsp.DocstringStyle
             Output style to use for the docstring.
             (Default value = dsp.DocstringStyle.NUMPYDOC)
+        input_style : dsp.DocstringStyle
+            Input style to assume for the docstring.
+            (Default value = dsp.DocstringStyle.AUTO)
 
         Returns
         -------
@@ -45,9 +67,9 @@ class DocstringInfo:
             String representing the updated docstring.
         """
         self._escape_triple_quotes()
-        parsed = dsp.parse(self.docstring)
+        parsed = dsp.parse(self.docstring, style=input_style)
         self.fix_docstring(parsed)
-        return dsp.compose(parsed, style=style)
+        return dsp.compose(parsed, style=output_style)
 
     def _escape_triple_quotes(self) -> None:
         r"""Escape \"\"\" in the docstring."""

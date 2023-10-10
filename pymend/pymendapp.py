@@ -7,6 +7,7 @@ from re import Pattern
 from typing import Any, Optional, Union
 
 import click
+from click.core import ParameterSource
 
 import pymend.docstring_parser as dsp
 from pymend import PyComment
@@ -15,6 +16,7 @@ from .const import DEFAULT_EXCLUDES
 from .files import find_pyproject_toml, parse_pyproject_toml
 from .output import out
 from .report import Report
+from .types import FixerSettings
 
 STRING_TO_STYLE = {
     "rest": dsp.DocstringStyle.REST,
@@ -46,7 +48,7 @@ def path_is_excluded(
     return bool(match and match.group(0))
 
 
-def output_stye_option_callback(
+def style_option_callback(
     _c: click.Context, _p: Union[click.Option, click.Parameter], style: str
 ) -> dsp.DocstringStyle:
     """Compute the output style from a --output_stye flag.
@@ -61,7 +63,9 @@ def output_stye_option_callback(
     dsp.DocstringStyle
         Style to use.
     """
-    return STRING_TO_STYLE[style]
+    if style in STRING_TO_STYLE:
+        return STRING_TO_STYLE[style]
+    return dsp.DocstringStyle.AUTO
 
 
 def re_compile_maybe_verbose(regex: str) -> Pattern[str]:
@@ -119,9 +123,11 @@ def run(
     *,
     overwrite: bool = False,
     output_style: dsp.DocstringStyle = dsp.DocstringStyle.NUMPYDOC,
-    exclude: Optional[Pattern[str]],
+    input_style: dsp.DocstringStyle = dsp.DocstringStyle.AUTO,
+    exclude: Pattern[str],
     extend_exclude: Optional[Pattern[str]],
     report: Report,
+    fixer_settings: FixerSettings,
 ) -> None:
     r"""Run pymend over the list of files..
 
@@ -135,13 +141,20 @@ def run(
     output_style : dsp.DocstringStyle
         Output style to use for the modified docstrings.
         (Default value = dsp.DocstringStyle.NUMPYDOC)
-    exclude : Optional[Pattern[str]]
+    input_style : dsp.DocstringStyle
+        Input docstring style.
+        Auto means that the style is detected automatically. Can cause issues when
+        styles are mixed in examples or descriptions."
+        (Default value = dsp.DocstringStyle.AUTO)
+    exclude : Pattern[str]
         Optional regex pattern to use to exclude files from reformatting.
     extend_exclude : Optional[Pattern[str]]
         Additional regexes to add onto the exclude pattern.
         Useful if one just wants to add some to the existing default.
     report : Report
         Reporter for pretty communication with the user.
+    fixer_settings : FixerSettings
+        Settings for which fixes should be performed.
 
     Raises
     ------
@@ -160,6 +173,8 @@ def run(
             comment = PyComment(
                 file,
                 output_style=output_style,
+                input_style=input_style,
+                fixer_settings=fixer_settings,
             )
             # Not using ternary when the calls have side effects
             if overwrite:  # noqa: SIM108
@@ -252,12 +267,26 @@ def read_pyproject_toml(
     "-o",
     "--output-style",
     type=click.Choice(list(STRING_TO_STYLE)),
-    callback=output_stye_option_callback,
+    callback=style_option_callback,
     multiple=False,
     default="numpydoc",
     help=(
         "Output docstring style in ['javadoc', 'rest', 'numpydoc', 'google']"
         " (default 'numpydoc')"
+    ),
+)
+@click.option(
+    "-i",
+    "--input-style",
+    type=click.Choice([*list(STRING_TO_STYLE), "auto"]),
+    callback=style_option_callback,
+    multiple=False,
+    default="auto",
+    help=(
+        "Input docstring style in ['javadoc', 'rest', 'numpydoc', 'google', 'auto]"
+        " Auto means that the style is detected automatically. Can cause issues when"
+        " styles are mixed in examples or descriptions."
+        " (default 'auto')"
     ),
 )
 @click.option(
@@ -320,7 +349,7 @@ def read_pyproject_toml(
     "src",
     nargs=-1,
     type=click.Path(
-        exists=True, file_okay=True, dir_okay=False, readable=True, allow_dash=True
+        exists=True, file_okay=True, dir_okay=False, readable=True, allow_dash=False
     ),
     required=True,
     is_eager=True,
@@ -341,11 +370,12 @@ def read_pyproject_toml(
     help="Read configuration from FILE path.",
 )
 @click.pass_context
-def main(  # pylint: disable=too-many-arguments
+def main(  # pylint: disable=too-many-arguments, too-many-locals  # noqa: PLR0913
     ctx: click.Context,
     *,
     write: bool,
     output_style: dsp.DocstringStyle,
+    input_style: dsp.DocstringStyle,
     check: bool,
     quiet: bool,
     verbose: bool,
@@ -364,6 +394,11 @@ def main(  # pylint: disable=too-many-arguments
         Whether to overwrite files directly
     output_style : dsp.DocstringStyle
         Which output style to use.
+    input_style : dsp.DocstringStyle
+        Input docstring style.
+        Auto means that the style is detected automatically. Can cause issues when
+        styles are mixed in examples or descriptions."
+        (Default value = dsp.DocstringStyle.AUTO)
     check : bool
         CURRENTLY DOES NOTHING! TODO!
         Whether to perform a check if all docstrings are properly formatted.
@@ -386,17 +421,33 @@ def main(  # pylint: disable=too-many-arguments
     """
     ctx.ensure_object(dict)
     # Temp to turn off unused variable warnings.
-    if f"{check, config}":
-        pass
+    if verbose and config:
+        config_source = ctx.get_parameter_source("config")
+        if config_source in (
+            ParameterSource.DEFAULT,
+            ParameterSource.DEFAULT_MAP,
+        ):
+            out("Using configuration from project root.", fg="blue")
+        else:
+            out(f"Using configuration in '{config}'.", fg="blue")
+        if ctx.default_map:
+            for param, value in ctx.default_map.items():
+                out(f"{param}: {value}")
+
     report = Report(check=check, diff=not write, quiet=quiet, verbose=verbose)
+    fixer_settings = FixerSettings()
+
     run(
         src,
         overwrite=write,
         output_style=output_style,
-        exclude=exclude,
+        input_style=input_style,
+        exclude=exclude or DEFAULT_EXCLUDES,
         extend_exclude=extend_exclude,
         report=report,
+        fixer_settings=fixer_settings,
     )
+
     if verbose or not quiet:
         if verbose or report.change_count or report.failure_count:
             out()
