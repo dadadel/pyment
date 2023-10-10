@@ -80,17 +80,17 @@ class AstAnalyzer:
             if isinstance(node, ast.Module):
                 nodes_of_interest.append(self.handle_module(node))
             elif isinstance(node, ast.ClassDef):
-                if node.name in self.settings.ignore_classes:
+                if node.name in self.settings.ignored_classes:
                     continue
                 nodes_of_interest.append(self.handle_class(node))
             elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 if (
                     any(
-                        name.id in self.settings.ignore_decorators
+                        name.id in self.settings.ignored_decorators
                         for name in node.decorator_list
                         if isinstance(name, ast.Name)
                     )
-                    or node.name in self.settings.ignore_functions
+                    or node.name in self.settings.ignored_functions
                 ):
                     continue
                 nodes_of_interest.append(self.handle_function(node))
@@ -117,12 +117,14 @@ class AstAnalyzer:
                 docstring="",
                 lines=(docstring_line, docstring_line),
                 modifier="",
+                issues=[],
             )
         return ModuleDocstring(
-            docstring_info.name,
-            docstring_info.docstring,
-            docstring_info.lines,
-            docstring_info.modifier,
+            name=docstring_info.name,
+            docstring=docstring_info.docstring,
+            lines=docstring_info.lines,
+            modifier=docstring_info.modifier,
+            issues=docstring_info.issues,
         )
 
     def handle_class(self, cls: ast.ClassDef) -> ClassDocstring:
@@ -141,10 +143,11 @@ class AstAnalyzer:
         docstring = self.handle_elem_docstring(cls)
         attributes, methods = self.handle_class_body(cls)
         return ClassDocstring(
-            docstring.name,
-            docstring.docstring,
-            docstring.lines,
-            docstring.modifier,
+            name=docstring.name,
+            docstring=docstring.docstring,
+            lines=docstring.lines,
+            modifier=docstring.modifier,
+            issues=docstring.issues,
             attributes=attributes,
             methods=methods,
         )
@@ -168,13 +171,18 @@ class AstAnalyzer:
         docstring = self.handle_elem_docstring(func)
         signature = self.handle_function_signature(func)
         body = self.handle_function_body(func)
+        length = len(func.body) if func.body else 0
+        if length and ast.get_docstring(func):
+            length -= 1
         return FunctionDocstring(
-            docstring.name,
-            docstring.docstring,
-            docstring.lines,
-            docstring.modifier,
+            name=docstring.name,
+            docstring=docstring.docstring,
+            lines=docstring.lines,
+            modifier=docstring.modifier,
+            issues=docstring.issues,
             signature=signature,
             body=body,
+            length=length,
         )
 
     def handle_elem_docstring(
@@ -205,7 +213,9 @@ class AstAnalyzer:
                 msg = "Function body was unexpectedly completely empty."
                 raise ValueError(msg)
             lines = (elem.body[0].lineno, elem.body[0].lineno)
-            return DocstringInfo(name=elem.name, docstring="", lines=lines, modifier="")
+            return DocstringInfo(
+                name=elem.name, docstring="", lines=lines, modifier="", issues=[]
+            )
         return docstring_info
 
     def get_docstring_info(self, node: NodeOfInterest) -> Optional[DocstringInfo]:
@@ -246,14 +256,15 @@ class AstAnalyzer:
             )
             return DocstringInfo(
                 # Can not use DefinitionNodes in isinstance checks before 3.10
-                node.name
+                name=node.name
                 if isinstance(
                     node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
                 )
                 else "Module",
-                str(docnode.value),
-                (docnode.lineno, docnode.end_lineno),
-                modifier,
+                docstring=str(docnode.value),
+                lines=(docnode.lineno, docnode.end_lineno),
+                modifier=modifier,
+                issues=[],
             )
         return None
 
@@ -633,12 +644,12 @@ class AstAnalyzer:
         Parameters
         ----------
         init : Union[ast.FunctionDef, ast.AsyncFunctionDef]
-            _description_
+            Init function node to extract attributes from.
 
         Returns
         -------
         list[Parameter]
-            _description_
+            List of attributes extracted from the init function.
         """
         attributes: list[Parameter] = []
         for node in init.body:

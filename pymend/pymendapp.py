@@ -76,12 +76,12 @@ def re_compile_maybe_verbose(regex: str) -> Pattern[str]:
     Parameters
     ----------
     regex : str
-        _description_
+        Regex to compile.
 
     Returns
     -------
     Pattern[str]
-        _description_
+        Compiled regex.
     """
     if "\n" in regex:
         regex = "(?x)" + regex
@@ -176,12 +176,15 @@ def run(
                 input_style=input_style,
                 fixer_settings=fixer_settings,
             )
+            n_issues, issue_report = comment.report_issues()
             # Not using ternary when the calls have side effects
             if overwrite:  # noqa: SIM108
                 changed = comment.output_fix()
             else:
                 changed = comment.output_patch()
-            report.done(file, changed)
+            report.done(
+                file, changed=changed, issues=bool(n_issues), issue_report=issue_report
+            )
         except Exception as exc:  # noqa: BLE001
             if report.verbose:
                 traceback.print_exc()
@@ -259,9 +262,13 @@ def read_pyproject_toml(
 
 @click.command(
     context_settings={"help_option_names": ["-h", "--help"]},
-    # While Click does set this field automatically using the docstring, mypyc
-    # (annoyingly) strips 'em so we need to set it here too.
     help="Create, update or convert docstrings.",
+)
+@click.option(
+    "--write/--diff",
+    is_flag=True,
+    default=False,
+    help="Directly overwrite the source files instead of just producing a patch.",
 )
 @click.option(
     "-o",
@@ -270,10 +277,7 @@ def read_pyproject_toml(
     callback=style_option_callback,
     multiple=False,
     default="numpydoc",
-    help=(
-        "Output docstring style in ['javadoc', 'rest', 'numpydoc', 'google']"
-        " (default 'numpydoc')"
-    ),
+    help=("Output docstring style."),
 )
 @click.option(
     "-i",
@@ -283,10 +287,9 @@ def read_pyproject_toml(
     multiple=False,
     default="auto",
     help=(
-        "Input docstring style in ['javadoc', 'rest', 'numpydoc', 'google', 'auto]"
+        "Input docstring style."
         " Auto means that the style is detected automatically. Can cause issues when"
         " styles are mixed in examples or descriptions."
-        " (default 'auto')"
     ),
 )
 @click.option(
@@ -294,17 +297,11 @@ def read_pyproject_toml(
     is_flag=True,
     help=(
         "Perform check if file is properly docstringed."
-        " Can be used alongside --write and also reports negatively on pymend defaults."
-        " Return code 0 means"
-        " nothing would change. Return code 1 means some files would be reformatted."
+        " Also reports negatively on pymend defaults."
+        " Return code 0 means everything was perfect."
+        " Return code 1 means some files would has issues."
         " Return code 123 means there was an internal error."
     ),
-)
-@click.option(
-    "--write/--diff",
-    is_flag=True,
-    default=False,
-    help="Directly overwrite the source files instead of just producing a patch.",
 )
 @click.option(
     "--exclude",
@@ -326,6 +323,123 @@ def read_pyproject_toml(
         "Like --exclude, but adds additional files and directories on top of the"
         " excluded ones. (Useful if you simply want to add to the default)"
     ),
+)
+@click.option(
+    "--force-params/--unforce-params",
+    type=bool,
+    is_flag=True,
+    default=True,
+    help="Whether to force a parameter section even if"
+    " there is already an existing docstring. "
+    "If set will also fill force the parameters section to name every parameter.",
+)
+@click.option(
+    "--force-params-min-n-params",
+    type=int,
+    default=0,
+    help="Minimum number of arguments detected in the signature "
+    "to actually enforce parameters."
+    " If less than the specified numbers of arguments are"
+    " detected then a parameters section is only build for new docstrings."
+    " No new sections are created for existing docstrings and existing sections"
+    " are not extended. Only has an effect with --force-params set to true.",
+)
+@click.option(
+    "--force-params-min-func-length",
+    type=int,
+    default=0,
+    help="Minimum number statements in the function body "
+    "to actually enforce parameters."
+    " If less than the specified numbers of arguments are"
+    " detected then a parameters section is only build for new docstrings."
+    " No new sections are created for existing docstrings and existing sections"
+    " are not extended. Only has an effect with --force-params set to true."
+    " Currently this only counts the length of the body of the ast node."
+    " So nested statements are not taken into account (yet).",
+)
+@click.option(
+    "--force-return/--unforce-return",
+    type=bool,
+    is_flag=True,
+    default=True,
+    help="Whether to force a return/yield section even if"
+    " there is already an existing docstring. "
+    "Will only actually force return/yield sections"
+    " if any value return or yield is found in the body.",
+)
+@click.option(
+    "--force-raises/--unforce-raises",
+    type=bool,
+    is_flag=True,
+    default=True,
+    help="Whether to force a raises section even if"
+    " there is already an existing docstring."
+    " Will only actually force the section if any raises were detected in the body."
+    " However, if set it will force on entry in the section per raise detected.",
+)
+@click.option(
+    "--force-methods/--unforce-methods",
+    type=bool,
+    is_flag=True,
+    default=False,
+    help="Whether to force a methods section for classes even if"
+    " there is already an existing docstring."
+    " If set it will force on entry in the section per method found."
+    " If only some methods are desired to be specified then this should be left off.",
+)
+@click.option(
+    "--force-attributes/--unforce-attributes",
+    type=bool,
+    is_flag=True,
+    default=False,
+    help="Whether to force an attributes section for classes even if"
+    " there is already an existing docstring."
+    " If set it will force on entry in the section per attribute found."
+    " If only some attributes are desired then this should be left off.",
+)
+@click.option(
+    "--ignore-privates/--handle-privates",
+    is_flag=True,
+    default=True,
+    help="Whether to ignore attributes and methods that start with an underscore '_'. "
+    "This also means that methods with two underscores, "
+    "like dunder methods, are ignored. "
+    "Consequently turning this off also forces processing of such methods.",
+)
+@click.option(
+    "--ignore-unused-arguments/--handle-unused-arguments",
+    is_flag=True,
+    default=True,
+    help="Whether to ignore arguments starting with an underscore '_'"
+    " are ignored when building parameter sections.",
+)
+@click.option(
+    "--ignored-decorators",
+    multiple=True,
+    default=["overload"],
+    help="Decorators that, if present,"
+    " should cause a function to be ignored for docstring analysis and generation.",
+)
+@click.option(
+    "--ignored-functions",
+    multiple=True,
+    default=["main"],
+    help="Functions that should be ignored for docstring analysis and generation."
+    " Only exact matches are ignored. This is not a regex pattern.",
+)
+@click.option(
+    "--ignored-classes",
+    multiple=True,
+    default=[],
+    help="Classes that should be ignored for docstring analysis and generation."
+    " Only exact matches are ignored. This is not a regex pattern.",
+)
+@click.option(
+    "--force-defaults/--unforce-defaults",
+    is_flag=True,
+    default=True,
+    help="Whether to enforce descriptions need to"
+    " name/explain the default value of their parameter.",
 )
 @click.option(
     "-q",
@@ -351,7 +465,6 @@ def read_pyproject_toml(
     type=click.Path(
         exists=True, file_okay=True, dir_okay=False, readable=True, allow_dash=False
     ),
-    required=True,
     is_eager=True,
     metavar="SRC ...",
 )
@@ -377,50 +490,33 @@ def main(  # pylint: disable=too-many-arguments, too-many-locals  # noqa: PLR091
     output_style: dsp.DocstringStyle,
     input_style: dsp.DocstringStyle,
     check: bool,
-    quiet: bool,
-    verbose: bool,
     exclude: Optional[Pattern[str]],
     extend_exclude: Optional[Pattern[str]],
+    force_params: bool,
+    force_params_min_n_params: bool,
+    force_params_min_func_length: bool,
+    force_return: bool,
+    force_raises: bool,
+    force_methods: bool,
+    force_attributes: bool,
+    ignore_privates: bool,
+    ignore_unused_arguments: bool,
+    ignored_decorators: list[str],
+    ignored_functions: list[str],
+    ignored_classes: list[str],
+    force_defaults: bool,
+    quiet: bool,
+    verbose: bool,
     src: tuple[str, ...],
     config: Optional[str],
 ) -> None:
-    """Create, update or convert docstrings.
-
-    Parameters
-    ----------
-    ctx : click.Context
-        Currently only used to exit the application.
-    write : bool
-        Whether to overwrite files directly
-    output_style : dsp.DocstringStyle
-        Which output style to use.
-    input_style : dsp.DocstringStyle
-        Input docstring style.
-        Auto means that the style is detected automatically. Can cause issues when
-        styles are mixed in examples or descriptions."
-        (Default value = dsp.DocstringStyle.AUTO)
-    check : bool
-        CURRENTLY DOES NOTHING! TODO!
-        Whether to perform a check if all docstrings are properly formatted.
-        Works alongside --write and is stricter than it as it considers
-        pymend default values as not properly formatted.
-    quiet : bool
-        Silence output as much as possible.
-    verbose : bool
-        Increase output to include a lot more information.
-    exclude : Optional[Pattern[str]]
-        Optional regex pattern to use to exclude files from reformatting.
-    extend_exclude : Optional[Pattern[str]]
-        Additional regexes to add onto the exclude pattern.
-        Useful if one just wants to add some to the existing default.
-    src : tuple[str, ...]
-        Source files to fix.
-    config : Optional[str]
-        Path to config file to use. If None is provided a pyproject.toml
-        file is looked for in the source files common parents paths.
-    """
+    """Create, update or convert docstrings."""
     ctx.ensure_object(dict)
-    # Temp to turn off unused variable warnings.
+
+    if not src:
+        out(main.get_usage(ctx) + "\n\nError: Missing argument 'SRC ...'.")
+        ctx.exit(1)
+
     if verbose and config:
         config_source = ctx.get_parameter_source("config")
         if config_source in (
@@ -435,7 +531,21 @@ def main(  # pylint: disable=too-many-arguments, too-many-locals  # noqa: PLR091
                 out(f"{param}: {value}")
 
     report = Report(check=check, diff=not write, quiet=quiet, verbose=verbose)
-    fixer_settings = FixerSettings()
+    fixer_settings = FixerSettings(
+        force_params=force_params,
+        force_return=force_return,
+        force_raises=force_raises,
+        force_methods=force_methods,
+        force_attributes=force_attributes,
+        force_params_min_n_params=force_params_min_n_params,
+        force_params_min_func_length=force_params_min_func_length,
+        ignore_privates=ignore_privates,
+        ignore_unused_arguments=ignore_unused_arguments,
+        ignored_decorators=ignored_decorators,
+        ignored_functions=ignored_functions,
+        ignored_classes=ignored_classes,
+        force_defaults=force_defaults,
+    )
 
     run(
         src,

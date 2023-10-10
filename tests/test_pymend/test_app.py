@@ -270,7 +270,7 @@ class TestApp:
                 r"Error: Missing argument 'SRC \.\.\.'\.",
                 re.DOTALL,
             ),
-            expected_returncode=2,
+            expected_returncode=1,
         )
 
     def run_pymend_app_with_a_file_and_assert_is_expected(

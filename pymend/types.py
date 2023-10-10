@@ -25,15 +25,17 @@ class FixerSettings:
 
     force_params: bool = True
     force_return: bool = True
+    force_raises: bool = True
     force_methods: bool = False
     force_attributes: bool = False
-    force_single_param: bool = True
-    force_params_length: int = 0
+    force_params_min_n_params: int = 0
+    force_params_min_func_length: int = 0
     ignore_privates: bool = True
     ignore_unused_arguments: bool = True
-    ignore_decorators: list[str] = field(default_factory=lambda: ["overload"])
-    ignore_functions: list[str] = field(default_factory=list)
-    ignore_classes: list[str] = field(default_factory=list)
+    ignored_decorators: list[str] = field(default_factory=lambda: ["overload"])
+    ignored_functions: list[str] = field(default_factory=lambda: ["main"])
+    ignored_classes: list[str] = field(default_factory=list)
+    force_defaults: bool = True
 
 
 @dataclass
@@ -44,9 +46,12 @@ class DocstringInfo:
     docstring: str
     lines: tuple[int, Optional[int]]
     modifier: str
+    issues: list[str]
 
     def output_docstring(
         self,
+        *,
+        settings: FixerSettings,
         output_style: dsp.DocstringStyle = dsp.DocstringStyle.NUMPYDOC,
         input_style: dsp.DocstringStyle = dsp.DocstringStyle.AUTO,
     ) -> str:
@@ -54,6 +59,8 @@ class DocstringInfo:
 
         Parameters
         ----------
+        settings : FixerSettings
+            Settings for what to fix and when.
         output_style : dsp.DocstringStyle
             Output style to use for the docstring.
             (Default value = dsp.DocstringStyle.NUMPYDOC)
@@ -68,15 +75,31 @@ class DocstringInfo:
         """
         self._escape_triple_quotes()
         parsed = dsp.parse(self.docstring, style=input_style)
-        self.fix_docstring(parsed)
+        self._fix_docstring(parsed, settings)
         return dsp.compose(parsed, style=output_style)
+
+    def report_issues(self) -> tuple[int, str]:
+        """Report all issues that were found in this docstring.
+
+        Returns
+        -------
+        tuple[int, str]
+            The number of issues found and a string representing a summary
+            of those.
+        """
+        if not self.issues:
+            return 0, ""
+        return len(self.issues), f"\n{self.name}:\n" + "\n".join(self.issues)
 
     def _escape_triple_quotes(self) -> None:
         r"""Escape \"\"\" in the docstring."""
         if '"""' in self.docstring:
+            self.issues.append("Unescaped triple quotes found.")
             self.docstring = self.docstring.replace('"""', r"\"\"\"")
 
-    def fix_docstring(self, docstring: dsp.Docstring) -> None:
+    def _fix_docstring(
+        self, docstring: dsp.Docstring, _settings: FixerSettings
+    ) -> None:
         """Fix docstrings.
 
         Default are to add missing dots, blank lines and give defaults for
@@ -86,6 +109,8 @@ class DocstringInfo:
         ----------
         docstring : dsp.Docstring
             Docstring to fix.
+        settings : FixerSettings
+            Settings for what to fix and when.
         """
         self._fix_backslashes()
         self._fix_short_description(docstring)
@@ -96,6 +121,7 @@ class DocstringInfo:
     def _fix_backslashes(self) -> None:
         """If there is any backslash in the docstring set it as raw."""
         if "\\" in self.docstring and "r" not in self.modifier:
+            self.issues.append("Missing 'r' modifier.")
             self.modifier = "r" + self.modifier
 
     def _fix_short_description(self, docstring: dsp.Docstring) -> None:
@@ -106,8 +132,17 @@ class DocstringInfo:
         docstring : dsp.Docstring
             Docstring to set the default summary for.
         """
-        docstring.short_description = docstring.short_description or DEFAULT_SUMMARY
-        if not docstring.short_description.rstrip().endswith("."):
+        cleaned_short_description = (
+            docstring.short_description.strip() if docstring.short_description else ""
+        )
+        if (
+            not cleaned_short_description
+            or cleaned_short_description == DEFAULT_SUMMARY
+        ):
+            self.issues.append("Missing short description.")
+        docstring.short_description = cleaned_short_description or DEFAULT_SUMMARY
+        if not docstring.short_description.endswith("."):
+            self.issues.append("Short description missing '.' at the end.")
             docstring.short_description = f"{docstring.short_description.rstrip()}."
 
     def _fix_blank_lines(self, docstring: dsp.Docstring) -> None:
@@ -118,10 +153,25 @@ class DocstringInfo:
         docstring : dsp.Docstring
             Docstring to fix the blank lines for.
         """
+        # For parsing a blank line is associated with the description.
+        if bool(docstring.blank_after_short_description) != bool(
+            docstring.long_description or docstring.meta
+        ):
+            self.issues.append("Incorrect blank line after short description.")
+        too_much = bool(
+            docstring.long_description and docstring.blank_after_long_description
+        ) and not bool(docstring.meta)
+        missing = (
+            docstring.long_description
+            and not docstring.blank_after_long_description
+            and docstring.meta
+        )
+        if too_much or missing:
+            self.issues.append("Incorrect blank line after long description.")
         # Set blank line after short description if a long one follows
         # If nothing follows we do not want one and other sections bring their own.
+        # For composing.
         docstring.blank_after_short_description = bool(docstring.long_description)
-        # Set blank line after long description of something follows
         # If there is a section after the long description then that already
         # introduces a newline. If not, we do not want one at all.
         docstring.blank_after_long_description = False
@@ -138,6 +188,8 @@ class DocstringInfo:
             # Description works a bit different for examples.
             if isinstance(ele, dsp.DocstringExample):
                 continue
+            if not ele.description or ele.description == DEFAULT_DESCRIPTION:
+                self.issues.append("Missing or default description.")
             ele.description = ele.description or DEFAULT_DESCRIPTION
 
     def _fix_types(self, docstring: dsp.Docstring) -> None:
@@ -151,8 +203,17 @@ class DocstringInfo:
         for param in docstring.params:
             if param.args[0] == "method":
                 continue
+            if not param.type_name or param.type_name == DEFAULT_TYPE:
+                self.issues.append(
+                    f"Missing or default type name for parameter `{param.arg_name}`."
+                )
             param.type_name = param.type_name or DEFAULT_TYPE
         for returned in docstring.many_returns:
+            if not returned.type_name or returned.type_name == DEFAULT_TYPE:
+                self.issues.append(
+                    "Missing or default type name for return value"
+                    f" `{returned.return_name or returned.type_name}`."
+                )
             returned.type_name = returned.type_name or DEFAULT_TYPE
 
 
@@ -208,7 +269,7 @@ class ClassDocstring(DocstringInfo):
     methods: list[str]
 
     @override
-    def fix_docstring(self, docstring: dsp.Docstring) -> None:
+    def _fix_docstring(self, docstring: dsp.Docstring, settings: FixerSettings) -> None:
         """Fix docstrings.
 
         Additionally adjust attributes and methods from body.
@@ -217,12 +278,16 @@ class ClassDocstring(DocstringInfo):
         ----------
         docstring : dsp.Docstring
             Docstring to fix.
+        settings : FixerSettings
+            Settings for what to fix and when.
         """
-        super().fix_docstring(docstring)
-        self._adjust_attributes(docstring)
-        self._adjust_methods(docstring)
+        super()._fix_docstring(docstring, settings)
+        self._adjust_attributes(docstring, settings)
+        self._adjust_methods(docstring, settings)
 
-    def _adjust_attributes(self, docstring: dsp.Docstring) -> None:
+    def _adjust_attributes(
+        self, docstring: dsp.Docstring, settings: FixerSettings
+    ) -> None:
         """Overwrite or create attribute docstring entries based on body.
 
         Create the full list if there was no original docstring.
@@ -234,24 +299,37 @@ class ClassDocstring(DocstringInfo):
         ----------
         docstring : dsp.Docstring
             Docstring to adjust parameters for.
+        settings : FixerSettings
+            Settings for what to fix and when.
         """
         # If a docstring or the section already exists we are done.
         # We already fixed empty types and descriptions in the super call.
-        if self.docstring:
+        if self.docstring and not settings.force_attributes:
             return
-        for attribute in self.attributes:
+        # Build dicts for faster lookup
+        atts_from_doc = {
+            att.arg_name: att for att in docstring.params if att.args[0] == "attribute"
+        }
+        atts_from_sig = {att.arg_name: att for att in self.attributes}
+        for name, att_sig in atts_from_sig.items():
+            # We already updated types and descriptions in the super call.
+            if name in atts_from_doc:
+                continue
+            self.issues.append(f"Missing attribute `{att_sig.arg_name}`.")
             docstring.meta.append(
                 dsp.DocstringParam(
-                    args=["attribute", attribute.arg_name],
+                    args=["attribute", att_sig.arg_name],
                     description=DEFAULT_DESCRIPTION,
-                    arg_name=attribute.arg_name,
+                    arg_name=att_sig.arg_name,
                     type_name=DEFAULT_TYPE,
                     is_optional=False,
                     default=None,
                 )
             )
 
-    def _adjust_methods(self, docstring: dsp.Docstring) -> None:
+    def _adjust_methods(
+        self, docstring: dsp.Docstring, settings: FixerSettings
+    ) -> None:
         """If a new docstring is generated add a methods section.
 
         Create the full list if there was no original docstring.
@@ -263,10 +341,20 @@ class ClassDocstring(DocstringInfo):
         ----------
         docstring : dsp.Docstring
             Docstring to adjust methods for.
+        settings : FixerSettings
+            Settings for what to fix and when.
         """
-        if self.docstring:
+        if self.docstring and not settings.force_methods:
             return
+        # Build dicts for faster lookup
+        meth_from_doc = {
+            meth.arg_name: meth for meth in docstring.params if meth.args[0] == "method"
+        }
         for method in self.methods:
+            # We already descriptions in the super call.
+            if method in meth_from_doc:
+                continue
+            self.issues.append(f"Missing method `{method}`.")
             docstring.meta.append(
                 dsp.DocstringParam(
                     args=["method", method],
@@ -311,9 +399,10 @@ class FunctionDocstring(DocstringInfo):
 
     signature: FunctionSignature
     body: FunctionBody
+    length: int
 
     @override
-    def fix_docstring(self, docstring: dsp.Docstring) -> None:
+    def _fix_docstring(self, docstring: dsp.Docstring, settings: FixerSettings) -> None:
         """Fix docstrings.
 
         Additionally adjust:
@@ -325,12 +414,14 @@ class FunctionDocstring(DocstringInfo):
         ----------
         docstring : dsp.Docstring
             Docstring to fix.
+        settings : FixerSettings
+            Settings for what to fix and when.
         """
-        super().fix_docstring(docstring)
-        self._adjust_parameters(docstring)
-        self._adjust_returns(docstring)
-        self._adjust_yields(docstring)
-        self._adjust_raises(docstring)
+        super()._fix_docstring(docstring, settings)
+        self._adjust_parameters(docstring, settings)
+        self._adjust_returns(docstring, settings)
+        self._adjust_yields(docstring, settings)
+        self._adjust_raises(docstring, settings)
 
     def _escape_default_value(self, default_value: str) -> str:
         r"""Escape the default value so that the docstring remains fully valid.
@@ -353,7 +444,9 @@ class FunctionDocstring(DocstringInfo):
             return default_value.replace('"""', r"\"\"\"")
         return default_value
 
-    def _adjust_parameters(self, docstring: dsp.Docstring) -> None:
+    def _adjust_parameters(
+        self, docstring: dsp.Docstring, settings: FixerSettings
+    ) -> None:
         """Overwrite or create param docstring entries based on signature.
 
         If an entry already exists update the type description if one exists
@@ -366,6 +459,8 @@ class FunctionDocstring(DocstringInfo):
         ----------
         docstring : dsp.Docstring
             Docstring to adjust parameters for.
+        settings : FixerSettings
+            Settings for what to fix and when.
         """
         # Build dicts for faster lookup
         params_from_doc = {param.arg_name: param for param in docstring.params}
@@ -373,6 +468,11 @@ class FunctionDocstring(DocstringInfo):
         for name, param_sig in params_from_sig.items():
             if name in params_from_doc:
                 param_doc = params_from_doc[name]
+                if param_sig.type_name and param_sig.type_name != param_doc.type_name:
+                    self.issues.append(
+                        f"Parameter type was `{param_doc.type_name} `but signature"
+                        f" has type hint `{param_sig.type_name}`."
+                    )
                 param_doc.type_name = param_sig.type_name or param_doc.type_name
                 param_doc.is_optional = False
                 if param_sig.default:
@@ -382,12 +482,19 @@ class FunctionDocstring(DocstringInfo):
                     if (
                         param_doc.description is not None
                         and "default" not in param_doc.description.lower()
+                        and settings.force_defaults
                     ):
+                        self.issues.append("Missing description of default value.")
                         param_doc.description += (
                             f" (Default value = "
                             f"{self._escape_default_value(param_sig.default)})"
                         )
-            else:
+            elif (
+                settings.force_params
+                and len(params_from_doc) >= settings.force_params_min_n_params
+                and self.length >= settings.force_params_min_func_length
+            ):
+                self.issues.append(f"Missing parameter `{name}`.")
                 place_holder_description = DEFAULT_DESCRIPTION
                 if param_sig.default:
                     place_holder_description += (
@@ -405,7 +512,9 @@ class FunctionDocstring(DocstringInfo):
                     )
                 )
 
-    def _adjust_returns(self, docstring: dsp.Docstring) -> None:
+    def _adjust_returns(
+        self, docstring: dsp.Docstring, settings: FixerSettings
+    ) -> None:
         """Overwrite or create return docstring entries based on signature.
 
         If no return value was parsed from the docstring:
@@ -424,6 +533,8 @@ class FunctionDocstring(DocstringInfo):
         ----------
         docstring : dsp.Docstring
             Docstring to adjust return values for.
+        settings : FixerSettings
+            Settings for what to fix and when.
         """
         doc_returns = docstring.many_returns
         sig_return = self.signature.returns.type_name
@@ -434,7 +545,14 @@ class FunctionDocstring(DocstringInfo):
             sig_return = matches[3]
         # If only one return value is specified take the type from the signature
         # as that is more likely to be correct
-        if not doc_returns and self.body.returns_value:
+        if (
+            not doc_returns
+            and self.body.returns_value
+            # If we do not want to force returns then only add new ones if
+            # there was no docstring at all.
+            and (settings.force_return or not self.docstring)
+        ):
+            self.issues.append("Missing return value.")
             docstring.meta.append(
                 dsp.DocstringReturns(
                     args=["returns"],
@@ -445,9 +563,14 @@ class FunctionDocstring(DocstringInfo):
                 )
             )
         # If there is only one return value specified and we do not
-        # yield anything then correct correct it with the actual return value.
+        # yield anything then correct it with the actual return value.
         elif len(doc_returns) == 1 and not self.body.yields_value:
             doc_return = doc_returns[0]
+            if sig_return and doc_return.type_name != sig_return:
+                self.issues.append(
+                    f"Return type was `{doc_return.type_name}` but"
+                    f" signature has type hint `{sig_return}`."
+                )
             doc_return.type_name = sig_return or doc_return.type_name
         # If we have multiple return values specified
         # and we have only extracted one set of return values from the body.
@@ -457,6 +580,9 @@ class FunctionDocstring(DocstringInfo):
             doc_names = {returned.return_name for returned in doc_returns}
             for body_name in next(iter(self.body.returns)):
                 if body_name not in doc_names:
+                    self.issues.append(
+                        f"Missing return value in multi return statement `{body_name}`."
+                    )
                     docstring.meta.append(
                         dsp.DocstringReturns(
                             args=["returns"],
@@ -467,7 +593,7 @@ class FunctionDocstring(DocstringInfo):
                         )
                     )
 
-    def _adjust_yields(self, docstring: dsp.Docstring) -> None:
+    def _adjust_yields(self, docstring: dsp.Docstring, settings: FixerSettings) -> None:
         """See _adjust_returns.
 
         Only difference is that the signature return type is not added
@@ -477,6 +603,8 @@ class FunctionDocstring(DocstringInfo):
         ----------
         docstring : dsp.Docstring
             Docstring to adjust yields for.
+        settings : FixerSettings
+            Settings for what to fix and when.
         """
         doc_yields = docstring.many_yields
         sig_return = self.signature.returns.type_name
@@ -492,7 +620,8 @@ class FunctionDocstring(DocstringInfo):
             sig_return = None
         # If only one return value is specified take the type from the signature
         # as that is more likely to be correct
-        if not doc_yields and self.body.yields_value:
+        if not doc_yields and self.body.yields_value and settings.force_return:
+            self.issues.append("Missing yielded value.")
             docstring.meta.append(
                 dsp.DocstringYields(
                     args=["yields"],
@@ -504,11 +633,19 @@ class FunctionDocstring(DocstringInfo):
             )
         elif len(doc_yields) == 1:
             doc_yields = doc_yields[0]
+            if sig_return and doc_yields.type_name != sig_return:
+                self.issues.append(
+                    f"Yield type was `{doc_yields.type_name}` but"
+                    f" signature has type hint `{sig_return}`."
+                )
             doc_yields.type_name = sig_return or doc_yields.type_name
         elif len(doc_yields) > 1 and len(self.body.yields) == 1:
             doc_names = {yielded.yield_name for yielded in doc_yields}
             for body_name in next(iter(self.body.yields)):
                 if body_name not in doc_names:
+                    self.issues.append(
+                        f"Missing return value in multi return statement `{body_name}`."
+                    )
                     docstring.meta.append(
                         dsp.DocstringYields(
                             args=["yields"],
@@ -519,14 +656,18 @@ class FunctionDocstring(DocstringInfo):
                         )
                     )
 
-    def _adjust_raises(self, docstring: dsp.Docstring) -> None:
+    def _adjust_raises(self, docstring: dsp.Docstring, settings: FixerSettings) -> None:
         """Adjust raises section based on parsed body.
 
         Parameters
         ----------
         docstring : dsp.Docstring
             Docstring to adjust raises section for.
+        settings : FixerSettings
+            Settings for what to fix and when.
         """
+        if self.docstring and not settings.force_raises:
+            return
         # Only consider those raises that are not already raised in the body.
         # We are potentially raising the same time of exception multiple times.
         # Only remove the first of each type per one encountered in the docstring.
@@ -542,6 +683,7 @@ class FunctionDocstring(DocstringInfo):
             elif "" in raised_in_body:
                 raised_in_body.remove("")
         for missing_raise in raised_in_body:
+            self.issues.append(f"Missing raised exception `{missing_raise}`.")
             docstring.meta.append(
                 dsp.DocstringRaises(
                     args=["raises", missing_raise],
