@@ -168,6 +168,9 @@ class AstAnalyzer:
         docstring = self.handle_elem_docstring(func)
         signature = self.handle_function_signature(func)
         body = self.handle_function_body(func)
+        length = len(func.body) if func.body else 0
+        if length and ast.get_docstring(func):
+            length -= 1
         return FunctionDocstring(
             docstring.name,
             docstring.docstring,
@@ -175,6 +178,7 @@ class AstAnalyzer:
             docstring.modifier,
             signature=signature,
             body=body,
+            length=length,
         )
 
     def handle_elem_docstring(

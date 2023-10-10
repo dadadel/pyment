@@ -163,12 +163,16 @@ class PyComment:
             if end is None:
                 msg = "End of docstring is None. Not sure what to do with this yet."
                 raise ValueError(msg)
+            # e.line are line number starting at one.
+            # We are now using them to index into a list starting at 0.
             start, end = start - 1, end - 1
             in_docstring = e.docstring
             old_line = list_from[start]
             leading_whitespace = old_line[: -len(old_line.lstrip())]
             raw_out = e.output_docstring(
-                output_style=self.style.output_style, input_style=self.style.input_style
+                output_style=self.style.output_style,
+                input_style=self.style.input_style,
+                settings=self.settings,
             )
             out_docstring = self._add_quotes_indentation_modifier(
                 raw_out,
