@@ -333,7 +333,6 @@ def read_pyproject_toml(
 @click.option(
     "--force-params-min-n-params",
     type=int,
-    is_flag=True,
     default=0,
     help="Minimum number of arguments detected in the signature "
     "to actually enforce parameters."
@@ -345,7 +344,6 @@ def read_pyproject_toml(
 @click.option(
     "--force-params-min-func-length",
     type=int,
-    is_flag=True,
     default=0,
     help="Minimum number statements in the function body "
     "to actually enforce parameters."
