@@ -49,7 +49,7 @@ class Report:
         issue_report : str
             Issue report for the file at question.
         """
-        if issues:
+        if issues or changed == Changed.YES:
             self.issue_count += 1
             self.issues.append(issue_report)
             if changed == Changed.YES:

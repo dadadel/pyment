@@ -94,6 +94,7 @@ class DocstringInfo:
     def _escape_triple_quotes(self) -> None:
         r"""Escape \"\"\" in the docstring."""
         if '"""' in self.docstring:
+            self.issues.append("Unescaped triple quotes found.")
             self.docstring = self.docstring.replace('"""', r"\"\"\"")
 
     def _fix_docstring(
@@ -134,7 +135,10 @@ class DocstringInfo:
         cleaned_short_description = (
             docstring.short_description.strip() if docstring.short_description else ""
         )
-        if not cleaned_short_description:
+        if (
+            not cleaned_short_description
+            or cleaned_short_description == DEFAULT_SUMMARY
+        ):
             self.issues.append("Missing short description.")
         docstring.short_description = cleaned_short_description or DEFAULT_SUMMARY
         if not docstring.short_description.endswith("."):
@@ -200,9 +204,16 @@ class DocstringInfo:
             if param.args[0] == "method":
                 continue
             if not param.type_name or param.type_name == DEFAULT_TYPE:
-                self.issues.append("Missing or default type name.")
+                self.issues.append(
+                    f"Missing or default type name for parameter `{param.arg_name}`."
+                )
             param.type_name = param.type_name or DEFAULT_TYPE
         for returned in docstring.many_returns:
+            if not returned.type_name or returned.type_name == DEFAULT_TYPE:
+                self.issues.append(
+                    "Missing or default type name for return value"
+                    f" `{returned.return_name or returned.type_name}`."
+                )
             returned.type_name = returned.type_name or DEFAULT_TYPE
 
 

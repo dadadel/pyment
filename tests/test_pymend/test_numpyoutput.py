@@ -132,7 +132,8 @@ class TestNumpyOutput:
         """Test that blank lines are set correctly."""
         expected = get_expected_patch("blank_lines.py.patch.numpydoc.expected")
         comment = pym.PyComment(
-            absdir("refs/blank_lines.py"), fixer_settings=FixerSettings()
+            absdir("refs/blank_lines.py"),
+            fixer_settings=FixerSettings(force_params=False),
         )
         result = "".join(comment._docstring_diff())
         assert remove_diff_header(result) == remove_diff_header(expected)
