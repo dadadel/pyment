@@ -80,17 +80,17 @@ class AstAnalyzer:
             if isinstance(node, ast.Module):
                 nodes_of_interest.append(self.handle_module(node))
             elif isinstance(node, ast.ClassDef):
-                if node.name in self.settings.ignore_classes:
+                if node.name in self.settings.ignored_classes:
                     continue
                 nodes_of_interest.append(self.handle_class(node))
             elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 if (
                     any(
-                        name.id in self.settings.ignore_decorators
+                        name.id in self.settings.ignored_decorators
                         for name in node.decorator_list
                         if isinstance(name, ast.Name)
                     )
-                    or node.name in self.settings.ignore_functions
+                    or node.name in self.settings.ignored_functions
                 ):
                     continue
                 nodes_of_interest.append(self.handle_function(node))

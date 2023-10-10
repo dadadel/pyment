@@ -40,9 +40,10 @@ dependencies = [
 pymend = "pymend.pymendapp:main"
 
 [tool.pymend]
-extend-exclude = "docs/|tests/|apples/"
-output-style   = "numpydoc"
-input-style    = "numpydoc"
+extend-exclude    = "docs/|tests/|apples/"
+output-style      = "numpydoc"
+input-style       = "numpydoc"
+ignored-functions = ["main"]
 
 [tool.ruff]
 # Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.

@@ -28,13 +28,13 @@ class FixerSettings:
     force_raises: bool = True
     force_methods: bool = False
     force_attributes: bool = False
-    force_params_n_params: int = 0
-    force_params_function_length: int = 0
+    force_params_min_n_params: int = 0
+    force_params_min_func_length: int = 0
     ignore_privates: bool = True
     ignore_unused_arguments: bool = True
-    ignore_decorators: list[str] = field(default_factory=lambda: ["overload"])
-    ignore_functions: list[str] = field(default_factory=list)
-    ignore_classes: list[str] = field(default_factory=list)
+    ignored_decorators: list[str] = field(default_factory=lambda: ["overload"])
+    ignored_functions: list[str] = field(default_factory=lambda: ["main"])
+    ignored_classes: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -429,8 +429,8 @@ class FunctionDocstring(DocstringInfo):
                         )
             elif (
                 settings.force_params
-                and len(params_from_doc) >= settings.force_params_n_params
-                and self.length >= settings.force_params_function_length
+                and len(params_from_doc) >= settings.force_params_min_n_params
+                and self.length >= settings.force_params_min_func_length
             ):
                 place_holder_description = DEFAULT_DESCRIPTION
                 if param_sig.default:
