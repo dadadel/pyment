@@ -16,6 +16,7 @@ from .const import DEFAULT_EXCLUDES
 from .files import find_pyproject_toml, parse_pyproject_toml
 from .output import out
 from .report import Report
+from .types import FixerSettings
 
 STRING_TO_STYLE = {
     "rest": dsp.DocstringStyle.REST,
@@ -126,6 +127,7 @@ def run(
     exclude: Pattern[str],
     extend_exclude: Optional[Pattern[str]],
     report: Report,
+    fixer_settings: FixerSettings,
 ) -> None:
     r"""Run pymend over the list of files..
 
@@ -151,6 +153,8 @@ def run(
         Useful if one just wants to add some to the existing default.
     report : Report
         Reporter for pretty communication with the user.
+    fixer_settings : FixerSettings
+        Settings for which fixes should be performed.
 
     Raises
     ------
@@ -170,6 +174,7 @@ def run(
                 file,
                 output_style=output_style,
                 input_style=input_style,
+                fixer_settings=fixer_settings,
             )
             # Not using ternary when the calls have side effects
             if overwrite:  # noqa: SIM108
@@ -430,6 +435,7 @@ def main(  # pylint: disable=too-many-arguments, too-many-locals  # noqa: PLR091
                 out(f"{param}: {value}")
 
     report = Report(check=check, diff=not write, quiet=quiet, verbose=verbose)
+    fixer_settings = FixerSettings()
 
     run(
         src,
@@ -439,6 +445,7 @@ def main(  # pylint: disable=too-many-arguments, too-many-locals  # noqa: PLR091
         exclude=exclude or DEFAULT_EXCLUDES,
         extend_exclude=extend_exclude,
         report=report,
+        fixer_settings=fixer_settings,
     )
 
     if verbose or not quiet:

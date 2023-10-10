@@ -11,6 +11,7 @@ from .types import (
     ClassDocstring,
     DocstringInfo,
     ElementDocstring,
+    FixerSettings,
     FunctionBody,
     FunctionDocstring,
     FunctionSignature,
@@ -30,7 +31,7 @@ __maintainer__ = "J-E. Nitschke"
 class AstAnalyzer:
     """Walk ast and extract module, class and function information."""
 
-    def __init__(self, file_content: str) -> None:
+    def __init__(self, file_content: str, *, settings: FixerSettings) -> None:
         """Initialize the Analyzer with the file contents.
 
         The only reason this is a class is to have the raw
@@ -42,8 +43,11 @@ class AstAnalyzer:
         ----------
         file_content : str
             File contents to store.
+        settings : FixerSettings
+            Settings for what to fix and when.
         """
         self.file_content = file_content
+        self.settings = settings
 
     def parse_from_ast(
         self,
@@ -76,12 +80,17 @@ class AstAnalyzer:
             if isinstance(node, ast.Module):
                 nodes_of_interest.append(self.handle_module(node))
             elif isinstance(node, ast.ClassDef):
+                if node.name in self.settings.ignore_classes:
+                    continue
                 nodes_of_interest.append(self.handle_class(node))
             elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                if any(
-                    name.id == "overload"
-                    for name in node.decorator_list
-                    if isinstance(name, ast.Name)
+                if (
+                    any(
+                        name.id in self.settings.ignore_decorators
+                        for name in node.decorator_list
+                        if isinstance(name, ast.Name)
+                    )
+                    or node.name in self.settings.ignore_functions
                 ):
                     continue
                 nodes_of_interest.append(self.handle_function(node))
@@ -318,13 +327,12 @@ class AstAnalyzer:
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
             # Document non-private methods.
-            # Exclude some like statismethods and properties
-            if not (node.name.startswith("_") or self._has_excluding_decorator(node)):
+            # Exclude some like staticmethods and properties
+            if not (
+                (self.settings.ignore_privates and node.name.startswith("_"))
+                or self._has_excluding_decorator(node)
+            ):
                 methods.append(self._get_method_signature(node))
-            # Extract attributes from init method.
-            # Excluded from first because of the leading underscore
-            elif node.name == "__init__":
-                attributes.extend(self._get_attributes_from_init(node))
             elif "property" in {
                 decorator.id
                 for decorator in node.decorator_list
@@ -332,6 +340,9 @@ class AstAnalyzer:
             }:
                 return_value = self.get_return_value_sig(node)
                 attributes.append(Parameter(node.name, return_value.type_name, None))
+            # Extract attributes from init method.
+            if node.name == "__init__":
+                attributes.extend(self._get_attributes_from_init(node))
         # Remove duplicates from attributes while maintaining order
         return list(Parameter.uniquefy(attributes)), methods
 
@@ -480,9 +491,15 @@ class AstAnalyzer:
                 Parameter(f"**{kwarg.arg}", ast_unparse(kwarg.annotation), None)
             )
         # Filter out unused arguments.
-        return [
-            argument for argument in arguments if not argument.arg_name.startswith("_")
-        ]
+        return (
+            [
+                argument
+                for argument in arguments
+                if not argument.arg_name.startswith("_")
+            ]
+            if self.settings.ignore_unused_arguments
+            else arguments
+        )
 
     @staticmethod
     def is_shebang_or_pragma(line: str) -> bool:
@@ -584,7 +601,7 @@ class AstAnalyzer:
             isinstance(node, ast.Attribute)
             and isinstance(node.value, ast.Name)
             and node.value.id == "self"
-            and not node.attr.startswith("_")
+            and not (self.settings.ignore_privates and node.attr.startswith("_"))
         )
 
     def _check_and_handle_assign_node(

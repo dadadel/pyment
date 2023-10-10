@@ -43,7 +43,7 @@ class Report:
             Whether the file was changed.
         """
         if changed is Changed.YES:
-            reformatted = "would reformat" if not self.diff else "reformatted"
+            reformatted = "would reformat" if self.diff else "reformatted"
             if self.verbose or not self.quiet:
                 out(f"{reformatted} {src}")
             self.change_count += 1

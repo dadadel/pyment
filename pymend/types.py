@@ -3,7 +3,7 @@
 import ast
 import re
 from collections.abc import Iterable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional, Union
 
 from typing_extensions import TypeAlias, override
@@ -17,6 +17,23 @@ __copyright__ = "Copyright 2023-2023"
 __licence__ = "GPL3"
 __version__ = "1.0.0"
 __maintainer__ = "J-E. Nitschke"
+
+
+@dataclass(frozen=True)
+class FixerSettings:
+    """Settings to influence which sections are required and when."""
+
+    force_params: bool = True
+    force_return: bool = True
+    force_methods: bool = False
+    force_attributes: bool = False
+    force_single_param: bool = True
+    force_params_length: int = 0
+    ignore_privates: bool = True
+    ignore_unused_arguments: bool = True
+    ignore_decorators: list[str] = field(default_factory=lambda: ["overload"])
+    ignore_functions: list[str] = field(default_factory=list)
+    ignore_classes: list[str] = field(default_factory=list)
 
 
 @dataclass

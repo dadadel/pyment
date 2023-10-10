@@ -17,7 +17,7 @@ import pymend.docstring_parser as dsp
 from .file_parser import AstAnalyzer
 from .output import diff
 from .report import Changed
-from .types import ElementDocstring
+from .types import ElementDocstring, FixerSettings
 
 __author__ = "J-E. Nitschke"
 __copyright__ = "Copyright 2012-2021 A. Daouzli"
@@ -53,6 +53,7 @@ class PyComment:
         self,
         input_file: str,
         *,
+        fixer_settings: FixerSettings,
         output_style: dsp.DocstringStyle = dsp.DocstringStyle.NUMPYDOC,
         input_style: dsp.DocstringStyle = dsp.DocstringStyle.AUTO,
         proceed_directly: bool = True,
@@ -63,6 +64,8 @@ class PyComment:
         ----------
         input_file : str
             path name (file or folder)
+        fixer_settings : FixerSettings
+            Settings for which fixes should be performed.
         output_style : dsp.DocstringStyle
             Output style to use for docstring.
             (Default value = dsp.DocstringStyle.NUMPYDOC)
@@ -82,6 +85,7 @@ class PyComment:
             input_lines.splitlines(keepends=True), input_lines
         )
         self._output = FileContentRepresentation([], "")
+        self.settings = fixer_settings
         self._changed = []
         self.docs_list = []
         self.fixed = False
@@ -101,7 +105,7 @@ class PyComment:
         list[ElementDocstring]
             List of information about module, classes and functions.
         """
-        ast_parser = AstAnalyzer(self._input.lines)
+        ast_parser = AstAnalyzer(self._input.lines, settings=self.settings)
         self.docs_list = sorted(
             ast_parser.parse_from_ast(), key=lambda element: element.lines
         )
@@ -337,6 +341,7 @@ class PyComment:
         py_comment._input = FileContentRepresentation(  # noqa: SLF001
             self._output.lst.copy(), self._output.lines
         )
+        py_comment.settings = self.settings
         py_comment._output = FileContentRepresentation([], "")  # noqa: SLF001
         py_comment.style = self.style
         py_comment.docs_list = []

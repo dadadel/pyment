@@ -44,7 +44,6 @@ extend-exclude = "docs/|tests/|apples/"
 output-style   = "numpydoc"
 input-style    = "numpydoc"
 
-
 [tool.ruff]
 # Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
 select = [
@@ -198,7 +197,7 @@ max-args = 10
 
 # Maximum number of attributes for a class (see R0902).
 # Should be lowered to 7 but got no time for that atm
-max-attributes = 7
+max-attributes = 15
 
 # Maximum number of boolean expressions in an if statement (see R0916).
 max-bool-expr = 5

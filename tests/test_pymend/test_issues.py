@@ -5,6 +5,7 @@ import os
 import pytest
 
 import pymend.pymend as pym
+from pymend.types import FixerSettings
 
 current_dir = os.path.dirname(__file__)
 
@@ -35,7 +36,9 @@ class TestIssues:
         """
         # if file starting with a function/class definition, patching the file
         # will remove the first line!
-        comment = pym.PyComment(absdir("refs/issue30.py"))
+        comment = pym.PyComment(
+            absdir("refs/issue30.py"), fixer_settings=FixerSettings()
+        )
         try:
             comment._docstring_diff()
         except Exception as e:  # noqa: BLE001
@@ -49,6 +52,8 @@ class TestIssues:
         # Title: If already numpydoc format, will remove the Raises section
         # If the last section in a numpydoc docstring is a `Raises` section,
         # it will be removed if the output format is also set to numpydoc
-        comment = pym.PyComment(absdir("refs/issue49.py"))
+        comment = pym.PyComment(
+            absdir("refs/issue49.py"), fixer_settings=FixerSettings()
+        )
         result = "".join(comment._docstring_diff())
         assert result == ""

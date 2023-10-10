@@ -6,6 +6,7 @@ import re
 import pytest
 
 import pymend.pymend as pym
+from pymend.types import FixerSettings
 
 CURRENT_DIR = os.path.dirname(__file__)
 
@@ -69,7 +70,9 @@ def remove_diff_header(diff: str) -> str:
 def check_expected_diff(test_name: str) -> None:
     """Check that the patch on source_file equals the expected patch."""
     expected = get_expected_patch(f"{test_name}.py.patch.numpydoc.expected")
-    comment = pym.PyComment(absdir(f"refs/{test_name}.py"))
+    comment = pym.PyComment(
+        absdir(f"refs/{test_name}.py"), fixer_settings=FixerSettings()
+    )
     result = "".join(comment._docstring_diff())
     assert remove_diff_header(result) == remove_diff_header(expected)
 

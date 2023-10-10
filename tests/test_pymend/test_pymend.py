@@ -9,6 +9,7 @@ import shutil
 import pytest
 
 import pymend.pymend as pym
+from pymend.types import FixerSettings
 
 CURRENT_DIR = os.path.dirname(__file__)
 
@@ -102,7 +103,7 @@ class TestDocStrings:
 
     def test_parsed_javadoc(self) -> None:
         """Test that javadoc comments get parsed."""
-        comment = pym.PyComment(self.inifile)
+        comment = pym.PyComment(self.inifile, fixer_settings=FixerSettings())
         assert comment.fixed
 
     def test_windows_rename(self) -> None:
@@ -110,7 +111,7 @@ class TestDocStrings:
         bar = absdir("bar")
         with open(bar, "w", encoding="utf-8") as fbar:
             fbar.write("bar")
-        comment = pym.PyComment(self.foo)
+        comment = pym.PyComment(self.foo, fixer_settings=FixerSettings())
         comment._windows_rename(bar)
         assert not os.path.isfile(bar)
         assert os.path.isfile(self.foo)
@@ -139,7 +140,9 @@ class TestFilesConversions:
 
     def test_case_free_testing(self) -> None:
         """Test correct handling for case where input style in ambiguous."""
-        comment = pym.PyComment(absdir("refs/free_cases.py"))
+        comment = pym.PyComment(
+            absdir("refs/free_cases.py"), fixer_settings=FixerSettings()
+        )
         result = "".join(comment._docstring_diff())
         assert result == ""
 
@@ -150,7 +153,9 @@ class TestFilesConversions:
         so Pymend should produce docstrings in numpydoc format.
         """
         expected = get_expected_patch("params.py.patch.numpydoc.expected")
-        comment = pym.PyComment(absdir("refs/params.py"))
+        comment = pym.PyComment(
+            absdir("refs/params.py"), fixer_settings=FixerSettings()
+        )
         result = "".join(comment._docstring_diff())
         assert remove_diff_header(result) == remove_diff_header(expected)
 
@@ -160,6 +165,8 @@ class TestFilesConversions:
         The file has functions with already docstrings in numpydoc format,
         so no docstring should be produced.
         """
-        comment = pym.PyComment(absdir("refs/docs_already_numpydoc.py"))
+        comment = pym.PyComment(
+            absdir("refs/docs_already_numpydoc.py"), fixer_settings=FixerSettings()
+        )
         result = "".join(comment._docstring_diff())
         assert result == ""
