@@ -236,7 +236,7 @@ class Parameter:
         Returns
         -------
         int
-            Has value of the instance.
+            Hash value of the instance.
         """
         return hash((self.arg_name, self.type_name, self.default))
 

@@ -83,12 +83,6 @@ Start quickly
    $ pymend  myfile.py    # will generate a patch
    $ pymend -w myfile.py  # will overwrite the file
 
-or
-
-.. code:: sh
-
-   $ pymend  my/folder/
-
 -  get help:
 
 .. code:: sh
@@ -229,7 +223,7 @@ Calling pyment directly with
 
 print outs this information about changed files
 
--- code-block: sh
+.. code-block:: sh
 
      $ Modified docstrings of elements (my_func, my_single_return_func1, my_multi_return_func, A, method) in file example.py.
 
@@ -312,11 +306,11 @@ add the following to your ``.pre-commit-config.yaml``
 
    repos:
    -   repo: https://github.com/JanEricNitschke/pymend
-       rev: "v1.0.0"
+       rev: "v1.0.5"
        hooks:
        -   id: pymend
            language: python
-           args: ["--write", "--output=numpydoc"]
+           args: ["--write", "--check"]
 
 Acknowledgements
 ----------------

@@ -1,6 +1,7 @@
 #!/usr/bin/python
 """Command line interface for pymend."""
 
+import platform
 import re
 import traceback
 from re import Pattern
@@ -10,7 +11,7 @@ import click
 from click.core import ParameterSource
 
 import pymend.docstring_parser as dsp
-from pymend import PyComment
+from pymend import PyComment, __version__
 
 from .const import DEFAULT_EXCLUDES
 from .files import find_pyproject_toml, parse_pyproject_toml
@@ -457,6 +458,13 @@ def read_pyproject_toml(
     help=(
         "Also emit messages to stderr about files that were not changed or were ignored"
         " due to exclusion patterns."
+    ),
+)
+@click.version_option(
+    version=__version__,
+    message=(
+        f"%(prog)s, %(version)s\n"
+        f"Python ({platform.python_implementation()}) {platform.python_version()}"
     ),
 )
 @click.argument(
