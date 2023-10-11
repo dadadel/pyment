@@ -72,9 +72,18 @@ class DocstringInfo:
         -------
         str
             String representing the updated docstring.
+
+        Raises
+        ------
+        AssertionError
+            If the docstring could not be parsed.
         """
         self._escape_triple_quotes()
-        parsed = dsp.parse(self.docstring, style=input_style)
+        try:
+            parsed = dsp.parse(self.docstring, style=input_style)
+        except Exception as e:  # noqa: BLE001
+            msg = "Failed to parse docstring with error: {e}."
+            raise AssertionError(msg) from e
         self._fix_docstring(parsed, settings)
         return dsp.compose(parsed, style=output_style)
 
@@ -189,7 +198,9 @@ class DocstringInfo:
             if isinstance(ele, dsp.DocstringExample):
                 continue
             if not ele.description or ele.description == DEFAULT_DESCRIPTION:
-                self.issues.append("Missing or default description.")
+                self.issues.append(
+                    f"Missing or default description `{ele.description}`."
+                )
             ele.description = ele.description or DEFAULT_DESCRIPTION
 
     def _fix_types(self, docstring: dsp.Docstring) -> None:
@@ -211,8 +222,10 @@ class DocstringInfo:
         for returned in docstring.many_returns:
             if not returned.type_name or returned.type_name == DEFAULT_TYPE:
                 self.issues.append(
-                    "Missing or default type name for return value"
-                    f" `{returned.return_name or returned.type_name}`."
+                    "Missing or default type name for return value: "
+                    f" `{returned.return_name} |"
+                    f" {returned.type_name} |"
+                    f" {returned.description}`."
                 )
             returned.type_name = returned.type_name or DEFAULT_TYPE
 
