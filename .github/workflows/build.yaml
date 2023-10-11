@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12-dev"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -38,7 +38,7 @@ jobs:
       - name: Typecheck with pyright
         uses: jakebailey/pyright-action@v1
         with:
-          version: 1.1.330
+          version: 1.1.331
 
       - name: Thorough check with pylint
         run: pylint pymend
