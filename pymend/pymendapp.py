@@ -346,7 +346,7 @@ def read_pyproject_toml(
     " are not extended. Only has an effect with --force-params set to true.",
 )
 @click.option(
-    "--force-params-min-func-length",
+    "--force-meta-min-func-length",
     type=int,
     default=0,
     help="Minimum number statements in the function body "
@@ -354,7 +354,8 @@ def read_pyproject_toml(
     " If less than the specified numbers of arguments are"
     " detected then a parameters section is only build for new docstrings."
     " No new sections are created for existing docstrings and existing sections"
-    " are not extended. Only has an effect with --force-params set to true."
+    " are not extended. Only has an effect with"
+    " `--force-params` or `--force-return` set to true."
     " Currently this only counts the length of the body of the ast node."
     " So nested statements are not taken into account (yet).",
 )
@@ -402,10 +403,11 @@ def read_pyproject_toml(
     "--ignore-privates/--handle-privates",
     is_flag=True,
     default=True,
-    help="Whether to ignore attributes and methods that start with an underscore '_'. "
-    "This also means that methods with two underscores, "
-    "like dunder methods, are ignored. "
-    "Consequently turning this off also forces processing of such methods.",
+    help="Whether to ignore attributes and methods that start with an underscore '_'."
+    " This also means that methods with two underscores are ignored."
+    " Consequently turning this off also forces processing of such methods."
+    " Dunder methods are an exception and are"
+    " always ignored regardless of this setting.",
 )
 @click.option(
     "--ignore-unused-arguments/--handle-unused-arguments",
@@ -502,7 +504,7 @@ def main(  # pylint: disable=too-many-arguments, too-many-locals  # noqa: PLR091
     extend_exclude: Optional[Pattern[str]],
     force_params: bool,
     force_params_min_n_params: bool,
-    force_params_min_func_length: bool,
+    force_meta_min_func_length: bool,
     force_return: bool,
     force_raises: bool,
     force_methods: bool,
@@ -546,7 +548,7 @@ def main(  # pylint: disable=too-many-arguments, too-many-locals  # noqa: PLR091
         force_methods=force_methods,
         force_attributes=force_attributes,
         force_params_min_n_params=force_params_min_n_params,
-        force_params_min_func_length=force_params_min_func_length,
+        force_meta_min_func_length=force_meta_min_func_length,
         ignore_privates=ignore_privates,
         ignore_unused_arguments=ignore_unused_arguments,
         ignored_decorators=ignored_decorators,

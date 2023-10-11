@@ -1,4 +1,4 @@
-exclude: refs|doc/
+exclude: refs|docs/
 repos:
   - repo: https://github.com/JanEricNitschke/pymend
     rev: "v1.0.5"

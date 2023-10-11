@@ -40,7 +40,7 @@ dependencies = [
 pymend = "pymend.pymendapp:main"
 
 [tool.pymend]
-extend-exclude    = "docs/|tests/|apples/"
+extend-exclude    = "docs/|tests/"
 output-style      = "numpydoc"
 input-style       = "numpydoc"
 ignored-functions = ["main"]

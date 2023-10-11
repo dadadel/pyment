@@ -333,8 +333,8 @@ functionality. Mainly the addition of the “Methods” section for numpydoc
 style docstrings. Additionally the the code has been linted as well as
 type hinted.
 
-The code for configuration and file handling is more or less taken directly
-from `black <https://github.com/psf/black/>`__.
+The code for configuration and file handling as well as the structure of the documentation
+is more or less taken directly from `black <https://github.com/psf/black/>`__.
 
 .. |Build| image:: https://github.com/JanEricNitschke/pymend/actions/workflows/build.yaml/badge.svg
    :target: https://github.com/JanEricNitschke/pymend/workflows/build.yaml

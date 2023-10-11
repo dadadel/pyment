@@ -337,23 +337,29 @@ class AstAnalyzer:
         for node in cls.body:
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
-            # Document non-private methods.
-            # Exclude some like staticmethods and properties
-            if not (
-                (self.settings.ignore_privates and node.name.startswith("_"))
-                or self._has_excluding_decorator(node)
-            ):
-                methods.append(self._get_method_signature(node))
-            elif "property" in {
+            # Extract attributes from init method.
+            if node.name == "__init__":
+                attributes.extend(self._get_attributes_from_init(node))
+            # Skip dunder methods for method extraction
+            if node.name.startswith("__") and node.name.endswith("__"):
+                continue
+            # Optionally skip private methods.
+            if self.settings.ignore_privates and node.name.startswith("_"):
+                continue
+            # Handle properties as attributes
+            if "property" in {
                 decorator.id
                 for decorator in node.decorator_list
                 if isinstance(decorator, ast.Name)
             }:
                 return_value = self.get_return_value_sig(node)
                 attributes.append(Parameter(node.name, return_value.type_name, None))
-            # Extract attributes from init method.
-            if node.name == "__init__":
-                attributes.extend(self._get_attributes_from_init(node))
+            # Handle normal methods except for those with some specific decorators
+            # Like statismethod, classmethod, property or getters/setters.
+            elif not self._has_excluding_decorator(node):
+                methods.append(self._get_method_signature(node))
+            # Exclude some like staticmethods and properties
+
         # Remove duplicates from attributes while maintaining order
         return list(Parameter.uniquefy(attributes)), methods
 

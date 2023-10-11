@@ -29,7 +29,7 @@ class FixerSettings:
     force_methods: bool = False
     force_attributes: bool = False
     force_params_min_n_params: int = 0
-    force_params_min_func_length: int = 0
+    force_meta_min_func_length: int = 0
     ignore_privates: bool = True
     ignore_unused_arguments: bool = True
     ignored_decorators: list[str] = field(default_factory=lambda: ["overload"])
@@ -492,7 +492,7 @@ class FunctionDocstring(DocstringInfo):
             elif (
                 settings.force_params
                 and len(params_from_doc) >= settings.force_params_min_n_params
-                and self.length >= settings.force_params_min_func_length
+                and self.length >= settings.force_meta_min_func_length
             ):
                 self.issues.append(f"Missing parameter `{name}`.")
                 place_holder_description = DEFAULT_DESCRIPTION
@@ -550,7 +550,11 @@ class FunctionDocstring(DocstringInfo):
             and self.body.returns_value
             # If we do not want to force returns then only add new ones if
             # there was no docstring at all.
-            and (settings.force_return or not self.docstring)
+            and (
+                settings.force_return
+                and self.length >= settings.force_meta_min_func_length
+                or not self.docstring
+            )
         ):
             self.issues.append("Missing return value.")
             docstring.meta.append(

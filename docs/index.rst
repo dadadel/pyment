@@ -16,6 +16,7 @@ Welcome to PyMend's documentation!
 
    getting_started
    usage_and_configuration/index
+   guides/index
    faq
 
 
