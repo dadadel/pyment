@@ -85,6 +85,7 @@ class DocstringInfo:
             msg = "Failed to parse docstring with error: {e}."
             raise AssertionError(msg) from e
         self._fix_docstring(parsed, settings)
+        self._fix_blank_lines(parsed)
         return dsp.compose(parsed, style=output_style)
 
     def report_issues(self) -> tuple[int, str]:
@@ -123,7 +124,6 @@ class DocstringInfo:
         """
         self._fix_backslashes()
         self._fix_short_description(docstring)
-        self._fix_blank_lines(docstring)
         self._fix_descriptions(docstring)
         self._fix_types(docstring)
 
@@ -163,27 +163,26 @@ class DocstringInfo:
             Docstring to fix the blank lines for.
         """
         # For parsing a blank line is associated with the description.
-        if bool(docstring.blank_after_short_description) != bool(
-            docstring.long_description or docstring.meta
+        if (
+            docstring.blank_after_short_description
+            != bool(docstring.long_description or docstring.meta)
+            and self.docstring
         ):
             self.issues.append("Incorrect blank line after short description.")
-        too_much = bool(
-            docstring.long_description and docstring.blank_after_long_description
-        ) and not bool(docstring.meta)
-        missing = (
-            docstring.long_description
-            and not docstring.blank_after_long_description
-            and docstring.meta
+        docstring.blank_after_short_description = bool(
+            docstring.long_description or docstring.meta
         )
-        if too_much or missing:
-            self.issues.append("Incorrect blank line after long description.")
-        # Set blank line after short description if a long one follows
-        # If nothing follows we do not want one and other sections bring their own.
-        # For composing.
-        docstring.blank_after_short_description = bool(docstring.long_description)
-        # If there is a section after the long description then that already
-        # introduces a newline. If not, we do not want one at all.
-        docstring.blank_after_long_description = False
+        if docstring.long_description:
+            if (
+                docstring.blank_after_long_description != bool(docstring.meta)
+                and self.docstring
+            ):
+                self.issues.append("Incorrect blank line after long description.")
+            docstring.blank_after_long_description = bool(docstring.meta)
+        else:
+            if docstring.blank_after_long_description and self.docstring:
+                self.issues.append("Incorrect blank line after long description.")
+            docstring.blank_after_long_description = False
 
     def _fix_descriptions(self, docstring: dsp.Docstring) -> None:
         """Everything should have a description.
