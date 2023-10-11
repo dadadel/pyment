@@ -641,7 +641,6 @@ def process_examples(examples: list[DocstringExample], parts: list[str]) -> None
         (Default value = '    ')
     """
     if examples:
-        parts.append("")
         parts.append("Examples")
         parts.append("-" * len(parts[-1]))
         for i, example in enumerate(examples):
@@ -656,10 +655,11 @@ def process_examples(examples: list[DocstringExample], parts: list[str]) -> None
                     parts.append("\n")
             if example.snippet:
                 parts.append("\n".join(example.snippet.splitlines()))
+        parts.append("")
 
 
-def compose(  # noqa: PLR0915
-    # pylint: disable=W0613,R0915
+def compose(  # noqa: PLR0915, PLR0912
+    # pylint: disable=W0613,R0915,R0912
     docstring: Docstring,
     rendering_style: RenderingStyle = RenderingStyle.COMPACT,  # noqa: ARG001
     indent: str = "    ",
@@ -726,11 +726,11 @@ def compose(  # noqa: PLR0915
             List of individual elements of that section.
         """
         if args:
-            parts.append("")
             parts.append(name)
             parts.append("-" * len(name))
             for arg in args:
                 process_one(arg)
+            parts.append("")
 
     parts: list[str] = []
     if docstring.short_description:
@@ -821,11 +821,14 @@ def compose(  # noqa: PLR0915
         ):
             continue  # Already handled
 
-        parts.append("")
         parts.append(meta.args[0].replace("_", "").title())
         parts.append("-" * len(meta.args[0]))
 
         if meta.description:
             parts.append(meta.description)
+        parts.append("")
+
+    while parts and not parts[-1]:
+        parts.pop()
 
     return "\n".join(parts)
