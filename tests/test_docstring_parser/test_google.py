@@ -499,7 +499,7 @@ def test_attributes() -> None:
     assert docstring.params[1].description == "description 2"
 
 
-def test_returns() -> None:
+def test_returns() -> None:  # noqa: PLR0915
     """Test parsing returns."""
     docstring = parse(
         """
@@ -574,6 +574,32 @@ def test_returns() -> None:
     )
     assert docstring.returns is not None
     assert docstring.returns.type_name == "Optional[Mapping[str, List[int]]]"
+    assert docstring.returns.description == "A description: with a colon"
+    assert docstring.many_returns is not None
+    assert len(docstring.many_returns) == 1
+    assert docstring.many_returns[0] == docstring.returns
+
+    docstring = parse(
+        """
+        Returns:
+            list[int] | None: A description: with a colon
+        """
+    )
+    assert docstring.returns is not None
+    assert docstring.returns.type_name == "list[int] | None"
+    assert docstring.returns.description == "A description: with a colon"
+    assert docstring.many_returns is not None
+    assert len(docstring.many_returns) == 1
+    assert docstring.many_returns[0] == docstring.returns
+
+    docstring = parse(
+        """
+        Returns:
+            tuple[int, int] | None: A description: with a colon
+        """
+    )
+    assert docstring.returns is not None
+    assert docstring.returns.type_name == "tuple[int, int] | None"
     assert docstring.returns.description == "A description: with a colon"
     assert docstring.many_returns is not None
     assert len(docstring.many_returns) == 1

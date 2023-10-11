@@ -53,7 +53,7 @@ class Section(NamedTuple):
 GOOGLE_TYPED_ARG_REGEX = re.compile(r"\s*(.+?)\s*\(\s*(.*[^\s]+)\s*\)")
 GOOGLE_ARG_DESC_REGEX = re.compile(r".*\. Defaults to (.+)\.")
 MULTIPLE_PATTERN = re.compile(
-    r"(\s*[^:\s]+:)|([^:]*\]:.*)|(\s*[^|\s]+(\s*\|\s*[^|\s]+)*:)"
+    r"(\s*[^:\s]+:)|([^:]*\]:.*)|(\s*[^\s|][^\|]*[^\s|](\s*\|\s*[^\s|][^\|]*[^\s|])+:)"
 )
 
 DEFAULT_SECTIONS = [
@@ -134,7 +134,7 @@ class GoogleParser:
             return self._build_single_meta(section, text)
 
         if ":" not in text:
-            msg = f"Expected a colon in {text!r}."
+            msg = f"Expected a colon in {text!r} for title {title}."
             raise ParseError(msg)
 
         # Split spec and description
