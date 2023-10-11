@@ -22,7 +22,7 @@ from .types import ElementDocstring, FixerSettings
 __author__ = "J-E. Nitschke"
 __copyright__ = "Copyright 2012-2021 A. Daouzli"
 __licence__ = "GPL3"
-__version__ = "1.0.6"
+__version__ = "1.0.7"
 __maintainer__ = "J-E. Nitschke"
 
 
