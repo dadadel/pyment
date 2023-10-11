@@ -132,7 +132,7 @@ class _KVSection(Section):
     """
 
     def _parse_item(self, key: str, value: str) -> DocstringMeta:
-        """_summary_.
+        """Abstract method for parsing a single item of a section.
 
         Parameters
         ----------
