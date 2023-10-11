@@ -1,11 +1,12 @@
+******
 pymend
-======
+******
 
 Create, update or convert docstrings in existing Python files, managing
 several styles.
 
 Project Status
---------------
+==============
 
 **Test Status**
 
@@ -29,7 +30,7 @@ with pyright| |pre-commit|
 ..       :alt: Test coverage (Coveralls)
 
 Description
------------
+===========
 
 Command-line program to generate, update or transform docstrings python
 source code.
@@ -58,7 +59,7 @@ The tool offers the choice between generating patch files or directly
 overwriting the python source files.
 
 Start quickly
--------------
+=============
 
 -  install from PyPi
 
@@ -297,7 +298,7 @@ and results in the final file (the same we would have gotten when applying the p
 
 
 Pre-commit
-----------
+==========
 
 To use pymend in a `pre-commit <https://pre-commit.com/>`__ hook just
 add the following to your ``.pre-commit-config.yaml``
@@ -313,7 +314,7 @@ add the following to your ``.pre-commit-config.yaml``
            args: ["--write", "--check"]
 
 Acknowledgements
-----------------
+================
 
 This project was inspired by and is originally based upon
 `pyment <https://github.com/dadadel/pyment/>`__. The intended
@@ -331,6 +332,9 @@ So far only minor modifications have been made to the docstring parsing
 functionality. Mainly the addition of the “Methods” section for numpydoc
 style docstrings. Additionally the the code has been linted as well as
 type hinted.
+
+The code for configuration and file handling is more or less taken directly
+from `black <https://github.com/psf/black/>`__.
 
 .. |Build| image:: https://github.com/JanEricNitschke/pymend/actions/workflows/build.yaml/badge.svg
    :target: https://github.com/JanEricNitschke/pymend/workflows/build.yaml

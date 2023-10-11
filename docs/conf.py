@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.abspath(".."))
 project = "PyMend"
 copyright = "2023, Jan-Eric Nitschke"
 author = "Jan-Eric Nitschke"
-release = "1.0.0"
+release = "1.0.5"
 
 # -- General configuration ---------------------------------------------------
 
@@ -43,6 +43,7 @@ extensions = [
     "sphinx_rtd_theme",
     "sphinx.ext.autosectionlabel",
     "sphinx_search.extension",
+    "sphinx_copybutton",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
