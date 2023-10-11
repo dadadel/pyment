@@ -34,7 +34,7 @@ You can run *PyMend* as a package if running it as a script doesn't work:
 Next steps
 ==========
 
-Trie out *PyMend*? Fantastic, you're ready for more.
+Try out *PyMend*? Fantastic, you're ready for more.
 
 Why not explore some more on using *PyMend* by reading
 :ref:`Usage and Configuration: The basics<The basics>`.
