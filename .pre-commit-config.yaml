@@ -1,7 +1,7 @@
 exclude: refs|docs/
 repos:
   - repo: https://github.com/JanEricNitschke/pymend
-    rev: "v1.0.8"
+    rev: "v1.0.9"
     hooks:
       - id: pymend
         language: python
