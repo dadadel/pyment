@@ -99,7 +99,7 @@ class DocstringInfo:
         """
         if not self.issues:
             return 0, ""
-        return len(self.issues), f"\n{self.name}:\n" + "\n".join(self.issues)
+        return len(self.issues), f"{'-'*50}\n{self.name}:\n" + "\n".join(self.issues)
 
     def _escape_triple_quotes(self) -> None:
         r"""Escape \"\"\" in the docstring."""

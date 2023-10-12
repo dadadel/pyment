@@ -651,7 +651,7 @@ class PyComment:
         if not issues:
             return 0, ""
         report = (
-            f"\nThe following issues were found in file {self.input_file}:\n"
+            f"{'*'*50}\nThe following issues were found in file {self.input_file}:\n"
             + "\n".join(issues)
         )
         return len(issues), report
