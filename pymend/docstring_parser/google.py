@@ -183,8 +183,16 @@ class GoogleParser:
         Raises
         ------
         ParseError
+            If the text did not match the multi pattern regex.
+        ParseError
             If there is no colon in the text.
         """
+        if not MULTIPLE_PATTERN.match(text):
+            msg = (
+                "Could not match multi pattern to split "
+                f"chunk part {text!r} for section {section.title}."
+            )
+            raise ParseError(msg)
         if ":" not in text:
             msg = f"Expected a colon in {text!r} for title {section.title}."
             raise ParseError(msg)
@@ -401,42 +409,6 @@ class GoogleParser:
         c_splits.append((c_matches[-1].end(), len(chunk)))
         return c_splits
 
-    def _get_meta_split_for_singular_or_multiple(
-        self, section: Section, chunk: str, c_splits: list[tuple[int, int]]
-    ) -> list[DocstringMeta]:
-        """Collect all the individual meta elements for a single-or-multi category.
-
-        Parameters
-        ----------
-        section : Section
-            The section that is being processed.
-        chunk : str
-            Chunk of the parsed docstring.
-        c_splits : list[tuple[int, int]]
-            Start and end indices for each element of the chunk.
-
-        Returns
-        -------
-        list[DocstringMeta]
-            List of parsed docstring meta elements.
-
-        Raises
-        ------
-        ParseError
-            If split did not match the MULTIPLE_PATTERN.
-        """
-        metas: list[DocstringMeta] = []
-        for start, end in c_splits:
-            part = chunk[start:end].strip("\n")
-            if not MULTIPLE_PATTERN.match(part):
-                msg = (
-                    "Could not match multi pattern to split "
-                    f"chunk part {part!r} for section {section.title}."
-                )
-                raise ParseError(msg)
-            metas.append(self._build_multi_meta(section, part))
-        return metas
-
     def parse(self, text: Optional[str]) -> Docstring:
         """Parse the Google-style docstring into its components.
 
@@ -493,9 +465,10 @@ class GoogleParser:
             else:  # SectionType.SINGULAR_OR_MULTIPLE
                 # Try to handle it as a multiple section with multiple entries
                 try:
-                    metas = self._get_meta_split_for_singular_or_multiple(
-                        section, chunk, c_splits
-                    )
+                    metas = [
+                        self._build_multi_meta(section, chunk[start:end].strip("\n"))
+                        for start, end in c_splits
+                    ]
                 # Fall back to a singular entry for multi or single section
                 except ParseError:
                     part = inspect.cleandoc(chunk)
