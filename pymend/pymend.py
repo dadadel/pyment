@@ -474,17 +474,17 @@ class PyComment:
         if (self._input.lines == self._output.lines) != (len(self._changed) == 0):
             log = self.dump_to_file(
                 "INTERNAL ERROR: "
-                "Pymend reported some elements to have changed "
-                "but the output is identical to the input.\n",
+                "Elements having changed does not line up with list of changed "
+                "elements.\n",
                 "List of changed elements:\n",
                 "\n".join(self._changed),
-                "Original file\n",
-                self._input.lines,
+                "Diff\n",
+                "".join(self._docstring_diff()),
             )
             msg = (
                 "INTERNAL ERROR: "
-                "Pymend reported some elements to have changed "
-                "but the output is identical to the input. "
+                "Elements having changed does not line up with list of changed"
+                " elements."
                 " Please report a bug on"
                 " https://github.com/JanEricNitschke/pymend/issues."
                 f" This invalid output might be helpful: {log}"

@@ -82,7 +82,7 @@ class DocstringInfo:
         try:
             parsed = dsp.parse(self.docstring, style=input_style)
         except Exception as e:  # noqa: BLE001
-            msg = "Failed to parse docstring with error: {e}."
+            msg = f"Failed to parse docstring with error: {e}."
             raise AssertionError(msg) from e
         self._fix_docstring(parsed, settings)
         self._fix_blank_lines(parsed)
@@ -198,7 +198,7 @@ class DocstringInfo:
                 continue
             if not ele.description or ele.description == DEFAULT_DESCRIPTION:
                 self.issues.append(
-                    f"Missing or default description `{ele.description}`."
+                    f"{ele.args}: Missing or default description `{ele.description}`."
                 )
             ele.description = ele.description or DEFAULT_DESCRIPTION
 
@@ -214,9 +214,7 @@ class DocstringInfo:
             if param.args[0] == "method":
                 continue
             if not param.type_name or param.type_name == DEFAULT_TYPE:
-                self.issues.append(
-                    f"Missing or default type name for parameter `{param.arg_name}`."
-                )
+                self.issues.append(f"{param.arg_name}: Missing or default type name.")
             param.type_name = param.type_name or DEFAULT_TYPE
         for returned in docstring.many_returns:
             if not returned.type_name or returned.type_name == DEFAULT_TYPE:
@@ -482,7 +480,8 @@ class FunctionDocstring(DocstringInfo):
                 param_doc = params_from_doc[name]
                 if param_sig.type_name and param_sig.type_name != param_doc.type_name:
                     self.issues.append(
-                        f"Parameter type was `{param_doc.type_name} `but signature"
+                        f"{name}: Parameter type was"
+                        f" `{param_doc.type_name} `but signature"
                         f" has type hint `{param_sig.type_name}`."
                     )
                 param_doc.type_name = param_sig.type_name or param_doc.type_name
@@ -496,7 +495,9 @@ class FunctionDocstring(DocstringInfo):
                         and "default" not in param_doc.description.lower()
                         and settings.force_defaults
                     ):
-                        self.issues.append("Missing description of default value.")
+                        self.issues.append(
+                            f"{name}: Missing description of default value."
+                        )
                         param_doc.description += (
                             f" (Default value = "
                             f"{self._escape_default_value(param_sig.default)})"
@@ -660,7 +661,7 @@ class FunctionDocstring(DocstringInfo):
             for body_name in next(iter(self.body.yields)):
                 if body_name not in doc_names:
                     self.issues.append(
-                        f"Missing return value in multi return statement `{body_name}`."
+                        f"Missing yielded value in multi yield statement `{body_name}`."
                     )
                     docstring.meta.append(
                         dsp.DocstringYields(
