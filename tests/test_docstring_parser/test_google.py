@@ -499,7 +499,7 @@ def test_attributes() -> None:
     assert docstring.params[1].description == "description 2"
 
 
-def test_returns() -> None:  # noqa: PLR0915
+def test_returns_1() -> None:
     """Test parsing returns."""
     docstring = parse(
         """
@@ -579,6 +579,9 @@ def test_returns() -> None:  # noqa: PLR0915
     assert len(docstring.many_returns) == 1
     assert docstring.many_returns[0] == docstring.returns
 
+
+def test_returns_2() -> None:
+    """Test parsing returns."""
     docstring = parse(
         """
         Returns:
@@ -654,6 +657,19 @@ def test_returns() -> None:  # noqa: PLR0915
     assert docstring.many_returns is not None
     assert len(docstring.many_returns) == 1
     assert docstring.many_returns[0] == docstring.returns
+
+    docstring = parse(
+        """Returns the graph distance between two areas.
+
+        Returns:
+            length (float): Distance between two areas as length of the path
+            discovered_path (list[TileId]): Path between the two areas as list of nodes
+        """
+    )
+    assert docstring.many_returns is not None
+    assert len(docstring.many_returns) == 2
+    assert docstring.many_returns[0].type_name == "float"
+    assert docstring.many_returns[1].type_name == "list[TileId]"
 
 
 def test_yields() -> None:

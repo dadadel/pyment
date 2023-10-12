@@ -57,9 +57,12 @@ MULTIPLE_PATTERN = re.compile(
     # (non colon) character followed by a colon.
     #  somecontiguoustype: some description
     r"(\s*[^:\s]+:)"
+    # Match anything that has some contiguous text, then something in parens,
+    # immediately followed by a colon.
+    r"|(\s*[^:\s]+\s+\(.+\):)"
     # Allow whitespace if we have a closing ] before the color, optionally with a )
     # some var name (list[int, int]): some description
-    r"|([^:]*\]\)?:.*)"
+    r"|([^:]*\]:.*)"
     # Allow for arbitrary changing of pipe character for type annotations int | str
     # Where the individual types are allowed to have spaces as long as they start
     # and end without one ([^\s|][^\|]*[^\s|])
