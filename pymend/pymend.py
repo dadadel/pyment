@@ -161,41 +161,103 @@ class PyComment:
         for e in self.docs_list:
             start, end = e.lines
             if end is None:
-                msg = "End of docstring is None. Not sure what to do with this yet."
+                log = self.dump_to_file(
+                    "INTERNAL ERROR: End of docstring is None."
+                    " Not sure what to do with this yet.",
+                    "Original file:.\n",
+                    "".join(list_from),
+                    "Problematic element:\n",
+                    repr(e),
+                )
+                msg = (
+                    "INTERNAL ERROR: End of docstring is None."
+                    " Not sure what to do with this yet."
+                    " Please report a bug on"
+                    " https://github.com/JanEricNitschke/pymend/issues."
+                    f" This diff might be helpful: {log}"
+                )
                 raise ValueError(msg)
             # e.line are line number starting at one.
             # We are now using them to index into a list starting at 0.
             start, end = start - 1, end - 1
+
+            # Grab output docstring and add quotes, indentation and modifiers
             in_docstring = e.docstring
+            # Do not need to worry about start being out of range
+            # if there was a docstring then it points to that.
+            # If there wasnt then there should still be at least one line
+            # after the function/class definition. Otherwise that would
+            # already have raised an error earlier.
             old_line = list_from[start]
             leading_whitespace = old_line[: -len(old_line.lstrip())]
-            raw_out = e.output_docstring(
-                output_style=self.style.output_style,
-                input_style=self.style.input_style,
-                settings=self.settings,
-            )
-            out_docstring = self._add_quotes_indentation_modifier(
-                raw_out,
+            trailing_comment = self._get_trailing_comment(list_from[end])
+            out_docstring = self._finalizes(
+                docstring=e.output_docstring(
+                    output_style=self.style.output_style,
+                    input_style=self.style.input_style,
+                    settings=self.settings,
+                ),
                 indentation=leading_whitespace,
                 modifier=e.modifier,
+                trailing=trailing_comment,
             )
-            if in_docstring != out_docstring.strip()[3 + len(e.modifier) : -3]:
+            # Check if the docstring changed and if so, add it to the list of changed
+            # We can not directly compare with the original out_docstring
+            # because that is missing indentation.
+            # And it is easiest to add the quotes, modifiers, trailings
+            # in one go with the indentation. So for this comparison we have to
+            # strip them away again.
+            if (
+                in_docstring
+                != out_docstring.strip()[
+                    3 + len(e.modifier) : -(3 + len(trailing_comment))
+                ]
+            ):
                 list_changed.append(e.name)
+
+            # Add all the unchanged things between last and current docstring
             list_to.extend(list_from[last:start])
+            # Add the new docstring
             list_to.extend(out_docstring.splitlines(keepends=True))
+            # If there was no old docstring then we need to make sure we
+            # do not remove the content that was originally on the first line
+            # of element.
             if not in_docstring:
                 list_to.append(old_line)
             last = end + 1
+        # Add the rest of the file.
         if last < len(list_from):
             list_to.extend(list_from[last:])
         return list_from, list_to, list_changed
 
-    def _add_quotes_indentation_modifier(
+    def _get_trailing_comment(self, line: str) -> str:
+        """Grab any trailing comment that was potentially at the last line.
+
+        Parameters
+        ----------
+        line : str
+            The last line of the docstring.
+
+        Returns
+        -------
+        str
+            The trailing comment
+        """
+        # This might need some work in the future if there are both
+        # types in the same line.
+        line = line.strip()
+        closing_quotes = max(line.rfind('"""'), line.rfind("'''"))
+        if closing_quotes == -1:
+            return ""
+        return line[closing_quotes + 3 :]
+
+    def _finalizes(
         self,
         docstring: str,
         quotes: str = '"""',
         indentation: str = "    ",
         modifier: str = "",
+        trailing: str = "",
     ) -> str:
         r"""Add quotes, indentation and modifiers to the docstring.
 
@@ -210,6 +272,9 @@ class PyComment:
         modifier : str
             Modifier to put before the opening triple quotes.
             Any combination of ("r", "f", "u") (Default value = '')
+        trailing : str
+            Any trailing comment was after the original docstring but on
+            the same line. (Default value = '')
 
         Returns
         -------
@@ -227,7 +292,7 @@ class PyComment:
         for index, line in enumerate(split):
             if line.strip():
                 split[index] = indentation + line
-        return "\n".join(split) + "\n"
+        return "\n".join(split) + trailing + "\n"
 
     def assert_stability(self, src: list[str], dst: list[str]) -> None:
         """Assert that running pymend on its own output does not change anything.
