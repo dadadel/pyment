@@ -53,7 +53,17 @@ class Section(NamedTuple):
 GOOGLE_TYPED_ARG_REGEX = re.compile(r"\s*(.+?)\s*\(\s*(.*[^\s]+)\s*\)")
 GOOGLE_ARG_DESC_REGEX = re.compile(r".*\. Defaults to (.+)\.")
 MULTIPLE_PATTERN = re.compile(
-    r"(\s*[^:\s]+:)|([^:]*\]:.*)|(\s*[^\s|][^\|]*[^\s|](\s*\|\s*[^\s|][^\|]*[^\s|])+:)"
+    # Match anything that has leading whitespace and then contiguous non-whitespace
+    # (non colon) character followed by a colon.
+    #  somecontiguoustype: some description
+    r"(\s*[^:\s]+:)"
+    # Allow whitespace if we have a closing ] before the color, optionally with a )
+    # some var name (list[int, int]): some description
+    r"|([^:]*\]\)?:.*)"
+    # Allow for arbitrary changing of pipe character for type annotations int | str
+    # Where the individual types are allowed to have spaces as long as they start
+    # and end without one ([^\s|][^\|]*[^\s|])
+    r"|(\s*[^\s|][^\|]*[^\s|](\s*\|\s*[^\s|][^\|]*[^\s|])+:)"
 )
 
 DEFAULT_SECTIONS = [
@@ -105,49 +115,6 @@ class GoogleParser:
             flags=re.M,
         )
 
-    def _build_meta(self, text: str, title: str) -> DocstringMeta:
-        """Build docstring element.
-
-        Parameters
-        ----------
-        text : str
-            docstring element text
-        title : str
-            title of section containing element
-
-        Returns
-        -------
-        DocstringMeta
-            docstring meta element
-
-        Raises
-        ------
-        ParseError
-            If the text lacks a colon ':'
-        """
-        section = self.sections[title]
-
-        if (
-            section.type_info == SectionType.SINGULAR_OR_MULTIPLE
-            and not MULTIPLE_PATTERN.match(text)
-        ) or section.type_info == SectionType.SINGULAR:
-            return self._build_single_meta(section, text)
-
-        if ":" not in text:
-            msg = f"Expected a colon in {text!r} for title {title}."
-            raise ParseError(msg)
-
-        # Split spec and description
-        before, desc = text.split(":", 1)
-        if desc:
-            desc = desc[1:] if desc[0] == " " else desc
-            if "\n" in desc:
-                first_line, rest = desc.split("\n", 1)
-                desc = first_line + "\n" + inspect.cleandoc(rest)
-            desc = desc.strip("\n")
-
-        return self._build_multi_meta(section, before, desc)
-
     @staticmethod
     def _build_single_meta(section: Section, desc: str) -> DocstringMeta:
         """Build docstring element for single line sections.
@@ -193,24 +160,64 @@ class GoogleParser:
             raise ParseError(msg)
         return DocstringMeta(args=[section.key], description=desc)
 
-    @staticmethod
-    def _build_multi_meta(section: Section, before: str, desc: str) -> DocstringMeta:
-        """Build docstring element for multi line sections.
+    def _prepare_multi_meta(self, section: Section, text: str) -> tuple[str, str]:
+        """Check text for consistency and split into before and desc.
 
         Parameters
         ----------
         section : Section
             The section that is being processed.
+        text : str
+            docstring element text
+
+        Returns
+        -------
         before : str
-            Part before the first colon in the docstring text.
+            The part before the colon.
         desc : str
-            Rest of the description.
+            The description of the element.
+
+        Raises
+        ------
+        ParseError
+            If there is no colon in the text.
+        """
+        if ":" not in text:
+            msg = f"Expected a colon in {text!r} for title {section.title}."
+            raise ParseError(msg)
+
+        # Split spec and description
+        before, desc = text.split(":", 1)
+        if desc:
+            desc = desc[1:] if desc[0] == " " else desc
+            if "\n" in desc:
+                first_line, rest = desc.split("\n", 1)
+                desc = first_line + "\n" + inspect.cleandoc(rest)
+            desc = desc.strip("\n")
+        return before, desc
+
+    def _build_multi_meta(self, section: Section, text: str) -> DocstringMeta:
+        """Build docstring element for multiline section.
+
+        Parameters
+        ----------
+        section : Section
+            The section that is being processed.
+        text : str
+            title of section containing element
 
         Returns
         -------
         DocstringMeta
-            Docstring meta wrapper around.
+            docstring meta element
+
+        Raises
+        ------
+        ParseError
+            If the text lacks a colon ':'
         """
+        before, desc = self._prepare_multi_meta(section, text)
+
         if section.key in PARAM_KEYWORDS:
             match = GOOGLE_TYPED_ARG_REGEX.match(before)
             if match:
@@ -238,18 +245,25 @@ class GoogleParser:
                 is_optional=is_optional,
                 default=default,
             )
-        if section.key in RETURNS_KEYWORDS:
-            return DocstringReturns(
-                args=[section.key, before],
-                description=desc,
-                type_name=before,
-                is_generator=False,
-            )
-        if section.key in YIELDS_KEYWORDS:
+        if section.key in RETURNS_KEYWORDS | YIELDS_KEYWORDS:
+            match = GOOGLE_TYPED_ARG_REGEX.match(before)
+            if match:
+                arg_name, type_name = match.group(1, 2)
+            else:
+                arg_name, type_name = None, before
+            if section.key in RETURNS_KEYWORDS:
+                return DocstringReturns(
+                    args=[section.key, arg_name or type_name],
+                    description=desc,
+                    return_name=arg_name,
+                    type_name=type_name,
+                    is_generator=False,
+                )
             return DocstringYields(
-                args=[section.key, before],
+                args=[section.key, arg_name or type_name],
                 description=desc,
-                type_name=before,
+                yield_name=arg_name,
+                type_name=type_name,
                 is_generator=True,
             )
         if section.key in RAISES_KEYWORDS:
@@ -348,6 +362,78 @@ class GoogleParser:
             return text[: match.start()], text[match.start() :]
         return text, ""
 
+    def _get_multi_chunk_splits(
+        self, chunk: str, title: str, indent: str
+    ) -> list[tuple[int, int]]:
+        """Get the starting and ending position for each element of a multi chunk.
+
+        Parameters
+        ----------
+        chunk : str
+            Full chunk to split.
+        title : str
+            Title of the section represented by the chunk.
+        indent : str
+            Indent before each element of the chunk.
+
+        Returns
+        -------
+        list[tuple[int, int]]
+            List of all start and end positions of each element of the chunk.
+
+        Raises
+        ------
+        ParseError
+            If no entry could be found with the expected indent.
+        """
+        # Split based on lines which have exactly that indent
+        c_matches = list(re.finditer(rf"^{indent}(?=\S)", chunk, flags=re.M))
+        if not c_matches:
+            msg = f'No specification for "{title}": "{chunk}"'
+            raise ParseError(msg)
+        c_splits = [
+            (c_cur.end(), c_next.start())
+            for c_cur, c_next in zip(c_matches, c_matches[1:])
+        ]
+        c_splits.append((c_matches[-1].end(), len(chunk)))
+        return c_splits
+
+    def _get_meta_split_for_singular_or_multiple(
+        self, section: Section, chunk: str, c_splits: list[tuple[int, int]]
+    ) -> list[DocstringMeta]:
+        """Collect all the individual meta elements for a single-or-multi category.
+
+        Parameters
+        ----------
+        section : Section
+            The section that is being processed.
+        chunk : str
+            Chunk of the parsed docstring.
+        c_splits : list[tuple[int, int]]
+            Start and end indices for each element of the chunk.
+
+        Returns
+        -------
+        list[DocstringMeta]
+            List of parsed docstring meta elements.
+
+        Raises
+        ------
+        ParseError
+            If split did not match the MULTIPLE_PATTERN.
+        """
+        metas: list[DocstringMeta] = []
+        for start, end in c_splits:
+            part = chunk[start:end].strip("\n")
+            if not MULTIPLE_PATTERN.match(part):
+                msg = (
+                    "Could not match multi pattern to split "
+                    f"chunk part {part!r} for section {section.title}."
+                )
+                raise ParseError(msg)
+            metas.append(self._build_multi_meta(section, part))
+        return metas
+
     def parse(self, text: Optional[str]) -> Docstring:
         """Parse the Google-style docstring into its components.
 
@@ -388,30 +474,34 @@ class GoogleParser:
         for title, chunk in chunks.items():
             # Determine indent
             indent = self._determine_indent(chunk)
-
+            section = self.sections[title]
             # Check for singular elements
-            if self.sections[title].type_info in [
-                SectionType.SINGULAR,
-                SectionType.SINGULAR_OR_MULTIPLE,
-            ]:
+            if section.type_info == SectionType.SINGULAR:
                 part = inspect.cleandoc(chunk)
-                ret.meta.append(self._build_meta(part, title))
+                ret.meta.append(self._build_single_meta(section, part))
                 continue
 
             # Split based on lines which have exactly that indent
-            c_matches = list(re.finditer(rf"^{indent}(?=\S)", chunk, flags=re.M))
-            if not c_matches:
-                msg = f'No specification for "{title}": "{chunk}"'
-                raise ParseError(msg)
-            c_splits = [
-                (c_cur.end(), c_next.start())
-                for c_cur, c_next in zip(c_matches, c_matches[1:])
-            ]
-            c_splits.append((c_matches[-1].end(), len(chunk)))
-            for start, end in c_splits:
-                part = chunk[start:end].strip("\n")
-                ret.meta.append(self._build_meta(part, title))
-
+            c_splits = self._get_multi_chunk_splits(chunk, title, indent)
+            if section.type_info == SectionType.MULTIPLE:
+                for start, end in c_splits:
+                    part = chunk[start:end].strip("\n")
+                    ret.meta.append(self._build_multi_meta(section, part))
+            else:  # SectionType.SINGULAR_OR_MULTIPLE
+                # Try to handle it as a multiple section with multiple entries
+                try:
+                    metas = self._get_meta_split_for_singular_or_multiple(
+                        section, chunk, c_splits
+                    )
+                # Fall back to a singular entry for multi or single section
+                except ParseError:
+                    part = inspect.cleandoc(chunk)
+                    if MULTIPLE_PATTERN.match(part):
+                        ret.meta.append(self._build_multi_meta(section, part))
+                    else:
+                        ret.meta.append(self._build_single_meta(section, part))
+                else:
+                    ret.meta.extend(metas)
         return ret
 
 
