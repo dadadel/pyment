@@ -82,7 +82,7 @@ class DocstringInfo:
         try:
             parsed = dsp.parse(self.docstring, style=input_style)
         except Exception as e:  # noqa: BLE001
-            msg = f"Failed to parse docstring with error: {e}."
+            msg = f"Failed to parse docstring for `{self.name}` with error: `{e}`"
             raise AssertionError(msg) from e
         self._fix_docstring(parsed, settings)
         self._fix_blank_lines(parsed)

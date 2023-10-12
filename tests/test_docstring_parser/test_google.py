@@ -607,6 +607,28 @@ def test_returns() -> None:  # noqa: PLR0915
 
     docstring = parse(
         """
+        Args:
+            area_points (dict[str, list[tuple[float, float]]]): Dict mapping each place
+                to the x and y coordinates of each area inside it.
+            z_s  (dict[str, list]): Dict mapping each place to the z coordinates of each
+                area inside it.
+
+        Returns:
+            area_points (dict[str, list[tuple[float, float]]]): Dict mapping each place
+                to the x and y coordinates of each area inside it.
+            z_s  (dict[str, list]): Dict mapping each place to the z coordinates of each
+                area inside it.
+        """
+    )
+    assert docstring.many_returns is not None
+    assert len(docstring.many_returns) == 2
+    assert docstring.params[0].type_name == "dict[str, list[tuple[float, float]]]"
+    assert docstring.params[1].type_name == "dict[str, list]"
+    assert docstring.many_returns[0].type_name == "dict[str, list[tuple[float, float]]]"
+    assert docstring.many_returns[1].type_name == "dict[str, list]"
+
+    docstring = parse(
+        """
         Short description
         Yields:
             int: description
