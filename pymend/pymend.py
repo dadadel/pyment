@@ -22,7 +22,7 @@ from .types import ElementDocstring, FixerSettings
 __author__ = "J-E. Nitschke"
 __copyright__ = "Copyright 2012-2021 A. Daouzli"
 __licence__ = "GPL3"
-__version__ = "1.0.9"
+__version__ = "1.0.10"
 __maintainer__ = "J-E. Nitschke"
 
 
@@ -651,7 +651,7 @@ class PyComment:
         if not issues:
             return 0, ""
         report = (
-            f"\nThe following issues were found in file {self.input_file}:\n"
+            f"{'*'*50}\nThe following issues were found in file {self.input_file}:\n"
             + "\n".join(issues)
         )
         return len(issues), report

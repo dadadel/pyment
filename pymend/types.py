@@ -99,7 +99,7 @@ class DocstringInfo:
         """
         if not self.issues:
             return 0, ""
-        return len(self.issues), f"\n{self.name}:\n" + "\n".join(self.issues)
+        return len(self.issues), f"{'-'*50}\n{self.name}:\n" + "\n".join(self.issues)
 
     def _escape_triple_quotes(self) -> None:
         r"""Escape \"\"\" in the docstring."""
@@ -506,6 +506,7 @@ class FunctionDocstring(DocstringInfo):
                 settings.force_params
                 and len(params_from_doc) >= settings.force_params_min_n_params
                 and self.length >= settings.force_meta_min_func_length
+                or not self.docstring
             ):
                 self.issues.append(f"Missing parameter `{name}`.")
                 place_holder_description = DEFAULT_DESCRIPTION
