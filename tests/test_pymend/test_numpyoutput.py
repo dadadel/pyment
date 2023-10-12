@@ -137,3 +137,7 @@ class TestNumpyOutput:
         )
         result = "".join(comment._docstring_diff())
         assert remove_diff_header(result) == remove_diff_header(expected)
+
+    def test_comments_after_docstring(self) -> None:
+        """Test that comments after the last line are not removed."""
+        check_expected_diff("comments_after_docstring")
