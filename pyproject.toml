@@ -40,11 +40,13 @@ dependencies = [
 pymend = "pymend.pymendapp:main"
 
 [tool.pymend]
-extend-exclude    = "docs/|tests/"
-output-style      = "numpydoc"
-input-style       = "numpydoc"
-ignored-functions = ["main"]
-check             = true
+extend-exclude             = "docs/|tests/"
+output-style               = "numpydoc"
+input-style                = "numpydoc"
+ignored-functions          = ["main"]
+check                      = true
+force-meta-min-func-length = 5
+force-params-min-n-params  = 2
 
 [tool.ruff]
 # Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
