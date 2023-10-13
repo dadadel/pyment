@@ -355,9 +355,7 @@ def read_pyproject_toml(
     " detected then a parameters section is only build for new docstrings."
     " No new sections are created for existing docstrings and existing sections"
     " are not extended. Only has an effect with"
-    " `--force-params` or `--force-return` set to true."
-    " Currently this only counts the length of the body of the ast node."
-    " So nested statements are not taken into account (yet).",
+    " `--force-params` or `--force-return` set to true.",
 )
 @click.option(
     "--force-return/--unforce-return",
