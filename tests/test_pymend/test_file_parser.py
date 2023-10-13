@@ -58,3 +58,26 @@ class C:
         expected_methods = ["c(c)"]
         assert attributes == expected_attributes
         assert methods == expected_methods
+
+    def test_calculate_function_length(self) -> None:
+        """Test that nested function statement length is calculated correctly."""
+        function_definition = '''\
+def test_function():
+    """My docstring, dont count"""
+    if 1:
+        print(a)
+        print(b)
+    else:
+        for i in range(10):
+            print(i)
+    with test:
+        try:
+            something()
+        except Exception:
+            pass
+    return None
+'''
+        func_node = ast.parse(function_definition).body[0]
+        analyzer = AstAnalyzer(function_definition, settings=FixerSettings())
+        func_docstring = analyzer.handle_function(func_node)
+        assert func_docstring.length == 11

@@ -2,12 +2,14 @@
 
 import ast
 import re
-from typing import Optional, Union
+import sys
+from typing import Optional, Union, get_args
 
 from typing_extensions import TypeGuard
 
 from .docstring_parser.attrdoc import ast_unparse
 from .types import (
+    BodyTypes,
     ClassDocstring,
     DocstringInfo,
     ElementDocstring,
@@ -171,9 +173,9 @@ class AstAnalyzer:
         docstring = self.handle_elem_docstring(func)
         signature = self.handle_function_signature(func)
         body = self.handle_function_body(func)
-        length = len(func.body) if func.body else 0
-        if length and ast.get_docstring(func):
-            length -= 1
+        # Minus one because the function counts the passed node itself
+        # Which is correct for each nested node but not the main one.
+        length = self._get_block_length(func) - 1
         return FunctionDocstring(
             name=docstring.name,
             docstring=docstring.docstring,
@@ -310,6 +312,62 @@ class AstAnalyzer:
                 # List indices start at 0 but file lines are counted from 1
                 return index + 1
         return shebang_encoding_lines + 1
+
+    def _has_body(self, node: ast.AST) -> TypeGuard[BodyTypes]:
+        """Check that the node is one of those that have a body."""
+        return isinstance(
+            node,
+            (get_args(BodyTypes)),
+        ) and hasattr(node, "body")
+
+    def _get_block_length(self, node: ast.AST) -> int:
+        """Get the number of statements in a block.
+
+        Recursively count the number of statements in a blocks body.
+
+        Parameters
+        ----------
+        node : ast.AST
+            Node representing to count the number of statements for.
+
+        Returns
+        -------
+        int
+            Total number of (nested) statements in the block.
+        """
+        # pylint: disable=no-member
+        if sys.version_info >= (3, 11):
+            try_nodes = (ast.Try, ast.TryStar)
+        else:
+            try_nodes = (ast.Try,)
+        length = 1
+        if self._has_body(node) and node.body:
+            length += sum(self._get_block_length(child) for child in node.body)
+        # Decorators add complexity, so lets count them for now
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            length += len(node.decorator_list)
+        elif isinstance(node, (ast.For, ast.AsyncFor, ast.While, ast.If, *try_nodes)):
+            length += sum(self._get_block_length(child) for child in node.orelse)
+            if isinstance(node, try_nodes):
+                length += sum(self._get_block_length(child) for child in node.finalbody)
+                length += sum(self._get_block_length(child) for child in node.handlers)
+        elif sys.version_info >= (3, 10) and isinstance(node, ast.Match):
+            # Each case counts itself + its body.
+            # This is intended for now as compared to if/else there is a lot
+            # of logic actually still happening in the case matching.
+            length += sum(self._get_block_length(child) for child in node.cases)
+
+        # We do not want to count the docstring
+        if (
+            length
+            and isinstance(
+                node,
+                (ast.AsyncFunctionDef, ast.FunctionDef, ast.ClassDef, ast.Module),
+            )
+            and ast.get_docstring(node)
+        ):
+            length -= 1
+        return length
 
     def handle_class_body(self, cls: ast.ClassDef) -> tuple[list[Parameter], list[str]]:
         """Extract attributes and methods from class body.
