@@ -348,6 +348,7 @@ class AstAnalyzer:
                 ast.Try,
                 ast.TryStar,
                 ast.ExceptHandler,
+                ast.match_case,
             ),
         ) and hasattr(node, "body")
 
