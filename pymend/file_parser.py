@@ -362,7 +362,7 @@ class AstAnalyzer:
             length
             and isinstance(
                 node,
-                Union[ast.AsyncFunctionDef, ast.FunctionDef, ast.ClassDef, ast.Module],
+                (ast.AsyncFunctionDef, ast.FunctionDef, ast.ClassDef, ast.Module),
             )
             and ast.get_docstring(node)
         ):
