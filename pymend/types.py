@@ -715,6 +715,7 @@ class FunctionDocstring(DocstringInfo):
 ElementDocstring: TypeAlias = Union[ModuleDocstring, ClassDocstring, FunctionDocstring]
 DefinitionNodes: TypeAlias = Union[ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef]
 NodeOfInterest: TypeAlias = Union[DefinitionNodes, ast.Module]
+# pylint: disable=no-member
 # Match and try star supported
 if sys.version_info >= (3, 11):
     BodyTypes: TypeAlias = Union[

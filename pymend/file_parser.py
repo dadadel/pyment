@@ -335,6 +335,7 @@ class AstAnalyzer:
         int
             Total number of (nested) statements in the block.
         """
+        # pylint: disable=no-member
         if sys.version_info >= (3, 11):
             try_nodes = (ast.Try, ast.TryStar)
         else:
