@@ -2,12 +2,14 @@
 
 import ast
 import re
-from typing import Optional, Union
+import sys
+from typing import Optional, Union, get_args
 
 from typing_extensions import TypeGuard
 
 from .docstring_parser.attrdoc import ast_unparse
 from .types import (
+    BodyTypes,
     ClassDocstring,
     DocstringInfo,
     ElementDocstring,
@@ -311,45 +313,11 @@ class AstAnalyzer:
                 return index + 1
         return shebang_encoding_lines + 1
 
-    def _has_body(
-        self, node: ast.AST
-    ) -> TypeGuard[
-        ast.Module
-        | ast.Interactive
-        | ast.FunctionDef
-        | ast.AsyncFunctionDef
-        | ast.ClassDef
-        | ast.For
-        | ast.AsyncFor
-        | ast.While
-        | ast.If
-        | ast.With
-        | ast.AsyncWith
-        | ast.Try
-        | ast.TryStar
-        | ast.ExceptHandler
-        | ast.match_case
-    ]:
+    def _has_body(self, node: ast.AST) -> TypeGuard[BodyTypes]:
         """Check that the node is one of those that have a body."""
         return isinstance(
             node,
-            (
-                ast.Module,
-                ast.Interactive,
-                ast.FunctionDef,
-                ast.AsyncFunctionDef,
-                ast.ClassDef,
-                ast.For,
-                ast.AsyncFor,
-                ast.While,
-                ast.If,
-                ast.With,
-                ast.AsyncWith,
-                ast.Try,
-                ast.TryStar,
-                ast.ExceptHandler,
-                ast.match_case,
-            ),
+            (get_args(BodyTypes)),
         ) and hasattr(node, "body")
 
     def _get_block_length(self, node: ast.AST) -> int:
@@ -367,20 +335,22 @@ class AstAnalyzer:
         int
             Total number of (nested) statements in the block.
         """
+        if sys.version_info >= (3, 11):
+            try_nodes = (ast.Try, ast.TryStar)
+        else:
+            try_nodes = (ast.Try,)
         length = 1
         if self._has_body(node) and node.body:
             length += sum(self._get_block_length(child) for child in node.body)
         # Decorators add complexity, so lets count them for now
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
             length += len(node.decorator_list)
-        elif isinstance(
-            node, (ast.For, ast.AsyncFor, ast.While, ast.If, ast.Try, ast.TryStar)
-        ):
+        elif isinstance(node, (ast.For, ast.AsyncFor, ast.While, ast.If, *try_nodes)):
             length += sum(self._get_block_length(child) for child in node.orelse)
-            if isinstance(node, (ast.Try, ast.TryStar)):
+            if isinstance(node, try_nodes):
                 length += sum(self._get_block_length(child) for child in node.finalbody)
                 length += sum(self._get_block_length(child) for child in node.handlers)
-        elif isinstance(node, ast.Match):
+        elif sys.version_info >= (3, 10) and isinstance(node, ast.Match):
             # Each case counts itself + its body.
             # This is intended for now as compared to if/else there is a lot
             # of logic actually still happening in the case matching.
@@ -390,7 +360,8 @@ class AstAnalyzer:
         if (
             length
             and isinstance(
-                node, ast.AsyncFunctionDef | ast.FunctionDef | ast.ClassDef | ast.Module
+                node,
+                Union[ast.AsyncFunctionDef, ast.FunctionDef, ast.ClassDef, ast.Module],
             )
             and ast.get_docstring(node)
         ):

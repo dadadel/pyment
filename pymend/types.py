@@ -2,6 +2,7 @@
 
 import ast
 import re
+import sys
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
 from typing import Optional, Union
@@ -714,3 +715,57 @@ class FunctionDocstring(DocstringInfo):
 ElementDocstring: TypeAlias = Union[ModuleDocstring, ClassDocstring, FunctionDocstring]
 DefinitionNodes: TypeAlias = Union[ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef]
 NodeOfInterest: TypeAlias = Union[DefinitionNodes, ast.Module]
+# Match and try star supported
+if sys.version_info >= (3, 11):
+    BodyTypes: TypeAlias = Union[
+        ast.Module,
+        ast.Interactive,
+        ast.FunctionDef,
+        ast.AsyncFunctionDef,
+        ast.ClassDef,
+        ast.For,
+        ast.AsyncFor,
+        ast.While,
+        ast.If,
+        ast.With,
+        ast.AsyncWith,
+        ast.Try,
+        ast.ExceptHandler,
+        ast.match_case,
+        ast.TryStar,
+    ]
+# Only match, no trystar
+elif sys.version_info == (3, 10):
+    BodyTypes: TypeAlias = Union[
+        ast.Module,
+        ast.Interactive,
+        ast.FunctionDef,
+        ast.AsyncFunctionDef,
+        ast.ClassDef,
+        ast.For,
+        ast.AsyncFor,
+        ast.While,
+        ast.If,
+        ast.With,
+        ast.AsyncWith,
+        ast.Try,
+        ast.ExceptHandler,
+        ast.match_case,
+    ]
+# Neither match nor trystar
+else:
+    BodyTypes: TypeAlias = Union[
+        ast.Module,
+        ast.Interactive,
+        ast.FunctionDef,
+        ast.AsyncFunctionDef,
+        ast.ClassDef,
+        ast.For,
+        ast.AsyncFor,
+        ast.While,
+        ast.If,
+        ast.With,
+        ast.AsyncWith,
+        ast.Try,
+        ast.ExceptHandler,
+    ]
