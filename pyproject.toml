@@ -50,53 +50,11 @@ force-params-min-n-params  = 2
 
 [tool.ruff]
 # Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
-select = [
-    "E",
-    "F",
-    "B",
-    "W",
-    "I",
-    "N",
-    "D",
-    "UP",
-    "YTT",
-    "ANN",
-    "S",
-    "BLE",
-    "FBT",
-    "A",
-    "C4",
-    "DTZ",
-    "T10",
-    "EXE",
-    "ISC",
-    "ICN",
-    "G",
-    "INP",
-    "PIE",
-    "PYI",
-    "PT",
-    "Q",
-    "RSE",
-    "RET",
-    "SLF",
-    "SIM",
-    "TID",
-    "TCH",
-    "INT",
-    "ARG",
-    "ERA",
-    "PD",
-    "PGH",
-    "PLC",
-    "PLE",
-    "PLR",
-    "PLW",
-    "TRY",
-    "NPY",
-    "RUF",
-]
-ignore = ["ANN101"]
+select = ["ALL"]
+# COM messes with black
+# PTH is too much work, will enable when it can autofix
+# Same for FA
+ignore = ["ANN101", "COM", "FA", "PTH", "C901", "PERF"]
 
 # Exclude a variety of commonly ignored directories.
 exclude = [
