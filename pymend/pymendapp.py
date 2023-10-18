@@ -244,12 +244,15 @@ def read_pyproject_toml(
 
     exclude = config.get("exclude")
     if exclude is not None and not isinstance(exclude, str):
-        raise click.BadOptionUsage("exclude", "Config key exclude must be a string")
+        raise click.BadOptionUsage(
+            "exclude", "Config key exclude must be a string"  # noqa: EM101
+        )
 
     extend_exclude = config.get("extend_exclude")
     if extend_exclude is not None and not isinstance(extend_exclude, str):
         raise click.BadOptionUsage(
-            "extend-exclude", "Config key extend-exclude must be a string"
+            "extend-exclude",  # noqa: EM101
+            "Config key extend-exclude must be a string",
         )
 
     default_map: dict[str, Any] = {}

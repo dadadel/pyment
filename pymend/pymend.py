@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import NamedTuple
 
+from click import echo
 from typing_extensions import Self
 
 import pymend.docstring_parser as dsp
@@ -558,7 +559,7 @@ class PyComment:
         if self.input_file == "-":
             sys.stdout.writelines(self._output.lst)
         elif self._input.lines != self._output.lines:
-            print(
+            echo(
                 "Modified docstrings of element"
                 f'{"s" if len(self._changed) > 1 else ""} '
                 f'({", ".join(self._changed)}) in file {self.input_file}.'

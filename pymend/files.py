@@ -67,7 +67,7 @@ def find_project_root(srcs: Sequence[str]) -> tuple[Path, str]:
 
     # Directory will always be set in the loop.
     # This is just for pylint.
-    directory = Path("")
+    directory = Path()
     for directory in (common_base, *common_base.parents):
         if (directory / ".git").exists():
             return directory, ".git directory"
