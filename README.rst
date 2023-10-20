@@ -32,7 +32,7 @@ with pyright| |pre-commit|
 Description
 ===========
 
-Command-line program to generate, update or transform docstrings python
+Command-line program to generate, update or transform docstrings in python
 source code.
 
 The app will parse the requested source files for docstrings as well as
