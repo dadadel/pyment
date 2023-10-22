@@ -33,7 +33,7 @@ jobs:
       - name: Lint with ruff
         uses: chartboost/ruff-action@v1
         with:
-          version: 0.1.0
+          version: 0.1.1
 
       - name: Typecheck with pyright
         uses: jakebailey/pyright-action@v1
