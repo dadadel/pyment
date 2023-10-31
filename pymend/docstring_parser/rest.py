@@ -256,7 +256,7 @@ def _get_chunks(text: str) -> tuple[str, str]:
 
 
 def _get_split_chunks(chunk: str) -> tuple[list[str], str]:
-    """Split a entry into args and description.
+    """Split an entry into args and description.
 
     Parameters
     ----------

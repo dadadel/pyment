@@ -3,8 +3,19 @@ from typing import Optional
 
 import pytest
 
-from pymend.docstring_parser.common import ParseError, RenderingStyle
-from pymend.docstring_parser.epydoc import compose, parse
+from pymend.docstring_parser.common import (
+    Docstring,
+    DocstringRaises,
+    DocstringReturns,
+    ParseError,
+    RenderingStyle,
+)
+from pymend.docstring_parser.epydoc import (
+    StreamToken,
+    _add_meta_information,
+    compose,
+    parse,
+)
 
 
 @pytest.mark.parametrize(
@@ -255,6 +266,12 @@ def test_meta_with_args() -> None:
     assert len(docstring.meta) == 1
     assert docstring.meta[0].args == ["meta", "ene", "due", "rabe"]
     assert docstring.meta[0].description == "asd"
+
+
+def test_unknown_meta() -> None:
+    """Test for correct behaviour when unknown section is encountered."""
+    with pytest.raises(ParseError):
+        _add_meta_information([StreamToken("weird", "", [], "")], {}, None)
 
 
 def test_params() -> None:
@@ -662,6 +679,17 @@ def test_broken_meta() -> None:
 def test_compose(source: str, expected: str) -> None:
     """Test compose in default mode."""
     assert compose(parse(source)) == expected
+
+
+def test_compose_docstring() -> None:
+    """Test compose in default mode."""
+    source = Docstring()
+    source.meta = [
+        DocstringRaises([], None, None),
+        DocstringReturns([], None, None, is_generator=False),
+    ]
+    expected = "@raise:"
+    assert compose(source) == expected
 
 
 @pytest.mark.parametrize(

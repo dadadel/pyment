@@ -3,7 +3,14 @@ from typing import Optional
 
 import pytest
 
-from pymend.docstring_parser.common import ParseError, RenderingStyle
+from pymend.docstring_parser.common import (
+    Docstring,
+    DocstringMeta,
+    DocstringParam,
+    DocstringRaises,
+    ParseError,
+    RenderingStyle,
+)
 from pymend.docstring_parser.rest import compose, parse
 
 
@@ -366,6 +373,14 @@ def test_returns() -> None:
     assert not docstring.returns.is_generator
     assert docstring.many_returns == [docstring.returns]
 
+    with pytest.raises(ParseError):
+        parse(
+            """
+        Short description
+        :returns other more int: description
+        """
+        )
+
 
 def test_yields() -> None:
     """Test parsing yields."""
@@ -406,6 +421,26 @@ def test_yields() -> None:
     assert docstring.many_returns is not None
     assert len(docstring.many_returns) == 0
 
+    docstring = parse(
+        """
+        Short description
+        :yields: description
+        :ytype: int
+        """
+    )
+    assert docstring.yields is not None
+    assert docstring.yields.type_name == "int"
+    assert docstring.yields.description == "description"
+    assert docstring.yields.is_generator
+
+    with pytest.raises(ParseError):
+        parse(
+            """
+        Short description
+        :yields other more int: description
+        """
+        )
+
 
 def test_raises() -> None:
     """Test parsing raises."""
@@ -435,6 +470,14 @@ def test_raises() -> None:
     assert len(docstring.raises) == 1
     assert docstring.raises[0].type_name == "ValueError"
     assert docstring.raises[0].description == "description"
+
+    with pytest.raises(ParseError):
+        parse(
+            """
+        Short description
+        :raises other more int: description
+        """
+        )
 
 
 def test_broken_meta() -> None:
@@ -529,6 +572,25 @@ def test_compose(rendering_style: RenderingStyle, expected: str) -> None:
         """
     )
     assert compose(docstring, rendering_style=rendering_style) == expected
+
+
+def test_compose_docstring() -> None:
+    """Test compose from pre-built docstring."""
+    source = Docstring()
+    source.meta = [
+        DocstringParam(
+            ["param"], "Some desc.", "arg1", "int", is_optional=True, default=None
+        ),
+        DocstringRaises(["raises"], "", None),
+        DocstringMeta(["meta"], "Some description"),
+        DocstringMeta(["meta"], ""),
+    ]
+    expected = """\
+:param int? arg1: Some desc.
+:raises:
+:meta: Some description
+:meta:"""
+    assert compose(source) == expected
 
 
 def test_short_rtype() -> None:

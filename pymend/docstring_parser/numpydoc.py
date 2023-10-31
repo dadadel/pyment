@@ -646,15 +646,15 @@ def process_examples(examples: list[DocstringExample], parts: list[str]) -> None
         for i, example in enumerate(examples):
             # Leave out newline for first example
             if i != 0:
-                parts.append("\n")
+                parts.append("")
             if example.description:
-                parts.append("\n".join(example.description.splitlines()))
+                parts.append(example.description)
                 # Only add a new line if we have an actual example snippet here.
                 # If not the next description will handle it.
                 if example.snippet:
-                    parts.append("\n")
+                    parts.append("")
             if example.snippet:
-                parts.append("\n".join(example.snippet.splitlines()))
+                parts.append(example.snippet)
         parts.append("")
 
 

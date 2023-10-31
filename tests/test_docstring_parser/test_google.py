@@ -3,7 +3,13 @@ from typing import Optional
 
 import pytest
 
-from pymend.docstring_parser.common import ParseError, RenderingStyle
+from pymend.docstring_parser.common import (
+    Docstring,
+    DocstringMeta,
+    DocstringRaises,
+    ParseError,
+    RenderingStyle,
+)
 from pymend.docstring_parser.google import (
     GoogleParser,
     Section,
@@ -72,6 +78,75 @@ def test_google_parser_custom_sections() -> None:
     assert docstring.meta[4].description == "second attribute"
     assert docstring.meta[5].args == ["examples"]
     assert docstring.meta[5].description == "Many examples\nMore examples"
+
+
+def test_google_parser_custom_sections_single_param() -> None:
+    """Test parsing an unknown section with custom GoogleParser."""
+    parser = GoogleParser(
+        [
+            Section("DESCRIPTION", "desc", SectionType.SINGULAR),
+            Section("ARGUMENTS", "param", SectionType.SINGULAR),
+        ],
+        title_colon=False,
+    )
+    with pytest.raises(ParseError):
+        parser.parse(
+            """
+            DESCRIPTION
+                This is the description.
+
+            ARGUMENTS
+                arg1: first arg
+            """
+        )
+
+
+def test_google_parser_custom_sections_single_raises() -> None:
+    """Test parsing an unknown section with custom GoogleParser."""
+    parser = GoogleParser(
+        [
+            Section("DESCRIPTION", "desc", SectionType.SINGULAR),
+            Section("RAISES", "raises", SectionType.SINGULAR),
+        ],
+        title_colon=False,
+    )
+    docstring = parser.parse(
+        """
+            DESCRIPTION
+                This is the description.
+
+            RAISES
+                Something gets raised
+            """
+    )
+    assert len(docstring.meta) == 2
+    assert docstring.meta[0].args == ["desc"]
+    assert docstring.meta[0].description == "This is the description."
+    assert docstring.meta[1].args == ["raises"]
+    assert docstring.meta[1].description == "Something gets raised"
+    assert docstring.meta[1].type_name is None
+
+
+def test_google_parser_custom_sections_other_multi() -> None:
+    """Test parsing an unknown section with custom GoogleParser."""
+    parser = GoogleParser(
+        [
+            Section("WEIRD", "weird", SectionType.MULTIPLE),
+        ],
+        title_colon=False,
+    )
+    docstring = parser.parse(
+        """
+            WEIRD
+                weird1: stuff
+                weird2: more stuff
+            """
+    )
+    assert len(docstring.meta) == 2
+    assert docstring.meta[0].args == ["weird", "weird1"]
+    assert docstring.meta[0].description == "stuff"
+    assert docstring.meta[1].args == ["weird", "weird2"]
+    assert docstring.meta[1].description == "more stuff"
 
 
 def test_google_parser_custom_sections_after() -> None:
@@ -1138,6 +1213,25 @@ def test_empty_example() -> None:
 def test_compose(source: str, expected: str) -> None:
     """Test compose in default mode."""
     assert compose(parse(source)) == expected
+
+
+def test_compose_docstring() -> None:
+    """Test compose from pre-built docstring."""
+    source = Docstring()
+    source.meta = [
+        DocstringRaises([], None, None),
+        DocstringMeta(["meta"], "Some description"),
+        DocstringMeta(["meta"], ""),
+    ]
+    expected = """\
+Raises:
+    :
+
+Meta:
+    Some description
+
+Meta:"""
+    assert compose(source) == expected
 
 
 @pytest.mark.parametrize(

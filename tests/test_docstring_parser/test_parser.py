@@ -1,10 +1,12 @@
 """Tests for generic docstring routines."""
 import re
+from unittest.mock import patch
 
 import pytest
 
+from pymend.docstring_parser import parser
 from pymend.docstring_parser.common import Docstring, DocstringStyle, ParseError
-from pymend.docstring_parser.parser import compose, parse
+from pymend.docstring_parser.parser import compose, parse, rest
 
 
 def test_rest() -> None:
@@ -200,6 +202,26 @@ def test_autodetection_error_detection() -> None:
 
     assert docstring
     assert docstring.style == DocstringStyle.GOOGLE
+
+
+def test_autodetection_error() -> None:
+    """Test autodetection.
+
+    Case where all available parsers fail.
+    """
+    source = """
+    Does something useless
+
+    :param 3 + 3 a: a param
+    """
+    patched_map = {
+        DocstringStyle.REST: rest,
+        DocstringStyle.EPYDOC: rest,
+    }
+    with patch("pymend.docstring_parser.parser._STYLE_MAP", patched_map), pytest.raises(
+        ParseError
+    ):
+        parser.parse(source)
 
 
 def test_compose_empty_docstring() -> None:

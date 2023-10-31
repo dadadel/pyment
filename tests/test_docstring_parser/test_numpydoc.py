@@ -3,7 +3,32 @@ from typing import Optional
 
 import pytest
 
-from pymend.docstring_parser.numpydoc import compose, parse
+from pymend.docstring_parser.common import (
+    Docstring,
+    DocstringMeta,
+    DocstringParam,
+    DocstringRaises,
+)
+from pymend.docstring_parser.numpydoc import NumpydocParser, Section, compose, parse
+
+
+def test_numpydoc_parser_custom_sections() -> None:
+    """Test parsing an unknown section with custom GoogleParser."""
+    parser = NumpydocParser()
+    parser.add_section(Section("Weird", "weird"))
+    docstring = parser.parse(
+        """Short desc.
+
+        Weird
+        -----
+        weird1 desc.
+        """
+    )
+
+    assert docstring.short_description == "Short desc."
+    assert len(docstring.meta) == 1
+    assert docstring.meta[0].args == ["weird"]
+    assert docstring.meta[0].description == "weird1 desc."
 
 
 @pytest.mark.parametrize(
@@ -1202,9 +1227,18 @@ def test_deprecation(
             "        description",
         ),
         (
-            """
-            Description
-            Examples:
+            """Description
+
+            Examples
+            --------
+            Just a description
+            """,
+            "Description\n\nExamples\n--------\nJust a description",
+        ),
+        (
+            """Description
+
+            Examples
             --------
             >>> test1a
             >>> test1b
@@ -1216,7 +1250,8 @@ def test_deprecation(
             desc2b
             """,
             "Description\n"
-            "Examples:\n"
+            "\n"
+            "Examples\n"
             "--------\n"
             ">>> test1a\n"
             ">>> test1b\n"
@@ -1227,8 +1262,99 @@ def test_deprecation(
             "desc2a\n"
             "desc2b",
         ),
+        (
+            """Description
+
+            Examples
+            --------
+            >>> import numpy.matlib
+            >>> np.matlib.empty((2, 2))    # filled with random data
+            matrix([[  6.76425276e-320,   9.79033856e-307], # random
+                    [  7.39337286e-309,   3.22135945e-309]])
+
+            Description for the second example.
+
+            >>> d = np.zeros((5,2))
+            >>> for i in range(5):
+            ...   for j in range(2):
+            ...     for k in range(3):
+            ...       for n in range(4):
+            ...         d[i,j] += a[k,n,i] * b[n,k,j]
+            >>> c == d
+            array([[ True,  True],
+                [ True,  True],
+                [ True,  True],
+                [ True,  True],
+                [ True,  True]])
+            """,
+            "Description\n"
+            "\n"
+            "Examples\n"
+            "--------\n"
+            ">>> import numpy.matlib\n"
+            ">>> np.matlib.empty((2, 2))    # filled with random data\n"
+            "matrix([[  6.76425276e-320,   9.79033856e-307], # random\n"
+            "        [  7.39337286e-309,   3.22135945e-309]])\n"
+            "\n"
+            "Description for the second example.\n"
+            "\n"
+            ">>> d = np.zeros((5,2))\n"
+            ">>> for i in range(5):\n"
+            "...   for j in range(2):\n"
+            "...     for k in range(3):\n"
+            "...       for n in range(4):\n"
+            "...         d[i,j] += a[k,n,i] * b[n,k,j]\n"
+            ">>> c == d\n"
+            "array([[ True,  True],\n"
+            "    [ True,  True],\n"
+            "    [ True,  True],\n"
+            "    [ True,  True],\n"
+            "    [ True,  True]])",
+        ),
+        (
+            """Description
+
+            .. deprecated:: 1.6.0
+                This description has
+                multiple lines!""",
+            "Description\n"
+            "\n"
+            ".. deprecated:: 1.6.0\n"
+            "    This description has\n"
+            "    multiple lines!",
+        ),
     ],
 )
 def test_compose(source: str, expected: str) -> None:
     """Test compose in default mode."""
     assert compose(parse(source)) == expected
+
+
+def test_compose_docstring() -> None:
+    """Test compose from pre-built docstring."""
+    source = Docstring()
+    source.meta = [
+        DocstringParam(
+            ["param"], "Some desc.", "arg1", "int", is_optional=True, default=None
+        ),
+        DocstringRaises(["raises"], "", None),
+        DocstringMeta(["meta"], "Some description"),
+        DocstringMeta(["meta"], ""),
+    ]
+    expected = """\
+Parameters
+----------
+arg1 : int, optional
+    Some desc.
+
+Raises
+------
+
+
+Meta
+----
+Some description
+
+Meta
+----"""
+    assert compose(source) == expected
