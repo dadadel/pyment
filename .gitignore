@@ -11,6 +11,7 @@ build
 
 *code-workspace
 .coverage
+coverage.json
 /venv
 
 # Sphinx documentation

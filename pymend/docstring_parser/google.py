@@ -308,7 +308,6 @@ class GoogleParser:
             Mapping between sectrion title and part of the docstring that deals with it.
         """
         chunks: Mapping[str, str] = OrderedDict()
-
         matches = list(self.titles_re.finditer(meta_chunk))
         if not matches:
             return chunks
@@ -316,7 +315,6 @@ class GoogleParser:
             (matches[j].end(), matches[j + 1].start()) for j in range(len(matches) - 1)
         ]
         splits.append((matches[-1].end(), len(meta_chunk)))
-
         for j, (start, end) in enumerate(splits):
             title = matches[j].group(1)
             if title not in self.sections:

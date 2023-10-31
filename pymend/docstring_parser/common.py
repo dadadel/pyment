@@ -116,7 +116,6 @@ class DocstringRaises(DocstringMeta):
     """DocstringMeta symbolizing :raises metadata."""
 
     type_name: Optional[str]
-    description: Optional[str]
 
 
 MainSections: TypeAlias = Union[
