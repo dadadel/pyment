@@ -123,6 +123,7 @@ exclude                            = ["tests"]
 typeCheckingMode                   = "strict"
 strictListInference                = true
 strictDictionaryInference          = true
+reportDeprecated                   = "warning"
 reportPropertyTypeMismatch         = "error"
 reportFunctionMemberAccess         = "error"
 reportMissingTypeStubs             = "error"

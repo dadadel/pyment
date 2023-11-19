@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import NamedTuple
 
 from click import echo
-from typing_extensions import Self
 
 import pymend.docstring_parser as dsp
 
@@ -391,7 +390,7 @@ class PyComment:
             )
             raise AssertionError(msg) from None
 
-    def __copy_from_output(self) -> Self:
+    def __copy_from_output(self) -> "PyComment":
         """Create a new PyComment with the same output style and lines from the input.
 
         Parameters
@@ -402,7 +401,7 @@ class PyComment:
 
         Returns
         -------
-        Self
+        'PyComment'
             The new instance with the same output style and lines initialized
             by the `lines` argument.
         """
