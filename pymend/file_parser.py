@@ -24,7 +24,7 @@ from .types import (
 )
 
 __author__ = "J-E. Nitschke"
-__copyright__ = "Copyright 2023-2023"
+__copyright__ = "Copyright 2023-2024"
 __licence__ = "GPL3"
 __version__ = "1.0.0"
 __maintainer__ = "J-E. Nitschke"
