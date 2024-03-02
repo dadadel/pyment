@@ -2,6 +2,7 @@
 
 .. seealso:: http://epydoc.sourceforge.net/manual-fields.html
 """
+
 import inspect
 import re
 from typing import NamedTuple, Optional

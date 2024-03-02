@@ -11,7 +11,10 @@ from click import echo, style
 
 
 def out(
-    message: Optional[str] = None, *, nl: bool = True, **styles: Any  # noqa: ANN401
+    message: Optional[str] = None,
+    *,
+    nl: bool = True,
+    **styles: Any,  # noqa: ANN401
 ) -> None:
     """Output normal message.
 
@@ -32,7 +35,10 @@ def out(
 
 
 def err(
-    message: Optional[str] = None, *, nl: bool = True, **styles: Any  # noqa: ANN401
+    message: Optional[str] = None,
+    *,
+    nl: bool = True,
+    **styles: Any,  # noqa: ANN401
 ) -> None:
     """Output error message.
 

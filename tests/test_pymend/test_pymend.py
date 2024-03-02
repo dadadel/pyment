@@ -1,6 +1,5 @@
 """Test general pymend functionality."""
 
-
 import os
 import pathlib
 import re

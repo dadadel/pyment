@@ -49,13 +49,6 @@ force-meta-min-func-length = 5
 force-params-min-n-params  = 2
 
 [tool.ruff]
-# Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
-select = ["ALL"]
-# COM messes with black
-# PTH is too much work, will enable when it can autofix
-# Same for FA
-ignore = ["ANN101", "COM", "FA", "PTH", "C901", "PERF"]
-
 # Exclude a variety of commonly ignored directories.
 exclude = [
     ".bzr",
@@ -87,22 +80,40 @@ exclude = [
 # Same as Black.
 line-length = 88
 
-# Allow unused variables when underscore-prefixed.
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
-
 # Assume Python 3.8.
 target-version = "py39"
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint]
+# Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
+select = ["ALL"]
+# COM messes with black
+# PTH is too much work, will enable when it can autofix
+# Same for FA
+ignore = [
+    # Due to formatter conflict
+    "COM812",
+    "ISC001",
+    "C901",   # Do not like
+    "ANN101", # Super stupid rule
+    "FA100",  # I like the import
+    "PERF",   # False positives and no real benefit
+    "PTH",    # Later maybe, definitely when there is autofix
+]
+# ignore = ["ANN101", "COM", "FA", "PTH", "C901", "PERF"]
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+
+[tool.ruff.lint.per-file-ignores]
 "__init__.py"                     = ["E402", "F401"]
 "tests/*/test_*.py"               = ["S101", "SLF001", "ANN101", "ANN102", "PLR2004"]
 "pymend/docstring_parser/rest.py" = ["PLR2004"]
 "pymend/const.py"                 = ["E501"]
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "numpy" # Accepts: "google", "numpy", or "pep257".
 
-[tool.ruff.pylint]
+[tool.ruff.lint.pylint]
 max-args = 10
 
 [tool.black]

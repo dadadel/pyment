@@ -1,4 +1,5 @@
 """Tests for Google-style docstring routines."""
+
 from typing import Optional
 
 import pytest
@@ -1168,10 +1169,7 @@ def test_empty_example() -> None:
                 int: description
             """,
             # fmt: off
-            "Short description\n"
-            "\n"
-            "Returns:\n"
-            "    int: description"
+            "Short description\n" "\n" "Returns:\n" "    int: description",
             # fmt: on
         ),
         (
@@ -1182,10 +1180,7 @@ def test_empty_example() -> None:
                 int: description
             """,
             # fmt: off
-            "Short description\n"
-            "\n"
-            "Yields:\n"
-            "    int: description"
+            "Short description\n" "\n" "Yields:\n" "    int: description",
             # fmt: on
         ),
         (
@@ -1205,7 +1200,7 @@ def test_empty_example() -> None:
             "    int: description with return last\n"
             "\n"
             "Yields:\n"
-            "    Optional[Mapping[str, List[int]]]: A description: with a colon"
+            "    Optional[Mapping[str, List[int]]]: A description: with a colon",
             # fmt: on
         ),
     ],

@@ -33,12 +33,12 @@ jobs:
       - name: Lint with ruff
         uses: chartboost/ruff-action@v1
         with:
-          version: 0.1.11
+          version: 0.3.0
 
       - name: Typecheck with pyright
         uses: jakebailey/pyright-action@v1
         with:
-          version: 1.1.344
+          version: 1.1.352
 
       - name: Thorough check with pylint
         run: pylint pymend

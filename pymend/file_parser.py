@@ -3,11 +3,10 @@
 import ast
 import re
 import sys
-from typing import Optional, Union, get_args
+from typing import Optional, Union, get_args, overload
 
 from typing_extensions import TypeGuard
 
-from .docstring_parser.attrdoc import ast_unparse
 from .types import (
     BodyTypes,
     ClassDocstring,
@@ -28,6 +27,33 @@ __copyright__ = "Copyright 2023-2024"
 __licence__ = "GPL3"
 __version__ = "1.0.0"
 __maintainer__ = "J-E. Nitschke"
+
+
+@overload
+def ast_unparse(node: None) -> None: ...
+
+
+@overload
+def ast_unparse(node: ast.AST) -> str: ...
+
+
+def ast_unparse(node: Optional[ast.AST]) -> Optional[str]:
+    """Convert the AST node to source code as a string.
+
+    Parameters
+    ----------
+    node : Optional[ast.AST]
+        Node to unparse.
+
+    Returns
+    -------
+    Optional[str]
+        `None` if `node` was `None`.
+        Otherwise the unparsed node.
+    """
+    if node is None:
+        return None
+    return ast.unparse(node)
 
 
 class AstAnalyzer:
@@ -258,11 +284,13 @@ class AstAnalyzer:
             )
             return DocstringInfo(
                 # Can not use DefinitionNodes in isinstance checks before 3.10
-                name=node.name
-                if isinstance(
-                    node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
-                )
-                else "Module",
+                name=(
+                    node.name
+                    if isinstance(
+                        node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+                    )
+                    else "Module"
+                ),
                 docstring=str(docnode.value),
                 lines=(docnode.lineno, docnode.end_lineno),
                 modifier=modifier,

@@ -1,4 +1,5 @@
 """Common methods for parsing."""
+
 import enum
 from dataclasses import dataclass
 from typing import Optional, Union

@@ -1,4 +1,5 @@
 """Tests for ReST-style docstring routines."""
+
 from typing import Optional
 
 import pytest

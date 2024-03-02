@@ -1,6 +1,5 @@
 """Unit tests for pymend.types."""
 
-
 import pytest
 
 from pymend.types import Parameter

@@ -1,4 +1,5 @@
 """Utility functions for working with docstrings."""
+
 from collections import ChainMap
 from collections.abc import Iterable
 from inspect import Signature

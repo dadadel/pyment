@@ -1,4 +1,5 @@
 """Tests for generic docstring routines."""
+
 import re
 from unittest.mock import patch
 
@@ -218,8 +219,9 @@ def test_autodetection_error() -> None:
         DocstringStyle.REST: rest,
         DocstringStyle.EPYDOC: rest,
     }
-    with patch("pymend.docstring_parser.parser._STYLE_MAP", patched_map), pytest.raises(
-        ParseError
+    with (
+        patch("pymend.docstring_parser.parser._STYLE_MAP", patched_map),
+        pytest.raises(ParseError),
     ):
         parser.parse(source)
 

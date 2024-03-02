@@ -1,4 +1,5 @@
 """Summarize pymend runs to users."""
+
 from dataclasses import dataclass, field
 from enum import Enum
 

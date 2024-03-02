@@ -30,19 +30,15 @@ repos:
       - id: check-builtin-literals
         language: python
   - repo: "https://github.com/charliermarsh/ruff-pre-commit"
-    rev: v0.1.11
+    rev: v0.3.0
     hooks:
       - id: ruff
         args:
           - "--fix"
           - "--exit-non-zero-on-fix"
-  - repo: "https://github.com/psf/black"
-    rev: 23.12.1
-    hooks:
-      - id: black
-        language: python
+      - id: ruff-format
   - repo: https://github.com/crate-ci/typos
-    rev: v1.17.0
+    rev: v1.19.0
     hooks:
       - id: typos
         args: []

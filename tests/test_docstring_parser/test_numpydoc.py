@@ -1,4 +1,5 @@
 """Tests for numpydoc-style docstring routines."""
+
 from typing import Optional
 
 import pytest
@@ -825,10 +826,7 @@ def test_simple_sections() -> None:
     [
         (
             # fmt: off
-            "Description\n"
-            "Examples\n"
-            "--------\n"
-            ">>> test",
+            "Description\n" "Examples\n" "--------\n" ">>> test",
             # fmt: on
             [
                 (">>> test", ""),
@@ -836,11 +834,7 @@ def test_simple_sections() -> None:
         ),
         (
             # fmt: off
-            "Description\n"
-            "Examples\n"
-            "--------\n"
-            ">>> testa\n"
-            ">>> testb",
+            "Description\n" "Examples\n" "--------\n" ">>> testa\n" ">>> testb",
             # fmt: on
             [
                 (">>> testa\n>>> testb", ""),
@@ -848,13 +842,7 @@ def test_simple_sections() -> None:
         ),
         (
             # fmt: off
-            "Description\n"
-            "Examples\n"
-            "--------\n"
-            "\n"
-            "desc1\n"
-            "\n"
-            ">>> test1",
+            "Description\n" "Examples\n" "--------\n" "\n" "desc1\n" "\n" ">>> test1",
             # fmt: on
             [
                 (">>> test1", "desc1"),

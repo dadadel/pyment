@@ -1,4 +1,5 @@
 """Tests for epydoc-style docstring routines."""
+
 from typing import Optional
 
 import pytest
@@ -657,9 +658,7 @@ def test_broken_meta() -> None:
             @rtype: int
             """,
             # fmt: off
-            "Short description\n"
-            "@rtype: int\n"
-            "@return: description"
+            "Short description\n" "@rtype: int\n" "@return: description",
             # fmt: on
         ),
         (
@@ -669,9 +668,7 @@ def test_broken_meta() -> None:
             @ytype: int
             """,
             # fmt: off
-            "Short description\n"
-            "@ytype: int\n"
-            "@yield: description"
+            "Short description\n" "@ytype: int\n" "@yield: description",
             # fmt: on
         ),
     ],
